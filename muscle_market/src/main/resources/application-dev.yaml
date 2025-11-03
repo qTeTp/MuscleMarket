@@ -1,0 +1,25 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${LOCAL_PSQL_URL}
+    username: ${LOCAL_PSQL_USERNAME}
+    password: ${LOCAL_PSQL_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
+
+# logging:
+#   level:
+#     org.hibernate.SQL: debug
+#     org.hibernate.type.descriptor.sql.BasicBinder: trace

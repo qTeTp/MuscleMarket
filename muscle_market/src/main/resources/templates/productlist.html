@@ -1,0 +1,115 @@
+<!--일단 임시 페이지-->
+
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 목록</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        /* 그리드 컨테이너: 가로 4줄을 위한 설정 */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4개의 동일한 너비 열 */
+            gap: 20px; /* 상품 간 간격 */
+        }
+
+        /* 각 상품 카드 스타일 */
+        .product-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
+            list-style: none;
+        }
+
+        .product-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .product-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-price {
+            color: #ff4757;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .product-info {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* 페이지네이션 스타일 */
+        .pagination {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .pagination a {
+            padding: 8px 12px;
+            margin: 0 4px;
+            border: 1px solid #ddd;
+            text-decoration: none;
+            color: #333;
+            border-radius: 4px;
+        }
+
+        .pagination a.active {
+            background-color: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<h1>경제적인 장비 업그레이드</h1>
+<h2>나를 죽이지 못한 고통은 나를 더 강하게 만든다</h2>
+
+<ul class="product-grid">
+    <li th:each="product : ${productPage.content}" class="product-item">
+        <a th:href="@{'/products/' + ${product.id}}">
+            <img th:src="${product.thumbnailUrl} ?: '/images/no_image.png'" alt="상품 이미지">
+        </a>
+
+        <div class="product-title" th:text="${product.title}">덤벨 세트 20kg</div>
+        <div class="product-price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">
+            50,000원
+        </div>
+
+        <div class="product-info">
+            <span th:text="${product.location}">서울 강남구</span> |
+            <span th:text="${product.sportName}">헬스</span>
+        </div>
+        <div class="product-info">
+            <span>조회수️ <span th:text="${product.views}">120</span></span> |
+            <span>찜 <span th:text="${product.likeCount}">2</span></span>
+        </div>
+    </li>
+</ul>
+
+<div class="pagination" th:if="${productPage.totalPages > 0}">
+        <span th:each="pageNum : ${#numbers.sequence(0, productPage.totalPages - 1)}">
+            <a th:href="@{/products/list(page=${pageNum})}"
+               th:class="${pageNum == currentPage ? 'active' : ''}"
+               th:text="${pageNum + 1}">1</a>
+        </span>
+</div>
+
+</body>
+</html>
