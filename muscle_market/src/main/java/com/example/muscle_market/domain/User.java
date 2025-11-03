@@ -1,11 +1,16 @@
 package com.example.muscle_market.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,6 +19,7 @@ public class User {
     @Column(nullable = false)
     private String email;
 
+    // 로그인 아이디
     @Column(nullable = false)
     private String username;
 
@@ -24,7 +30,7 @@ public class User {
     private String nickname;
 
     @Column(nullable = false)
-    private String profileImgUrl;
+    private String profileImgUrl = "/images/user.png";  // 기본 이미지
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
