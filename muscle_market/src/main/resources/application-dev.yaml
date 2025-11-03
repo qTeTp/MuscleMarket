@@ -1,14 +1,11 @@
 spring:
-  config:
-    import: optional:file:.env[.properties]
-
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: ${LOCAL_PSQL_URL}
-    username: ${LOCAL_PSQL_USERNAME}
-    password: ${LOCAL_PSQL_PASSWORD}
+    url: jdbc:h2:mem:musclemarket;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
   jpa:
-    open-in-view: false
     hibernate:
       ddl-auto: update
     show-sql: true
@@ -16,8 +13,35 @@ spring:
       hibernate:
         format_sql: true
 
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
 server:
   port: 8080
+
+
+#spring:
+#  config:
+#    import: optional:file:.env[.properties]
+#
+#  datasource:
+#    driver-class-name: org.postgresql.Driver
+#    url: ${LOCAL_PSQL_URL}
+#    username: ${LOCAL_PSQL_USERNAME}
+#    password: ${LOCAL_PSQL_PASSWORD}
+#  jpa:
+#    open-in-view: false
+#    hibernate:
+#      ddl-auto: update
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+#
+#server:
+#  port: 8080
 
 # logging:
 #   level:
