@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${STAGE_RDS_URL}
+    username: ${STAGE_RDS_USERNAME}
+    password: ${STAGE_RDS_PASSWORD}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 5000
+  forward-headers-strategy: framework
