@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${PROD_RDS_URL}
+    username: ${PROD_RDS_USERNAME}
+    password: ${PROD_RDS_PASSWORD}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 5000
+  forward-headers-strategy: framework

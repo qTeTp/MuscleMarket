@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: muscle_market
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE}
+  sql:
+    init:
+      # later change to never
+      mode: always
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+
+# google:
+#   maps:
+#     api:
+#       key: ${GOOGLE_MAPS_API_KEY}
+
+# aws:
+#   region: ${APP_S3_REGION}
+#   s3:
+#     bucket-name: ${APP_S3_BUCKET}
+#     prefix: ${APP_S3_PREFIX}
+#     public-base-url: ${APP_S3_PUBLIC_BASE_URL}
