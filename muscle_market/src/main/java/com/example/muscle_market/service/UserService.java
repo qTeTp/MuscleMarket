@@ -1,8 +1,13 @@
 package com.example.muscle_market.service;
 
+import com.example.muscle_market.config.JwtUtil;
+import com.example.muscle_market.dto.LoginDto;
 import com.example.muscle_market.dto.UserDto;
 import com.example.muscle_market.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.muscle_market.domain.User;
@@ -14,12 +19,14 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 
     // 이메일 정규식 패턴
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
 
-
+    // 회원가입 기능
     public User singUp(UserDto userDto){
         // 아이디 중복 체크
         if (userRepository.findByUsername(userDto.getUsername()).isPresent()){
@@ -55,5 +62,18 @@ public class UserService {
         user.setIsOnboarded(false); // 초기값 false
 
         return userRepository.save(user);
+    }
+
+    // 로그인 기능
+    public String login(LoginDto loginDto){
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginDto.getUsername(),
+                        loginDto.getPassword()
+                )
+        );
+
+        // 인증 성공 시 JWT 발급
+        return jwtUtil.generateToken(loginDto.getUsername());
     }
 }
