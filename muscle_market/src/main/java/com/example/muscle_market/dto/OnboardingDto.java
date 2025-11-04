@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 public class OnboardingDto {
 
-    @NotNull
+    @NotBlank
     private String sportName;
     @NotNull
     private SkillLevel skillLevel;
