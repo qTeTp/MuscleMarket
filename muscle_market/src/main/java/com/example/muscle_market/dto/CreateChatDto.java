@@ -12,11 +12,13 @@ public class CreateChatDto {
     private List<Long> participantIds;
     private String initialMessage;
     private String chatTitle;
+    private Long productId;
 
     @Builder
-    public CreateChatDto(List<Long> participantIds, String initialMessage, String chatTitle) {
+    public CreateChatDto(List<Long> participantIds, String initialMessage, String chatTitle, Long productId) {
         this.participantIds = participantIds;
         this.initialMessage = initialMessage;
         this.chatTitle = chatTitle;
+        this.productId = productId;
     }
 }

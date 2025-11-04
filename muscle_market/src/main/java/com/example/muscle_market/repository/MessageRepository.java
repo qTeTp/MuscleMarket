@@ -10,22 +10,23 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.muscle_market.domain.Message;
+import com.example.muscle_market.dto.ChatMessageResponse;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
     // 채팅방 메시지 전체 조회 시 추후 페이지네이션 적용 필요한 쿼리
-    // @Query("SELECT new com.example.muscle_market.dto.ChatMessageResponse(" +
-    //        "    m.chat.chatId, " +
-    //        "    new com.example.muscle_market.dto.ChatUserDto(" +
-    //        "        m.sender.userId, m.sender.nickname, m.sender.profileImageUrl" +
-    //        "    ), " +
-    //        "    m.content, " +
-    //        "    m.createdAt" +
-    //        ") " +
-    //        "FROM Message m " +
-    //        "WHERE m.chat.chatId = :chatId " +
-    //        "ORDER BY m.createdAt ASC")
-    // List<ChatMessageResponse> findAllMessagesByChatId(@Param("chatId") Long chatId);
+    @Query("SELECT new com.example.muscle_market.dto.ChatMessageResponse(" +
+           "    m.chat.chatId, " +
+           "    new com.example.muscle_market.dto.ChatUserDto(" +
+           "        m.sender.id, m.sender.nickname, m.sender.profileImgUrl" +
+           "    ), " +
+           "    m.content, " +
+           "    m.createdAt" +
+           ") " +
+           "FROM Message m " +
+           "WHERE m.chat.chatId = :chatId " +
+           "ORDER BY m.createdAt ASC")
+    List<ChatMessageResponse> findAllMessagesByChatId(@Param("chatId") Long chatId);
 
     // 여러 채팅방의 마지막 메시지 조회 (채팅방 리스트 보여줄 때 사용)
     @Query("SELECT m FROM Message m JOIN FETCH m.chat c " +
