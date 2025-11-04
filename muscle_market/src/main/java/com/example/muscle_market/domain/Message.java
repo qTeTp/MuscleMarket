@@ -31,14 +31,14 @@ public class Message {
     @JoinColumn(name = "chat_id", nullable = false)
     private Chat chat;
 
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "sender_id", nullable = false)
-    // private User sender;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id", nullable = false)
+    private User sender;
 
-    // @Builder
-    // public Message(String content, User sender, Chat chat) {
-    //     this.content = content;
-    //     this.sender = sender;
-    //     this.chat = chat;
-    // }
+    @Builder
+    public Message(String content, User sender, Chat chat) {
+        this.content = content;
+        this.sender = sender;
+        this.chat = chat;
+    }
 }

@@ -40,18 +40,18 @@ public class UserChatRelationship {
     @JoinColumn(name = "chat_id", nullable = false)
     private Chat chat;
 
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "user_id", nullable = false)
-    // private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 
-    // @Builder
-    // public UserChatRelationShip(User user, Chat chat, RelationshipStatus status) {
-    //     this.user = user;
-    //     this.chat = chat;
-    //     this.status = status;
-    //     updateLastReadAt();
-    // }
+    @Builder
+    public UserChatRelationship(User user, Chat chat, RelationshipStatus status) {
+        this.user = user;
+        this.chat = chat;
+        this.status = status;
+        updateLastReadAt();
+    }
 
     // update lastReadAt to current time
     public void updateLastReadAt() {
