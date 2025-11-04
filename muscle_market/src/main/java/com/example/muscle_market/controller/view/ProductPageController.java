@@ -12,6 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Optional;
+
 @Controller
 @RequiredArgsConstructor
 public class ProductPageController {
@@ -24,13 +26,14 @@ public class ProductPageController {
     public String productList(
             // 현재 페이지 번호 (0부터 시작, 기본값 0)
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) Long sportId,
             Model model) {
 
         // Pageable 객체 생성
         // 현재 페이지, 페이지 크기, 정렬 기준 (최신순)
         Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("createdAt").descending());
 
-        Page<ProductListDto> productPage = productService.getProductList(pageable);
+        Page<ProductListDto> productPage = productService.getProductList(Optional.ofNullable(sportId), pageable);
 
         // 데이터 전달
         model.addAttribute("productPage", productPage);

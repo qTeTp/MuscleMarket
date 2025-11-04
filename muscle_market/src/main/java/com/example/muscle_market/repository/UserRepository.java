@@ -6,7 +6,7 @@ import com.example.muscle_market.domain.User;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Long> {
     // 디비에서 username으로 조회
     Optional<User> findByUsername(String username);
     // 디비에서 nickname으로 조회
