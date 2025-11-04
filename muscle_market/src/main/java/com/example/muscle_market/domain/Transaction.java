@@ -37,5 +37,4 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_post_idx")
     private Product product;
-
 }

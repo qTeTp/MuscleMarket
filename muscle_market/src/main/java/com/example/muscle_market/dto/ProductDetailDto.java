@@ -14,12 +14,16 @@ public class ProductDetailDto {
     private String description;
     private Float price;
     private String location;
+    private List<String> productImageUrls; // 이미지 URL 리스트
+    private String status;
+
     private Date createdAt;
     private Date updatedAt;
     private Long views;
 
-    private String authorName; // 작성자 닉네임
+    // dto에서 작정자 정보 추출
+    private UserDto user;
     private String sportName; // 운동
-    private List<String> imageUrls; // 이미지 URL 리스트
+
     private Long likeCount;
 }

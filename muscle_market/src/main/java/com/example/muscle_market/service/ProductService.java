@@ -1,19 +1,24 @@
 package com.example.muscle_market.service;
 
 import com.example.muscle_market.domain.Product;
+import com.example.muscle_market.domain.ProductImage;
+import com.example.muscle_market.domain.Sport;
+import com.example.muscle_market.domain.User;
+import com.example.muscle_market.dto.ProductCreateDto;
 import com.example.muscle_market.dto.ProductDetailDto;
 import com.example.muscle_market.dto.ProductListDto;
-import com.example.muscle_market.repository.ProductImageRepository;
-import com.example.muscle_market.repository.ProductLikeRepository;
-import com.example.muscle_market.repository.ProductRepository;
+import com.example.muscle_market.dto.UserDto;
+import com.example.muscle_market.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,35 +26,8 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductLikeRepository productLikeRepository;
-
-    @Transactional(readOnly = true)
-    public List<ProductListDto> getProductList() {
-        // 모든 Product 엔티티를 조회
-        List<Product> products = productRepository.findAll();
-
-        // DTO 변환
-        return products.stream().map(product -> {
-            // 좋아요 수 계산
-            long likeCount = productLikeRepository.countByProductId(product.getId());
-
-            // 썸네일 이미지 URL 조회 (id가 가장 낮은 이미지)
-            String thumbnailUrl = productImageRepository
-                    .findThumbnailUrlByProductId(product.getId())
-                    .orElse(null); // 이미지가 없을 경우
-
-            return ProductListDto.builder()
-                    .id(product.getId())
-                    .title(product.getTitle())
-                    .price(product.getPrice())
-                    .location(product.getLocation())
-                    .views(product.getViews())
-                    .likeCount(likeCount)
-                    .thumbnailUrl(thumbnailUrl)
-                    .sportName(product.getSport().getName())
-                    .createdAt(product.getCreatedAt())
-                    .build();
-        }).collect(Collectors.toList());
-    }
+    private final UserRepository userRepository;
+    private final SportRepository sportRepository;
 
     // 제품 상세 정보 조회
     @Transactional // 조회수 증가 때문에 트랜잭션을 ReadOnly = false로 설정
@@ -67,6 +45,15 @@ public class ProductService {
         // 모든 이미지 URL 조회
         List<String> imageUrls = productImageRepository.findAllImageUrlsByProductId(productId);
 
+        User writer = product.getUser();
+        UserDto userDto = null;
+        if (writer != null) {
+            userDto = UserDto.builder()
+                    .id(writer.getId())
+                    .nickname(writer.getNickname())
+                    .build();
+        }
+
         // DTO로 변환하여 반환
         return ProductDetailDto.builder()
                 .id(product.getId())
@@ -74,23 +61,35 @@ public class ProductService {
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .location(product.getLocation())
-                .createdAt(product.getCreatedAt())
-                .updatedAt(product.getUpdatedAt())
+                .productImageUrls(imageUrls) // 이미지 URL 리스트 사용
+                .status("판매중") // 거래 상태는 아직 미구현 임시값 부여
                 .views(product.getViews())
                 .likeCount(likeCount)
-//                .authorName(product.getUser().getName())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
+                .user(userDto) // userDto 포함 필요한 거만 뽑아서 쓰기
                 .sportName(product.getSport().getName())
-                .imageUrls(imageUrls)
                 .build();
     }
 
     // 페이지에서 제품 리스트 조회
-    public Page<ProductListDto> getProductList(Pageable pageable) {
-        Page<Product> productPage = productRepository.findAllWithSport(pageable);
+    // 종목 있는 경우도 여기서 처리
+    @Transactional(readOnly = true)
+    public Page<ProductListDto> getProductList(Optional<Long> sportId, Pageable pageable) {
+        Page<Product> productPage;
+
+        if (sportId.isPresent()) {
+            // 카테고리가 있을 경우 - 해당 카테고리만 조회
+            productPage = productRepository.findAllBySportIdWithSport(sportId.get(), pageable);
+        } else {
+            // 카테고리가 없을 경우- 전체 조회
+            productPage = productRepository.findAllWithSport(pageable);
+        }
 
         // DTO로 변환
         return productPage.map(product -> {
             long likeCount = productLikeRepository.countByProductId(product.getId());
+
             String thumbnailUrl = productImageRepository
                     .findThumbnailUrlByProductId(product.getId())
                     .orElse("default_image.jpg"); // 기본 이미지 설정
@@ -98,14 +97,68 @@ public class ProductService {
             return ProductListDto.builder()
                     .id(product.getId())
                     .title(product.getTitle())
+                    .description(product.getDescription())
                     .price(product.getPrice())
                     .location(product.getLocation())
+                    .sportName(product.getSport().getName())
                     .views(product.getViews())
                     .likeCount(likeCount)
                     .thumbnailUrl(thumbnailUrl)
-                    .sportName(product.getSport().getName())
                     .createdAt(product.getCreatedAt())
+                    .updatedAt(product.getUpdatedAt())
                     .build();
         });
+    }
+
+    // 게시글 생성 및 이미지 정보 저장
+    @Transactional
+    public Long createProduct(ProductCreateDto request, List<MultipartFile> imageFiles) {
+
+        // 유저 종목 조회
+        User author = userRepository.findById(request.getAuthorId())
+                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다. ID: " + request.getAuthorId()));
+
+        Sport sport = sportRepository.findById(request.getSportId())
+                .orElseThrow(() -> new IllegalArgumentException("종목을 찾을 수 없습니다. ID: " + request.getSportId()));
+
+        // Product 엔티티 생성 및 저장
+        Product product = Product.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .price(request.getPrice())
+                .location(request.getLocation())
+                .sport(sport)
+                .user(author) // author_idx 컬럼에 매핑
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .views(0L)
+                .build();
+
+        Product savedProduct = productRepository.save(product);
+
+        // 이미지 저장 및 ProductImage 엔티티 생성
+        for (MultipartFile file : imageFiles) {
+            // 이미지 업로드 후 주소 URL 반환받아야 함
+            String imageUrl = simulateFileUpload(file);
+
+            ProductImage productImage = ProductImage.builder()
+                    .product(savedProduct)
+                    .imageUrl(imageUrl)
+                    .createdAt(new Date())
+                    .build();
+
+            productImageRepository.save(productImage);
+        }
+
+        return savedProduct.getId();
+    }
+
+    // 이미지 파일 업로드 시뮬
+    private String simulateFileUpload(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return "placeholder_url/no_image.png";
+        }
+        // S3 경로/ 로컬 경로 사용
+        return "https://image-server.com/product/" + file.getOriginalFilename();
     }
 }
