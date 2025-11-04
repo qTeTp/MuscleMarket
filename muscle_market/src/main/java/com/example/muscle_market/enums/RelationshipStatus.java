@@ -1,4 +1,4 @@
-package com.example.muscle_market.domain;
+package com.example.muscle_market.enums;
 
 public enum RelationshipStatus {
     ACTIVE,

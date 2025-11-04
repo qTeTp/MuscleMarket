@@ -10,8 +10,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.muscle_market.domain.Chat;
-import com.example.muscle_market.domain.RelationshipStatus;
 import com.example.muscle_market.domain.UserChatRelationship;
+import com.example.muscle_market.enums.RelationshipStatus;
 
 @Repository
 public interface UserChatRelationshipRepository extends JpaRepository<UserChatRelationship, Long> {
