@@ -1,7 +1,6 @@
 package com.example.muscle_market.service;
 
 
-import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.example.muscle_market.domain.Chat;
@@ -25,6 +25,7 @@ import com.example.muscle_market.repository.ChatRepository;
 import com.example.muscle_market.repository.MessageRepository;
 import com.example.muscle_market.repository.UserChatRelationshipRepository;
 import com.example.muscle_market.repository.UserRepository;
+import com.example.muscle_market.repository.ProductRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class ChatService {
     private final UserChatRelationshipRepository relationshipRepository;
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final ProductRepository productRepository;
     private final SimpMessageSendingOperations messagingTemplate;
 
     // 사용자가 속한 모든 채팅방 조회
@@ -87,7 +89,7 @@ public class ChatService {
                     .chatUsers(chatUsers)
                     .lastMessage(lastMessage != null ? lastMessage.getContent() : null)
                     .lastMessageSentAt(lastMessage != null ? lastMessage.getCreatedAt() : null)
-                    .productId(lastMessage != null ? lastMessage.getChat().getProduct().getProductId())
+                    .productId(lastMessage != null ? lastMessage.getChat().getProduct().getId() : null)
                     .unreadCount(messageRepository.countUnreadMessagesAfter(chatId, myRelationship.getLastReadAt()))
                     .build();
             }).toList();
@@ -134,7 +136,7 @@ public class ChatService {
                 .chatTitle(newChat.getChatTitle())
                 .lastMessage(initialMessage.getContent())
                 .lastMessageSentAt(initialMessage.getCreatedAt())
-                .productId(newChat.getProduct().getProductId())
+                .productId(newChat.getProduct().getId())
                 .unreadCount(0L)
                 .build();
     }
@@ -225,7 +227,7 @@ public class ChatService {
                             .chatUsers(participants)
                             .lastMessage(message.getContent())
                             .lastMessageSentAt(message.getCreatedAt())
-                            .productId(chat.getProduct().getProductId())
+                            .productId(chat.getProduct().getId())
                             .unreadCount(messageRepository.countUnreadMessagesAfter(chat.getChatId(), rel.getLastReadAt()))
                             .build();
                     messagingTemplate.convertAndSend("/sub/users/" +  rel.getUser().getId(), participantResponse);
