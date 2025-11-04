@@ -78,7 +78,7 @@ public class ProductService {
                 .updatedAt(product.getUpdatedAt())
                 .views(product.getViews())
                 .likeCount(likeCount)
-                .authorName(product.getUser().getName())
+//                .authorName(product.getUser().getName())
                 .sportName(product.getSport().getName())
                 .imageUrls(imageUrls)
                 .build();
