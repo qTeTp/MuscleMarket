@@ -4,10 +4,7 @@ import com.example.muscle_market.domain.Product;
 import com.example.muscle_market.domain.ProductImage;
 import com.example.muscle_market.domain.Sport;
 import com.example.muscle_market.domain.User;
-import com.example.muscle_market.dto.ProductCreateDto;
-import com.example.muscle_market.dto.ProductDetailDto;
-import com.example.muscle_market.dto.ProductListDto;
-import com.example.muscle_market.dto.UserDto;
+import com.example.muscle_market.dto.*;
 import com.example.muscle_market.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -153,7 +150,45 @@ public class ProductService {
         return savedProduct.getId();
     }
 
-    // 이미지 파일 업로드 시뮬
+    // 물품 수정
+    @Transactional
+    public Long updateProduct(Long productId, ProductUpdateDto request, List<MultipartFile> newImageFiles) {
+        // 제품 엔티티 조회
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("제품을 찾을 수 없습니다. ID: " + productId));
+
+        Sport sport = sportRepository.findById(request.getSportId())
+                .orElseThrow(() -> new IllegalArgumentException("종목을 찾을 수 없습니다. ID: " + request.getSportId()));
+
+        product.updateProduct(request, sport);
+
+        // 기존에 등록되어 있던 이미지 삭제
+        if (request.getDeletedImageIds() != null && !request.getDeletedImageIds().isEmpty()) {
+            request.getDeletedImageIds().forEach(imageId -> {
+                productImageRepository.deleteById(imageId);
+                // S3의 시스템에서 이미지 파일 삭제 메서드 구현해서 넣어줘야 함
+            });
+        }
+
+        // 수정된 새로운 이미지 추가
+        for (MultipartFile file : newImageFiles) {
+            // 물품 등록 때와 마찬가지로 S3 업로드 구현
+            String imageUrl = simulateFileUpload(file);
+
+            ProductImage productImage = ProductImage.builder()
+                    .product(product)
+                    .imageUrl(imageUrl)
+                    .createdAt(new Date())
+                    .build();
+
+            productImageRepository.save(productImage);
+        }
+
+        return product.getId();
+    }
+
+    // 이미지 파일 업로드 메서드
+    // S3 연결 이후 구현 예정
     private String simulateFileUpload(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return "placeholder_url/no_image.png";
