@@ -19,20 +19,33 @@ public class JwtUtil {
 
     // JWT 시크릿키 랜덤이 아닌 환경변수로 고정으로 들어가게 변경
     private final Key key;
-    private final long expiration;
+    private final long expiration;  // access 토큰 만료시간
+    private final long refreshExpires;  // refresh 토큰 만료시간
 
     public JwtUtil(@Value("${jwt.secret}") String secret,
-                   @Value("${jwt.expiration}") long expiration) {
+                   @Value("${jwt.expiration}") long expiration,
+                   @Value("${jwt.refresh-expiration}") long refreshExpiration) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());   // HS256용 key 생성
         this.expiration = expiration;
+        this.refreshExpires = refreshExpiration;
     }
 
-    // JWT 생성
+    // Access 토큰 생성
     public String generateToken(String username){
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(key)
+                .compact();
+    }
+
+    // Refresh 토큰 생성
+    public String generateRefreshToken(String username){
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpires))
                 .signWith(key)
                 .compact();
     }

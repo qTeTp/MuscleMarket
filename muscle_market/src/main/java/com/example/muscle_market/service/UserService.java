@@ -12,7 +12,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.muscle_market.domain.User;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.regex.Pattern;
+import java.security.MessageDigest;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +71,7 @@ public class UserService {
 
     // 로그인 기능
     public LoginResponseDto login(LoginDto loginDto){
+        // 인증
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDto.getUsername(),
@@ -74,10 +79,31 @@ public class UserService {
                 )
         );
 
-        // 인증 성공 시 JWT 발급
-        String token = jwtUtil.generateToken(loginDto.getUsername());
+        // 인증 성공 시 Access 토큰, Refresh 토큰 발급
+        String accessToken = jwtUtil.generateToken(loginDto.getUsername());
+        String refreshToken = jwtUtil.generateRefreshToken(loginDto.getUsername());
+
+        // SHA-256으로 해싱
+        String hashedRefreshToken = hashToken(refreshToken);
+
+        // Refresh 토큰 발급 후 user 엔티티에 저장
+        User user = userRepository.findByUsername(loginDto.getUsername())
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+        user.setRefreshToken(hashedRefreshToken);
+        userRepository.save(user);
 
         // JSON 형식으로 반환
-        return new LoginResponseDto(token, "Bearer");
+        return new LoginResponseDto(accessToken, refreshToken, "Bearer");
+    }
+
+    // SHA-256으로 refreshToken 해싱
+    private String hashToken(String token){
+        try{
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashedBytes = digest.digest(token.getBytes());
+            return Base64.getEncoder().encodeToString(hashedBytes);
+        } catch (NoSuchAlgorithmException e){
+            throw new RuntimeException("Refresh token 해싱 실패", e);
+        }
     }
 }

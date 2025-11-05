@@ -43,6 +43,9 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
     // 온보딩 상태
     private Boolean isOnboarded;
 
