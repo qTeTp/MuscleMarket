@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.muscle_market.domain.User;
@@ -104,6 +105,26 @@ public class UserService {
             return Base64.getEncoder().encodeToString(hashedBytes);
         } catch (NoSuchAlgorithmException e){
             throw new RuntimeException("Refresh token 해싱 실패", e);
+        }
+    }
+
+    // 로그아웃
+    public void logout() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            System.out.println("securityContextHolder에 인증정보없음");
+        } else {
+            System.out.println("SecurityContextHolder에 있는 username : " + authentication.getName());
+        }
+
+        String username = (authentication != null) ? authentication.getName() : null;
+
+        if (username != null) {
+            userRepository.findByUsername(username).ifPresent(user -> {
+                user.setRefreshToken(null);
+                userRepository.save(user);
+            });
         }
     }
 }
