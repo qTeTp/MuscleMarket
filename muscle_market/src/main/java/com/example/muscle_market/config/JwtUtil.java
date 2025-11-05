@@ -1,5 +1,7 @@
 package com.example.muscle_market.config;
 
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -10,17 +12,40 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // 랜덤 비밀키
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    // 토큰 만료 시간(24시간)
-    private final long expiration = 1000 * 60 * 60 * 24;
+//    // 랜덤 비밀키
+//    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+//    // 토큰 만료 시간(24시간)
+//    private final long expiration = 1000 * 60 * 60 * 24;
 
-    // JWT 생성
+    // JWT 시크릿키 랜덤이 아닌 환경변수로 고정으로 들어가게 변경
+    private final Key key;
+    private final long expiration;  // access 토큰 만료시간
+    private final long refreshExpires;  // refresh 토큰 만료시간
+
+    public JwtUtil(@Value("${jwt.secret}") String secret,
+                   @Value("${jwt.expiration}") long expiration,
+                   @Value("${jwt.refresh-expiration}") long refreshExpiration) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());   // HS256용 key 생성
+        this.expiration = expiration;
+        this.refreshExpires = refreshExpiration;
+    }
+
+    // Access 토큰 생성
     public String generateToken(String username){
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(key)
+                .compact();
+    }
+
+    // Refresh 토큰 생성
+    public String generateRefreshToken(String username){
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpires))
                 .signWith(key)
                 .compact();
     }

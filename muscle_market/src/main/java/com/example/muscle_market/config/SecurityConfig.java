@@ -26,8 +26,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/signup", "/api/login", "/api/products",
-                                "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes").permitAll() // 회원가입/로그인은 허용
+                        .requestMatchers("/api/signup", "/api/login", "/api/**").permitAll() // 회원가입/로그인은 허용
                         .anyRequest().authenticated()
                 )
                 // JWT 필터 UsernamePasswordAuthenticationFilter 앞에 추가

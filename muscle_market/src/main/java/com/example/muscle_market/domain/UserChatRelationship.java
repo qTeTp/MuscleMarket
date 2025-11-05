@@ -6,6 +6,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.example.muscle_market.enums.RelationshipStatus;
+
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
