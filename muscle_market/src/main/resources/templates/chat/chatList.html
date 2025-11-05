@@ -290,6 +290,8 @@
 </div>
 <script th:inline="javascript">
     /*<![CDATA[*/
+
+    // TODO: 기존 세션형식이 아니라 뷰에서 유저 데이터를 주는 방식이 아니라 localStorage에서 토큰을 가져오는 형식으로 바꿔줘야 함 (제미나이 확인)
     const currentUser = /*[[${currentUser}]]*/ null;
 
     // CSRF Token
