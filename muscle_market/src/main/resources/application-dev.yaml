@@ -21,7 +21,8 @@ server:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:86400000}   # 값 없으면 기본 24시간(ms)
+  expiration: ${JWT_EXPIRATION:86400000}   # 값 없으면 기본 1일
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 값 없으면 기본 7일
 
 # logging:
 #   level:
