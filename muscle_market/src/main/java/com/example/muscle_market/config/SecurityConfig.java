@@ -7,7 +7,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
 import static org.springframework.security.config.Customizer.withDefaults;
+
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 
@@ -24,7 +26,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
+<<<<<<< HEAD
                         .requestMatchers("/api/signup", "/api/login", "/api/**").permitAll() // 회원가입/로그인은 허용
+=======
+                        .requestMatchers("/api/signup", "/api/login", "/api/products",
+                                "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes").permitAll() // 회원가입/로그인은 허용
+>>>>>>> feat/product_edit
                         .anyRequest().authenticated()
                 )
                 // JWT 필터 UsernamePasswordAuthenticationFilter 앞에 추가
