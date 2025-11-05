@@ -3,6 +3,7 @@ package com.example.muscle_market.controller.api;
 import com.example.muscle_market.dto.ProductCreateDto;
 import com.example.muscle_market.dto.ProductDetailDto;
 import com.example.muscle_market.dto.ProductListDto;
+import com.example.muscle_market.dto.ProductUpdateDto;
 import com.example.muscle_market.service.ProductLikeService;
 import com.example.muscle_market.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -100,19 +101,36 @@ public class ProductApiController {
         return ResponseEntity.ok(likedProductsPage);
     }
 
-    @PostMapping(consumes = {"multipart/form-data"})
+    // 게시물 등록
+    @PostMapping(value = "/products", consumes = {"multipart/form-data"})
     public ResponseEntity<Long> createProduct(
             @RequestPart("request") ProductCreateDto request, // JSON 데이터
             @RequestPart("images") List<MultipartFile> imageFiles) { // 이미지 파일 리스트
 
         if (imageFiles == null || imageFiles.isEmpty()) {
             // 이미지 없을 시 디폴트 이미지 추가
+            // 추후 구현
         }
 
         Long productId = productService.createProduct(request, imageFiles);
 
         // 201 Created 응답, 생성된 게시글의 ID 반환
         return new ResponseEntity<>(productId, HttpStatus.CREATED);
+    }
+
+    // 게시물 수정
+    @PutMapping(value = "/products/{productId}", consumes = {"multipart/form-data"})
+    public ResponseEntity<Long> updateProduct(
+            @PathVariable Long productId,
+            @RequestPart("request") ProductUpdateDto request,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImageFiles) {
+
+        // newImageFiles가 null인 경우
+        List<MultipartFile> images = newImageFiles != null ? newImageFiles : List.of();
+
+        Long updatedId = productService.updateProduct(productId, request, images);
+
+        return ResponseEntity.ok(updatedId);
     }
 }
 

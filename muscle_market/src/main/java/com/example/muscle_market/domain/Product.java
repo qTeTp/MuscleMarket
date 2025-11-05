@@ -1,5 +1,6 @@
 package com.example.muscle_market.domain;
 
+import com.example.muscle_market.dto.ProductUpdateDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import java.util.Date;
 public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Column(name="product_post_idx")
+    @Column(name = "product_post_idx")
     private Long id;
 
     @Column(length = 100, nullable = false)
@@ -46,7 +47,19 @@ public class Product {
     @JoinColumn(name = "sport_idx")
     private Sport sport;
 
+    // 조회수 증가
     public void setViews() {
         this.views++;
     }
+
+    // 물품 업데이트
+    public void updateProduct(ProductUpdateDto request, Sport sport) {
+        this.title = request.getTitle();
+        this.description = request.getDescription();
+        this.price = request.getPrice();
+        this.location = request.getLocation();
+        this.sport = sport;
+        this.updatedAt = new Date();
+    }
+
 }
