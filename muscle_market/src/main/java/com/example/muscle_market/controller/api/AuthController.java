@@ -1,6 +1,7 @@
 package com.example.muscle_market.controller.api;
 
 import com.example.muscle_market.dto.LoginDto;
+import com.example.muscle_market.dto.LoginResponseDto;
 import com.example.muscle_market.dto.UserDto;
 import com.example.muscle_market.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginDto loginDto){
+    public LoginResponseDto login(@RequestBody LoginDto loginDto){
         return userService.login(loginDto); // JWT 반환
     }
 }

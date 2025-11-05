@@ -2,6 +2,7 @@ package com.example.muscle_market.service;
 
 import com.example.muscle_market.config.JwtUtil;
 import com.example.muscle_market.dto.LoginDto;
+import com.example.muscle_market.dto.LoginResponseDto;
 import com.example.muscle_market.dto.UserDto;
 import com.example.muscle_market.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +66,7 @@ public class UserService {
     }
 
     // 로그인 기능
-    public String login(LoginDto loginDto){
+    public LoginResponseDto login(LoginDto loginDto){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDto.getUsername(),
@@ -74,6 +75,9 @@ public class UserService {
         );
 
         // 인증 성공 시 JWT 발급
-        return jwtUtil.generateToken(loginDto.getUsername());
+        String token = jwtUtil.generateToken(loginDto.getUsername());
+
+        // JSON 형식으로 반환
+        return new LoginResponseDto(token, "Bearer");
     }
 }

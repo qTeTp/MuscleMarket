@@ -21,7 +21,7 @@ public class User {
     @Column(name = "user_idx")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     // 로그인 아이디

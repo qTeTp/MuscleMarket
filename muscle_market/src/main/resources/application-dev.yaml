@@ -19,6 +19,10 @@ spring:
 server:
   port: 8080
 
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}   # 값 없으면 기본 24시간(ms)
+
 # logging:
 #   level:
 #     org.hibernate.SQL: debug

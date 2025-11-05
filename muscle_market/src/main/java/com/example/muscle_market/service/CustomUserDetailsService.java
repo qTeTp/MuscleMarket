@@ -1,5 +1,6 @@
 package com.example.muscle_market.service;
 
+import com.example.muscle_market.domain.CustomUserDetails;
 import com.example.muscle_market.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,10 +20,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다."));
 
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .roles("USER") // 역할
-                .build();
+//        return org.springframework.security.core.userdetails.User.builder()
+//                .username(user.getUsername())
+//                .password(user.getPassword())
+//                .roles("USER") // 역할
+//                .build();
+
+        return new CustomUserDetails(user);
     }
 }
