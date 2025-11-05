@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long messageId;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;

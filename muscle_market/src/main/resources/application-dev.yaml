@@ -1,7 +1,4 @@
 spring:
-  config:
-    import: optional:file:.env[.properties]
-
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${LOCAL_PSQL_URL}
