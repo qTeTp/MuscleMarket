@@ -26,7 +26,7 @@ public class SecurityConfig {
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/signup", "/api/login", "/api/**", "/api/products",
-                                "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes").permitAll() // 회원가입/로그인은 허용
+                                "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes", "/login", "/signup", "/images/**","/products/**").permitAll() // 회원가입/로그인은 허용
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
                 )
