@@ -17,4 +17,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // 운동 종목별 페이징 지원
     @Query("SELECT p FROM Product p JOIN FETCH p.sport s WHERE s.id = :sportId")
     Page<Product> findAllBySportIdWithSport(@Param("sportId") Long sportId, Pageable pageable);
+
+    // 통합 검색 쿼리
+    // 게시물 키워드 검색
+    // sportId null일 시 전체 카테고리 검색, !null일 시 특정 카테고리 검색
+    @Query("SELECT p FROM Product p JOIN FETCH p.sport s WHERE (:sportId IS NULL OR s.id = :sportId) AND (p.title LIKE %:keyword% OR p.description LIKE %:keyword%) ORDER BY p.createdAt DESC")
+    Page<Product> searchByKeywordAndSport(@Param("sportId") Long sportId, @Param("keyword") String keyword, Pageable pageable);
 }
