@@ -175,8 +175,9 @@ public class ChatService {
            else newChat.setChatTitle(chatTitle);
        }
 
-       // 물품 지정하기
-       newChat.setProduct(productRepository.findById(productId).orElse(null));
+       // 물품 지정하기 (현재는 거래를 위한 채팅만 있으므로 거래 게시글이 없으면 에러를 발생시키도록 설계)
+       // newChat.setProduct(productRepository.findById(productId).orElse(null));
+       newChat.setProduct(productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("product not found")));
 
        chatUsers.forEach(user -> {
            relationshipRepository.save(UserChatRelationship.builder()

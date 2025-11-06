@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "post_images")
@@ -27,13 +28,13 @@ public class PostImage {
     @CreatedDate
     private LocalDateTime createdAt;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
 
     @Builder
-    public PostImage(String imageUrl, Post post) {
+    public PostImage(String imageUrl) {
         this.imageUrl = imageUrl;
-        this.post = post;
     }
 }

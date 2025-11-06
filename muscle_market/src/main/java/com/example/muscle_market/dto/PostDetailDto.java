@@ -3,32 +3,42 @@ package com.example.muscle_market.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.muscle_market.domain.Post;
+import com.example.muscle_market.domain.PostImage;
+
 import lombok.Builder;
 import lombok.Getter;
 
+@Builder
 @Getter
 public class PostDetailDto {
     private Long postId;
     private String title;
     private String content;
     private String sportName;
-    private Integer isBungae;
     private Long bungaeId;
     private LocalDateTime createdAt;
     private PostUserDto postAuthor;
     private List<String> postImages;
 
-    @Builder
-    public PostDetailDto(Long postId, String title, String content, String sportName,
-            Integer isBungae, Long bungaeId, LocalDateTime createdAt, PostUserDto postAuthor, List<String> postImages) {
-        this.postId = postId;
-        this.title = title;
-        this.content = content;
-        this.sportName = sportName;
-        this.isBungae = isBungae;
-        this.bungaeId = bungaeId;
-        this.createdAt = createdAt;
-        this.postAuthor = postAuthor;
-        this.postImages = postImages;
+    public static PostDetailDto fromEntity(Post post) {
+        Long bungaeId = post.getBungae() == null ? null : post.getBungae().getBungaeId();
+        
+        return PostDetailDto.builder()
+            .postId(post.getPostId())
+            .title(post.getTitle())
+            .content(post.getContent())
+            .sportName(post.getSport().getName())
+            .bungaeId(bungaeId)
+            .createdAt(post.getCreatedAt())
+            .postAuthor(PostUserDto.builder()
+                .authorId(post.getAuthor().getId())
+                .authorUsername(post.getAuthor().getUsername())
+                .authorNickname(post.getAuthor().getNickname())
+                .authorProfileImgUrl(post.getAuthor().getProfileImgUrl())
+                .build()
+            )
+            .postImages(post.getPostImages().stream().map(PostImage::getImageUrl).toList())
+            .build();
     }
 }
