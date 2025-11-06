@@ -10,7 +10,6 @@ import java.util.Date;
 @Getter
 @Entity
 @Table(name = "products")
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)

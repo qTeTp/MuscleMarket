@@ -134,7 +134,7 @@ public class ProductApiController {
     }
 
     // 게시물 통합 검색
-    @GetMapping("/search")
+    @GetMapping("/products/search")
     public ResponseEntity<Page<ProductListDto>> searchProducts(
             @RequestParam String keyword, // 검색 키워드
             @RequestParam(required = false) Long sportId, // 선택적 sportId
