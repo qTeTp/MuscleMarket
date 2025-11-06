@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>상품 이미지 업로드</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<h1>상품 이미지 업로드</h1>
+<form id="uploadForm" enctype="multipart/form-data">
+    <div>
+        <label>상품 ID:</label>
+        <input type="number" id="productId" required>
+    </div>
+    <div>
+        <label>이미지 파일:</label>
+        <input type="file" id="file" accept="image/*" required>
+    </div>
+    <button type="submit">업로드</button>
+</form>
+
+<h2>업로드된 상품 이미지</h2>
+<div id="images"></div>
+
+<script>
+    // 업로드 폼 처리
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append('productId', document.getElementById('productId').value);
+        formData.append('file', document.getElementById('file').files[0]);
+
+        try {
+            const response = await fetch('/api/images/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('업로드 성공!');
+                loadImages();
+                document.getElementById('uploadForm').reset();
+            } else {
+                alert('업로드 실패!');
+            }
+        } catch (error) {
+            alert('오류: ' + error.message);
+        }
+    });
+
+    // 이미지 목록 로드
+    async function loadImages() {
+        try {
+            const response = await fetch('/api/images');
+            const images = await response.json();
+
+            const imagesDiv = document.getElementById('images');
+            imagesDiv.innerHTML = '';
+
+            images.forEach(image => {
+                const imageDiv = document.createElement('div');
+                imageDiv.style.marginBottom = '20px';
+                imageDiv.innerHTML = `
+                    <h3>상품 ID: ${image.productId}</h3>
+                    <img src="${image.s3Url}" style="max-width: 300px;">
+                    <p>업로드일: ${new Date(image.uploadDate).toLocaleString()}</p>
+                    <button onclick="deleteImage(${image.id})">삭제</button>
+                `;
+                imagesDiv.appendChild(imageDiv);
+            });
+        } catch (error) {
+            console.error('이미지 로드 실패:', error);
+        }
+    }
+
+    // 이미지 삭제
+    async function deleteImage(id) {
+        if (confirm('정말로 삭제하시겠습니까?')) {
+            try {
+                const response = await fetch(`/api/images/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('삭제되었습니다.');
+                    loadImages();
+                } else {
+                    alert('삭제 실패!');
+                }
+            } catch (error) {
+                alert('오류: ' + error.message);
+            }
+        }
+    }
+
+    // 페이지 로드 시 이미지 목록 로드
+    loadImages();
+</script>
+</body>
+</html>

@@ -21,6 +21,19 @@ jwt:
   expiration: ${JWT_EXPIRATION:86400000}   # 값 없으면 기본 1일
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 값 없으면 기본 7일
 
+# S3 설정
+cloud:
+  aws:
+    credentials:
+      access-key: ${DEV_AWS_ACCESS_KEY_ID}
+      secret-key: ${DEV_AWS_SECRET_ACCESS_KEY}
+    s3:
+      bucket: ${DEV_AWS_BUCKET}
+    region: #S3 지역
+      static: ap-northeast-2
+    stack:
+      auto: false
+
 # logging:
 #   level:
 #     org.hibernate.SQL: debug

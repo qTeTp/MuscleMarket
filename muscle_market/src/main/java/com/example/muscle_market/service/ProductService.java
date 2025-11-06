@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -141,7 +142,7 @@ public class ProductService {
             ProductImage productImage = ProductImage.builder()
                     .product(savedProduct)
                     .imageUrl(imageUrl)
-                    .createdAt(new Date())
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             productImageRepository.save(productImage);
@@ -178,7 +179,7 @@ public class ProductService {
             ProductImage productImage = ProductImage.builder()
                     .product(product)
                     .imageUrl(imageUrl)
-                    .createdAt(new Date())
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             productImageRepository.save(productImage);
