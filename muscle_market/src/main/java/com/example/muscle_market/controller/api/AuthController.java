@@ -17,30 +17,17 @@ public class AuthController {
 
     private final UserService userService;
 
-    // 회원가입 페이지
-    @GetMapping("/signup")
-    public String signupPage(Model model) {
-        model.addAttribute("userDto", new UserDto());
-        return "signup";
-    }
-
     @PostMapping("/api/signup")
     public String signup(@ModelAttribute("userDto") UserDto userDto, Model model) {
         try {
             userService.singUp(userDto);
-            return "redirect:/login";
+            // 성공하면 온보딩 확인 api로
+            return "redirect:/post-login";
         } catch (RuntimeException e) {
             // 실패 시 alert 창으로 메시지 띄우기
             model.addAttribute("errorMessage", e.getMessage());
             return "signup";
         }
-    }
-
-    // 로그인 페이지
-    @GetMapping("/login")
-    public String loginPage(Model model) {
-        model.addAttribute("loginDto", new LoginDto());
-        return "login";
     }
 
     @PostMapping("/api/login")
