@@ -26,6 +26,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        // 정적 컨텐츠들 접근 허용
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         // 인증 없어도 들어가게
                         .requestMatchers("/","/api/signup", "/api/login", "/api/**", "/api/products",
                                 "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes",

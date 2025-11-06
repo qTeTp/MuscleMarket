@@ -1,6 +1,6 @@
 package com.example.muscle_market.dto;
 
-import com.example.muscle_market.domain.enums.TransactionStatus;
+import com.example.muscle_market.enums.TransactionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

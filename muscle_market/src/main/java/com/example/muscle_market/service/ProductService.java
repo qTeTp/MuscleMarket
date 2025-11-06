@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -141,7 +142,7 @@ public class ProductService {
             ProductImage productImage = ProductImage.builder()
                     .product(savedProduct)
                     .imageUrl(imageUrl)
-                    .createdAt(new Date())
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             productImageRepository.save(productImage);
@@ -178,7 +179,7 @@ public class ProductService {
             ProductImage productImage = ProductImage.builder()
                     .product(product)
                     .imageUrl(imageUrl)
-                    .createdAt(new Date())
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             productImageRepository.save(productImage);
@@ -195,5 +196,42 @@ public class ProductService {
         }
         // S3 경로/ 로컬 경로 사용
         return "https://image-server.com/product/" + file.getOriginalFilename();
+    }
+
+    // 통합 검색 메서드
+    @Transactional(readOnly = true)
+    public Page<ProductListDto> searchProducts(Optional<Long> sportId, String keyword, Pageable pageable) {
+
+        // sportId가 없으면 전체 종목 검색
+        Long targetSportId = sportId.orElse(null);
+
+        // 검색 키워드 null값일 시에 로직
+        if (keyword == null || keyword.trim().isEmpty()) {
+            throw new IllegalArgumentException("검색 키워드는 필수입니다.");
+        }
+
+        // Repository 호출
+        Page<Product> productPage =
+                productRepository.searchByKeywordAndSport(targetSportId, keyword, pageable);
+
+        // dto 변환 로직
+        return productPage.map(product -> {
+            long likeCount = productLikeRepository.countByProductId(product.getId());
+            String thumbnailUrl = productImageRepository.findThumbnailUrlByProductId(product.getId()).orElse("default_image.jpg");
+
+            return ProductListDto.builder()
+                    .id(product.getId())
+                    .title(product.getTitle())
+                    .description(product.getDescription())
+                    .price(product.getPrice())
+                    .location(product.getLocation())
+                    .sportName(product.getSport().getName())
+                    .views(product.getViews())
+                    .likeCount(likeCount)
+                    .thumbnailUrl(thumbnailUrl)
+                    .createdAt(product.getCreatedAt())
+                    .updatedAt(product.getUpdatedAt())
+                    .build();
+        });
     }
 }

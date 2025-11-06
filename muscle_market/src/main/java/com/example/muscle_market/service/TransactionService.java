@@ -3,7 +3,7 @@ package com.example.muscle_market.service;
 import com.example.muscle_market.domain.Product;
 import com.example.muscle_market.domain.Transaction;
 import com.example.muscle_market.domain.User;
-import com.example.muscle_market.domain.enums.TransactionStatus;
+import com.example.muscle_market.enums.TransactionStatus;
 import com.example.muscle_market.dto.TransactionCreateDto;
 import com.example.muscle_market.dto.TransactionStatusUpdateDto;
 import com.example.muscle_market.repository.ProductRepository;
