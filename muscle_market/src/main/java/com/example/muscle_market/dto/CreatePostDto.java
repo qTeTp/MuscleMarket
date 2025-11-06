@@ -10,15 +10,15 @@ public class CreatePostDto {
     private String title;
     private String content;
     private String sportName;
-    private Integer isBungae;
+    private Long bungaeId;
     private List<String> postImages;
 
     @Builder
-    public CreatePostDto(String title, String content, String sportName, Integer isBungae, List<String> postImages) {
+    public CreatePostDto(String title, String content, String sportName, Long bungaeId, List<String> postImages) {
         this.title = title;
         this.content = content;
         this.sportName = sportName;
-        this.isBungae = isBungae;
+        this.bungaeId = bungaeId;
         this.postImages = postImages;
     }
 }

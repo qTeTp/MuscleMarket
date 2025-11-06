@@ -1,6 +1,8 @@
 package com.example.muscle_market.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -31,10 +33,10 @@ public class Post {
     @Column(name = "post_content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "is_bungae", nullable = false, columnDefinition = "INT DEFAULT 0")
-    private Integer isBungae;
+    @Column(name = "isBungae", nullable = false)
+    private Boolean isBungae = false;
 
-    @Column(name = "views", nullable = false, columnDefinition = "INT DEFAULT 0")
+    @Column(name = "views", nullable = false)
     private Integer views = 0;
 
     @CreatedDate
@@ -47,6 +49,7 @@ public class Post {
     @JoinColumn(name = "author_id")
     private User author;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sport_id")
     private Sport sport;
@@ -55,6 +58,11 @@ public class Post {
     @JoinColumn(name = "bungae_id")
     private Bungae bungae;
 
+    // TODO: 현재는 이미지를 본문 하단에 개수만큼 보여주도록 설계하지만, 
+    //       시간이 된다면 본문 원하는 위치에 삽입할 수 있도록 설계를 고쳐야 함
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostImage> postImages = new ArrayList<>();
+
     @Builder
     public Post(String title, String content, User author, Sport sport, Bungae bungae) {
         this.title = title;
@@ -62,8 +70,17 @@ public class Post {
         this.author = author;
         this.sport = sport;
         this.bungae = bungae;
+        this.isBungae = bungae != null;
+    }
 
-        if (bungae == null) this.isBungae = 0;
-        else this.isBungae = 1;
+    public void addImage(PostImage postImage) {
+        this.postImages.add(postImage);
+        postImage.setPost(this);
+    }
+
+    public void updatePost(String title, String content, Sport sport) {
+        this.title = title;
+        this.content = content;
+        this.sport = sport;
     }
 }

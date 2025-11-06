@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -27,8 +28,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 정적 컨텐츠들 접근 허용
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/api/signup", "/api/login", "/api/**", "/api/products",
-                                "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes", "/login", "/signup", "/images/**","/products/**").permitAll() // 회원가입/로그인은 허용
+                        .requestMatchers("/", "/api/signup", "/api/login", "/api/**", "/api/products",
+                                "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes", "/login", "/signup", "/images/**","/products/**", "/post-login").permitAll() // 회원가입/로그인은 허용
+                        // 인증 있어야 들어가게
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
                 )
