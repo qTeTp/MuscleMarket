@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>온보딩</title>
+    <style>
+        /* 전체 기본 설정 */
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; }
+        body {
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
+            background: #111;
+            background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        .onboarding-container {
+            width: 480px;
+            max-width: 100%;
+            background: rgba(20, 20, 20, 0.88);
+            padding: 40px 36px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        h2 {
+            color: #fff;
+            margin: 0 0 24px 0;
+            font-size: 22px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display:block;
+            color: #eaeaea;
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .control {
+            width: 100%;
+            display: block;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            border: 1px solid #555;
+            background: #222;
+            color: #fff;
+            text-align: left;
+        }
+
+        .control:focus {
+            outline: none;
+            border-color: #F5C542;
+            box-shadow: 0 0 10px rgba(245,197,66,0.25);
+            background: #1f1f1f;
+        }
+
+        .control.button {
+            background: linear-gradient(180deg,#F5C542,#d4a72e);
+            color: #111;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            margin-top: 12px;
+            font-weight: 700;
+        }
+
+        .control.button:hover {
+            filter: brightness(0.95);
+            box-shadow: 0 8px 18px rgba(213,167,46,0.28);
+        }
+
+        select.control {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        @media (max-width: 500px) {
+            .onboarding-container { padding: 28px 20px; }
+            .control { padding: 12px 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="onboarding-container">
+    <h2>기본정보 입력</h2>
+
+    <form id="onboardingForm" th:object="${onboardingDto}">
+        <div class="form-group">
+            <label for="sportName">선호 운동명</label>
+            <input type="text" id="sportName" class="control" th:field="*{sportName}" placeholder="운동명 입력" required>
+        </div>
+
+        <div class="form-group">
+            <label for="skillLevel">실력</label>
+            <select id="skillLevel" class="control" th:field="*{skillLevel}" required>
+                <option value="">선택</option>
+                <option value="BEGINNER">BEGINNER</option>
+                <option value="LOW">LOW</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HIGH">HIGH</option>
+            </select>
+        </div>
+
+        <button type="submit" class="control button">완료</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById("onboardingForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // 기본 폼 제출 막기
+
+        const sportName = document.getElementById("sportName").value;
+        const skillLevel = document.getElementById("skillLevel").value;
+
+        // 서버로 POST 요청
+        fetch('/api/onboarding', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+                // 토큰은 쿠키(HttpOnly)로 자동 전달되므로 Authorization 헤더는 필요 없음
+            },
+            body: JSON.stringify({
+                sportName: sportName,
+                skillLevel: skillLevel
+            })
+        })
+            .then(response => {
+                if (response.ok) {
+                    // 온보딩 완료 후 홈 또는 다른 페이지로 이동
+                    window.location.href = '/productlist.html';
+                } else {
+                    alert("온보딩 실패");
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    });
+</script>
+
+</body>
+</html>

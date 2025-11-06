@@ -5,7 +5,9 @@ import com.example.muscle_market.dto.LoginDto;
 import com.example.muscle_market.dto.LoginResponseDto;
 import com.example.muscle_market.dto.UserDto;
 import com.example.muscle_market.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -71,7 +73,7 @@ public class UserService {
     }
 
     // 로그인 기능
-    public LoginResponseDto login(LoginDto loginDto){
+    public void login(LoginDto loginDto, HttpServletResponse response) {
         // 인증
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -79,6 +81,9 @@ public class UserService {
                         loginDto.getPassword()
                 )
         );
+
+        // Securitycontext에 인증 정보 저장
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // 인증 성공 시 Access 토큰, Refresh 토큰 발급
         String accessToken = jwtUtil.generateToken(loginDto.getUsername());
@@ -93,8 +98,24 @@ public class UserService {
         user.setRefreshToken(hashedRefreshToken);
         userRepository.save(user);
 
+        // 쿠키로 발급 (HttpOnly 방식)
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(60*15)  // 15분
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(60 * 60 * 24 * 7)   // 7일
+                .build();
+
+        response.addHeader("set-Cookie", accessCookie.toString());
+        response.addHeader("set-Cookie", refreshCookie.toString());
+
         // JSON 형식으로 반환
-        return new LoginResponseDto(accessToken, refreshToken, "Bearer");
+//        return new LoginResponseDto(accessToken, refreshToken, "Bearer");
     }
 
     // SHA-256으로 refreshToken 해싱

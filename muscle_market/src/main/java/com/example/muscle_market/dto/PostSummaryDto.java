@@ -2,27 +2,31 @@ package com.example.muscle_market.dto;
 
 import java.time.LocalDateTime;
 
+import com.example.muscle_market.domain.Post;
+
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class PostSummaryDto {
     private Long postId;
     private String title;
     private String authorNickname;
     private String sportName;
-    private Integer isBungae;
+    private Boolean isBungae;
     private Integer views;
     private LocalDateTime createdAt;
 
-    @Builder
-    public PostSummaryDto(Long postId, String title, String authorNickname, String sportName, Integer isBungae, Integer views, LocalDateTime createdAt) {
-        this.postId = postId;
-        this.title = title;
-        this.authorNickname = authorNickname;
-        this.sportName = sportName;
-        this.isBungae = isBungae;
-        this.views = views;
-        this.createdAt = createdAt;
+    public static PostSummaryDto fromEntity(Post post) {
+        return PostSummaryDto.builder()
+            .postId(post.getPostId())
+            .title(post.getTitle())
+            .authorNickname(post.getAuthor().getNickname())
+            .sportName(post.getSport().getName())
+            .isBungae(post.getIsBungae())
+            .views(post.getViews())
+            .createdAt(post.getCreatedAt())
+            .build();
     }
 }
