@@ -1,6 +1,6 @@
 package com.example.muscle_market.domain;
 
-import com.example.muscle_market.domain.enums.TransactionStatus;
+import com.example.muscle_market.enums.TransactionStatus;
 import com.example.muscle_market.dto.ProductUpdateDto;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,4 +1,4 @@
-package com.example.muscle_market.domain.enums;
+package com.example.muscle_market.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

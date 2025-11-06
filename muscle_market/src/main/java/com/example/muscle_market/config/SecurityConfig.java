@@ -16,7 +16,6 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
