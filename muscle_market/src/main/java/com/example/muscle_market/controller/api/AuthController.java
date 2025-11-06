@@ -4,6 +4,7 @@ import com.example.muscle_market.dto.LoginDto;
 import com.example.muscle_market.dto.LoginResponseDto;
 import com.example.muscle_market.dto.UserDto;
 import com.example.muscle_market.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,8 +22,8 @@ public class AuthController {
     public String signup(@ModelAttribute("userDto") UserDto userDto, Model model) {
         try {
             userService.singUp(userDto);
-            // 성공하면 온보딩 확인 api로
-            return "redirect:/post-login";
+            // 성공하면 로그인페이지로 리다이렉트
+            return "redirect:/login";
         } catch (RuntimeException e) {
             // 실패 시 alert 창으로 메시지 띄우기
             model.addAttribute("errorMessage", e.getMessage());
@@ -31,10 +32,12 @@ public class AuthController {
     }
 
     @PostMapping("/api/login")
-    public String login(@ModelAttribute("loginDto") LoginDto loginDto, Model model) {
+    public String login(@ModelAttribute("loginDto") LoginDto loginDto,
+                        HttpServletResponse response,
+                        Model model) {
         try {
-            LoginResponseDto response = userService.login(loginDto); // JWT 토큰들 저장
-            return "redirect:/products/list";    // 메인페이지로 인데 메인페이지가 아직없음
+            userService.login(loginDto, response); // JWT 토큰들 저장
+            return "redirect:/post-login";    // 성공하면 온보딩 여부 확인 api로
         } catch (Exception e) {
             model.addAttribute("error", "로그인 실패 : " + e.getMessage());
             return "login";
