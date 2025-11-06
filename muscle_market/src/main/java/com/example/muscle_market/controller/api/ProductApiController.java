@@ -132,5 +132,22 @@ public class ProductApiController {
 
         return ResponseEntity.ok(updatedId);
     }
+
+    // 게시물 통합 검색
+    @GetMapping("/products/search")
+    public ResponseEntity<Page<ProductListDto>> searchProducts(
+            @RequestParam String keyword, // 검색 키워드
+            @RequestParam(required = false) Long sportId, // 선택적 sportId
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        // sportId가 null이면 서비스 내부에서 전체 검색으로 처리됨
+        Page<ProductListDto> productPage =
+                productService.searchProducts(Optional.ofNullable(sportId), keyword, pageable);
+
+        return ResponseEntity.ok(productPage);
+    }
 }
 
