@@ -26,8 +26,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/signup", "/api/login", "/api/**", "/api/products",
-                                "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes", "/login", "/signup", "/images/**","/products/**").permitAll() // 회원가입/로그인은 허용
+                        // 인증 없어도 들어가게
+                        .requestMatchers("/","/api/signup", "/api/login", "/api/**", "/api/products",
+                                "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes",
+                                "/login", "/signup", "/images/**","/products/**", "/post-login").permitAll() // 회원가입/로그인은 허용
+                        // 인증 있어야 들어가게
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
                 )
