@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/signup", "/api/login", "/api/**", "/api/products",
                                 "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes").permitAll() // 회원가입/로그인은 허용
+                        .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 // JWT 필터 UsernamePasswordAuthenticationFilter 앞에 추가
