@@ -38,18 +38,19 @@ public class PostController {
         sort = "createdAt",
         direction = Sort.Direction.DESC
     ) Pageable pageable,
+      @AuthenticationPrincipal CustomUserDetails authUser,
       @RequestParam(required = false) Long sportId,
       @RequestParam(required = false) Boolean isBungae,
       @RequestParam(required = false) String keyword
     ) {
-        Page<PostSummaryDto> postPage = postService.getAllPosts(pageable, sportId, isBungae, keyword);
+        Page<PostSummaryDto> postPage = postService.getAllPosts(pageable, authUser.getId(), sportId, isBungae, keyword);
         return ResponseEntity.ok(postPage);
     }
 
     // 게시글 상세 조회
     @GetMapping("/{postId}")
-    public ResponseEntity<PostDetailDto> getPostDetail(@PathVariable Long postId) {
-        return ResponseEntity.ok(postService.getPostDetail(postId));
+    public ResponseEntity<PostDetailDto> getPostDetail(@AuthenticationPrincipal CustomUserDetails authUser, @PathVariable Long postId) {
+        return ResponseEntity.ok(postService.getPostDetail(postId, authUser.getId()));
     }
 
     // 게시글 작성
@@ -75,8 +76,8 @@ public class PostController {
 
     // 게시글 삭제
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
-        postService.deletePost(postId);
+    public ResponseEntity<Void> deletePost(@AuthenticationPrincipal CustomUserDetails authUser, @PathVariable Long postId) {
+        postService.deletePost(postId, authUser.getId());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

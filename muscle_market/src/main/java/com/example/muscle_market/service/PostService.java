@@ -1,11 +1,8 @@
 package com.example.muscle_market.service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -23,14 +20,15 @@ import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.CreatePostDto;
 import com.example.muscle_market.dto.PostDetailDto;
 import com.example.muscle_market.dto.PostSummaryDto;
-import com.example.muscle_market.dto.PostUserDto;
 import com.example.muscle_market.dto.UpdatePostDto;
+import com.example.muscle_market.enums.PostStatus;
 import com.example.muscle_market.repository.BungaeRepository;
 import com.example.muscle_market.repository.PostRepository;
 import com.example.muscle_market.repository.PostSpecification;
 import com.example.muscle_market.repository.SportRepository;
 import com.example.muscle_market.repository.UserRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -47,11 +45,22 @@ public class PostService {
             throw new AccessDeniedException("You are not the author");
         }
     }
+
+    // 게시글 조회 권한 확인
+    private void validatePostAccess(Post post, Long curUserId) {
+        if (post.getStatus() == PostStatus.DELETED) throw new EntityNotFoundException("삭제된 게시글입니다.");
+
+        if (post.getStatus() == PostStatus.HIDDEN) {
+            if (curUserId == null || !post.getAuthor().getId().equals(curUserId)) {
+                throw new AccessDeniedException("이 게시글을 볼 권한이 없습니다.");
+            }
+        }
+    }
     
     // 게시글 전체 조회
     @Transactional(readOnly = true)
-    public Page<PostSummaryDto> getAllPosts(Pageable pageable, Long sportId, Boolean isBungae, String keyword) {
-        Specification<Post> spec = PostSpecification.filterAndSearch(sportId, isBungae, keyword);
+    public Page<PostSummaryDto> getAllPosts(Pageable pageable, Long curUserId, Long sportId, Boolean isBungae, String keyword) {
+        Specification<Post> spec = PostSpecification.filterAndSearch(curUserId, sportId, isBungae, keyword);
         Page<Post> postPage = postRepository.findAll(spec, pageable);
         // Post 엔티티를 PostSummaryDto로 매핑
         Page<PostSummaryDto> dtoPage = postPage.map(p -> {
@@ -61,14 +70,15 @@ public class PostService {
     }
 
     // 게시글 상세 조회
-    public PostDetailDto getPostDetail(Long postId) {
+    public PostDetailDto getPostDetail(Long postId, Long curUserId) {
         Post post = postRepository.findByIdWithImages(postId)
             .orElseThrow(() -> new IllegalArgumentException("post not found"));
         
         // 작성자 찾을 수 없으면 에러 발생
         // TODO: 탈퇴 유저의 경우 핸들링이 필요함
         if (post.getAuthor() == null) throw new IllegalArgumentException("author not found");
-
+        // 삭제된 글은 볼 수 없고, 숨김이면 본인만 볼 수 있어야 함
+        validatePostAccess(post, curUserId);
         return PostDetailDto.fromEntity(post);
     }
 
@@ -123,6 +133,9 @@ public class PostService {
         User curUser = userRepository.findById(curUserId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
         validateUser(post.getAuthor().getId(), curUserId);
+        
+        // 게시글 접근 권한 확인
+        validatePostAccess(post, curUserId);
 
         // 운동 카테고리 검증
         Sport sport = sportRepository.findByName(request.getSportName())
@@ -164,9 +177,16 @@ public class PostService {
 
     // 게시글 삭제
     @Transactional
-    public void deletePost(Long postId) {
+    public void deletePost(Long postId, Long curUserId) {
         Post post = postRepository.findById(postId)
             .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+        
+        // 유저 검증 및 작성자 인증 검사
+        validateUser(post.getAuthor().getId(), curUserId);
+        
+        // 게시글 접근 권한 확인
+        validatePostAccess(post, curUserId);
+        
         postRepository.delete(post);
     }
 }
