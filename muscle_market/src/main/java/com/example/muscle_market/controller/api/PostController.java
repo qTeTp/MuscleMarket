@@ -74,6 +74,20 @@ public class PostController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    // 게시글 숨기기
+    @PutMapping("/{postId}/hide")
+    public ResponseEntity<Void> hidePost(@PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails authUser) {
+        postService.hidePost(postId, authUser.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    // 게시글 숨김 해제
+    @PutMapping("/{postId}/unhide")
+    public ResponseEntity<Void> unhidePost(@PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails authUser) {
+        postService.unhidePost(postId, authUser.getId());
+        return ResponseEntity.ok().build();
+    }
+
     // 게시글 삭제
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(@AuthenticationPrincipal CustomUserDetails authUser, @PathVariable Long postId) {
