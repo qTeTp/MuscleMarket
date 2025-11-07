@@ -22,7 +22,7 @@ public class ProductPageController {
     // 한 페이지에 표시할 아이템 수 (가로 4줄 * 세로 5줄 = 20개)
     private static final int PAGE_SIZE = 20;
 
-    @GetMapping("/products/list")
+    @GetMapping("/products")
     public String productList(
             // 현재 페이지 번호 (0부터 시작, 기본값 0)
             @RequestParam(defaultValue = "0") int page,

@@ -4,48 +4,135 @@
     box-sizing: border-box;
 }
 
-.header {
-    background-color: #8B8B8B;
-    padding: 0 20px;
-    height: 60px;
+.header-container {
+    background: rgba(20, 20, 20, 0.88);
+    backdrop-filter: blur(6px);
+    height: 70px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    padding: 0 40px;
+    color: white;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
 }
 
-.header-left {
+/* 로고 */
+.logo {
     display: flex;
     align-items: center;
-    gap: 15px;
-    flex: 0 0 auto;
+    gap: 12px;
+    cursor: pointer;
 }
 
-.logo-icon {
-    width: 40px;
+.logo img {
     height: 40px;
-    background-color: #666;
-    border-radius: 4px;
+    width: auto;
+    object-fit: contain;
 }
 
+/* 카테고리 버튼 */
 .category-btn {
-    background-color: #D3D3D3;
-    border: none;
+    background-color: transparent;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
     padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
-    color: #333;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease-in-out;
 }
 
 .category-btn:hover {
-    background-color: #C0C0C0;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-.header-center {
-    flex: 1;
+/* 검색창 */
+.search-container {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 6px 10px;
+    gap: 8px;
+    width: 360px;
+}
+
+.search-input {
+    border: none;
+    background: transparent;
+    color: white;
+    width: 100%;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-icon img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.search-icon {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* 버튼 그룹 */
+.btn-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.action-btn {
+    border: none;
+    padding: 5px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.chat-btn {
+    background-color: #F5C542;
+    color: black;
+}
+
+.chat-btn:hover {
+    background-color: #d4a72e;
+}
+
+.logout-btn {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* 프로필 이미지 */
+.profile-img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #555;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+button:hover {
+    background: #d4a72e;
+    box-shadow: 0 8px 15px rgba(245, 197, 66, 0.4);
 }
 
 .header-right {
@@ -53,60 +140,4 @@
     align-items: center;
     gap: 15px;
     flex: 0 0 auto;
-}
-
-.chat-btn, .logout-btn {
-    background-color: #D3D3D3;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    font-weight: 500;
-    color: #333;
-    transition: background-color 0.2s;
-    white-space: nowrap;
-}
-
-.chat-btn:hover, .logout-btn:hover {
-    background-color: #C0C0C0;
-}
-
-.search-container {
-    display: flex;
-    align-items: center;
-    background-color: #D3D3D3;
-    border-radius: 4px;
-    padding: 6px 10px;
-    gap: 8px;
-}
-
-.search-input {
-    border: none;
-    background: transparent;
-    padding: 0;
-    font-size: 14px;
-    width: 150px;
-    outline: none;
-    color: #333;
-}
-
-.search-input::placeholder {
-    color: #999;
-}
-
-.search-icon {
-    width: 18px;
-    height: 18px;
-    background-color: #999;
-    border-radius: 2px;
-    cursor: pointer;
-}
-
-.profile-img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #666;
-    cursor: pointer;
 }

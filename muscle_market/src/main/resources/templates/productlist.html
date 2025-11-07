@@ -8,7 +8,6 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
         }
 
         /* 그리드 컨테이너: 가로 4줄을 위한 설정 */
@@ -74,43 +73,49 @@
             background-color: #333;
             color: white;
         }
+
+        .page-content {
+            padding-top: 90px; /* 헤더 높이만큼 띄우기 */
+        }
     </style>
     <link th:href="@{/css/header.css}" rel="stylesheet"/>
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
-<h1>경제적인 장비 업그레이드</h1>
-<h2>나를 죽이지 못한 고통은 나를 더 강하게 만든다</h2>
 
-<ul class="product-grid">
-    <li th:each="product : ${productPage.content}" class="product-item">
-        <a th:href="@{'/products/' + ${product.id}}">
-            <img th:src="${product.thumbnailUrl} ?: '/images/no_image.png'" alt="상품 이미지">
-        </a>
+<main class="page-content">
+    <h1>경제적인 장비 업그레이드</h1>
+    <h2>나를 죽이지 못한 고통은 나를 더 강하게 만든다</h2>
 
-        <div class="product-title" th:text="${product.title}">덤벨 세트 20kg</div>
-        <div class="product-price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">
-            50,000원
-        </div>
+    <ul class="product-grid">
+        <li th:each="product : ${productPage.content}" class="product-item">
+            <a th:href="@{'/products/' + ${product.id}}">
+                <img th:src="${product.thumbnailUrl} ?: '/images/no_image.png'" alt="상품 이미지">
+            </a>
 
-        <div class="product-info">
-            <span th:text="${product.location}">서울 강남구</span> |
-            <span th:text="${product.sportName}">헬스</span>
-        </div>
-        <div class="product-info">
-            <span>조회수️ <span th:text="${product.views}">120</span></span> |
-            <span>찜 <span th:text="${product.likeCount}">2</span></span>
-        </div>
-    </li>
-</ul>
+            <div class="product-title" th:text="${product.title}">덤벨 세트 20kg</div>
+            <div class="product-price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">
+                50,000원
+            </div>
 
-<div class="pagination" th:if="${productPage.totalPages > 0}">
+            <div class="product-info">
+                <span th:text="${product.location}">서울 강남구</span> |
+                <span th:text="${product.sportName}">헬스</span>
+            </div>
+            <div class="product-info">
+                <span>조회수️ <span th:text="${product.views}">120</span></span> |
+                <span>찜 <span th:text="${product.likeCount}">2</span></span>
+            </div>
+        </li>
+    </ul>
+
+    <div class="pagination" th:if="${productPage.totalPages > 0}">
         <span th:each="pageNum : ${#numbers.sequence(0, productPage.totalPages - 1)}">
             <a th:href="@{/products/list(page=${pageNum})}"
                th:class="${pageNum == currentPage ? 'active' : ''}"
                th:text="${pageNum + 1}">1</a>
         </span>
-</div>
-
+    </div>
+</main>
 </body>
 </html>
