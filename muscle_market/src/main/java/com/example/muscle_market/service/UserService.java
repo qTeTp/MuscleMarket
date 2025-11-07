@@ -89,43 +89,44 @@ public class UserService {
         String accessToken = jwtUtil.generateToken(loginDto.getUsername());
         String refreshToken = jwtUtil.generateRefreshToken(loginDto.getUsername());
 
+
         // SHA-256으로 해싱
-        String hashedRefreshToken = hashToken(refreshToken);
+        String hashedRefresh = hashToken(refreshToken);
 
         // Refresh 토큰 발급 후 user 엔티티에 저장
         User user = userRepository.findByUsername(loginDto.getUsername())
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
-        user.setRefreshToken(hashedRefreshToken);
+        user.setRefreshToken(hashedRefresh);
         userRepository.save(user);
 
         // 쿠키로 발급 (HttpOnly 방식)
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
                 .httpOnly(true)
                 .path("/")
+//                .secure(true) // HTTPS 연결에서만 전송
+//                .sameSite("Strict")   // 다른 사이트에서 요청시 쿠키 자동전송 방지
                 .maxAge(60*15)  // 15분
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .path("/")
+//                .secure(true) // HTTPS 연결에서만 전송
+//                .sameSite("Strict")   // 다른 사이트에서 요칭시 쿠키 자동전송 방지
                 .maxAge(60 * 60 * 24 * 7)   // 7일
                 .build();
 
         response.addHeader("set-Cookie", accessCookie.toString());
         response.addHeader("set-Cookie", refreshCookie.toString());
-
-        // JSON 형식으로 반환
-//        return new LoginResponseDto(accessToken, refreshToken, "Bearer");
     }
 
     // SHA-256으로 refreshToken 해싱
     private String hashToken(String token){
-        try{
+        try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashedBytes = digest.digest(token.getBytes());
-            return Base64.getEncoder().encodeToString(hashedBytes);
-        } catch (NoSuchAlgorithmException e){
-            throw new RuntimeException("Refresh token 해싱 실패", e);
+            return Base64.getEncoder().encodeToString(digest.digest(token.getBytes()));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
 
