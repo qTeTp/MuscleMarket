@@ -33,7 +33,7 @@ public class UserChatRelationship {
     private LocalDateTime updatedAt;
 
     @Setter
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private RelationshipStatus status;
 
     private LocalDateTime lastReadAt;
