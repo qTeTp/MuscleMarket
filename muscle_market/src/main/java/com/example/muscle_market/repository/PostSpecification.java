@@ -19,13 +19,13 @@ public class PostSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             // 기본적으로 ACTIVE고 DELETED가 아닌 글들 조회
-            Predicate activePosts = cb.equal(root.get("status"), PostStatus.ACTIVE);
-            predicates.add(cb.notEqual(root.get("status"), PostStatus.DELETED));
+            Predicate activePosts = cb.equal(root.get("postStatus"), PostStatus.ACTIVE);
+            predicates.add(cb.notEqual(root.get("postStatus"), PostStatus.DELETED));
 
             // 로그인한 사용자는 active와 본인의 hidden글 접근 가능
             if (curUserId != null) {
                 Predicate myHiddenPosts = cb.and(
-                    cb.equal(root.get("status"), PostStatus.HIDDEN),
+                    cb.equal(root.get("postStatus"), PostStatus.HIDDEN),
                     cb.equal(root.join("author").get("id"), curUserId)
                 );
 
@@ -35,7 +35,7 @@ public class PostSpecification {
             }
 
             if (sportId != null) {
-                predicates.add(cb.equal(root.get("sportId"), sportId));
+                predicates.add(cb.equal(root.get("sport").get("id"), sportId));
             }
 
             if (isBungae != null) {
