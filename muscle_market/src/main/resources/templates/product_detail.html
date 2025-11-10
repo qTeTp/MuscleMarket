@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${dto.title}">상품 상세</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+        }
+
+        .detail-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+
+        .image-gallery img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+
+        .product-header h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .product-header span {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .price {
+            font-size: 2em;
+            color: #ff4757;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .user-info {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        button {
+            margin-right: 10px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .page-content {
+            padding-top: 90px; /* 헤더 높이만큼 띄우기 */
+        }
+    </style>
+    <link th:href="@{/css/header.css}" rel="stylesheet"/>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="page-content">
+    <div class="detail-container">
+
+        <div class="product-header">
+            <h1 th:text="${dto.title}">상품 제목</h1>
+            <!-- ✅ 파이프 구문 올바르게 수정 -->
+            <span th:text="'작성자: ' + ${dto.user.nickname} + ' (' + ${dto.user.id} + ') | 상태: ' + ${dto.status}"></span>
+            <hr>
+        </div>
+
+        <div class="image-gallery">
+            <img th:each="url : ${dto.productImageUrls}"
+                 th:src="${url}"
+                 alt="상품 이미지"
+                 onerror="this.onerror=null; this.src='/images/no_image.png';">
+        </div>
+
+        <div class="price" th:text="|${#numbers.formatDecimal(dto.price, 0, 'COMMA', 0, 'POINT')}원|">50,000원</div>
+
+        <h2>상품 설명</h2>
+        <p th:text="${dto.description}">상품 상세 내용이 여기에 들어갑니다.</p>
+
+        <div class="product-info">
+            <p><strong>종목:</strong> <span th:text="${dto.sportName}">헬스</span></p>
+            <p><strong>거래 희망 장소:</strong> <span th:text="${dto.location}">서울 강남구</span></p>
+            <p>
+                <strong>조회수:</strong> <span th:text="${dto.views}">100</span> |
+                <strong>찜:</strong> <span th:text="${dto.likeCount}">10</span>
+            </p>
+            <p><strong>등록일:</strong> <span
+                    th:text="${#dates.format(dto.createdAt, 'yyyy-MM-dd HH:mm')}">2025-11-10</span>
+            </p>
+        </div>
+
+        <div class="user-info">
+            <h3>판매자 정보</h3>
+            <p><strong>닉네임:</strong> <span th:text="${dto.user.nickname}">판매자닉네임</span></p>
+
+            <!-- ✅ 로그인 유저와 판매자 동일할 때만 수정/삭제 버튼 -->
+            <div th:if="${dto.user.id == #authentication.principal.id}">
+                <button th:onclick="'location.href=\'/products/edit/' + '[[${dto.id}]]\''">수정</button>
+                <button th:onclick="'deleteProduct(' + '[[${dto.id}]]' + ')'">삭제</button>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- ✅ Thymeleaf JS 인라인 처리 -->
+<script th:inline="javascript">
+    function deleteProduct(productId) {
+        if (confirm('정말로 이 게시물을 삭제하시겠습니까?')) {
+            fetch('/api/products/' + productId, {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'}
+            })
+                .then(response => {
+                    if (response.status === 204) {
+                        alert('게시물이 성공적으로 삭제되었습니다.');
+                        window.location.href = '/products';
+                    } else {
+                        alert('삭제 실패: ' + response.status);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+</script>
+
+</body>
+</html>

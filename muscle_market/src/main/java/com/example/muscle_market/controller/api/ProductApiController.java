@@ -114,8 +114,14 @@ public class ProductApiController {
 
         Long productId = productService.createProduct(request, imageFiles);
 
-        // 201 Created 응답, 생성된 게시글의 ID 반환
-        return new ResponseEntity<>(productId, HttpStatus.CREATED);
+        String detailUrl = "/products/" + productId;
+
+        // 상태 코드 303
+        // 등록 후 상세 페이지로 url 반환
+        return ResponseEntity
+                .status(HttpStatus.SEE_OTHER)
+                .header("Location", detailUrl)
+                .build();
     }
 
     // 게시물 수정

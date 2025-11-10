@@ -22,12 +22,6 @@ public class ProductImage {
     @JoinColumn(name = "product_post_idx")
     private Product product;
 
-    @Column
-    private Long productId;
-
-    @Column(name = "image_url")
-    private String imageUrl;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
