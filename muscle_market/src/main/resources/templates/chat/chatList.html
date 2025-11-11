@@ -83,6 +83,17 @@
         .back-button, .menu-button { border: none; background: none; font-size: 1.5rem; cursor: pointer; padding: 5px; color: var(--text-primary); }
         .chat-room-panel .panel-header span { flex-grow: 1; text-align: center; }
 
+        /* --- 판매 물품 게시글 정보 스타일 --- */
+        .product-info-bar { display: none; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-primary); gap: 12px; }
+        .chat-room-panel:not(.is-empty) .product-info-bar { display: flex; }
+        .product-thumbnail img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+        .product-details { flex-grow: 1; overflow: hidden; }
+        .product-details-top { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .product-status { font-weight: bold; font-size: 0.9rem; color: var(--accent-color); flex-shrink: 0; }
+        .product-title { font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; }
+        .product-details-bottom { margin-top: 4px; }
+        .product-price { font-weight: bold; font-size: 1rem; color: var(--text-primary); }
+
         /* 채팅방 비어있을 때 스타일 */
         .chat-room-panel.is-empty .menu-button {
             visibility: hidden; /* 햄버거 버튼 숨겨서 중앙 정렬 맞추기 */
@@ -220,6 +231,20 @@
                 <span id="room-name">채팅방을 선택하세요</span>
                 <button class="menu-button" id="menu-btn">☰</button>
             </header>
+            <div class="product-info-bar" id="product-info-bar">
+                <div class="product-thumbnail">
+                    <img src="https://via.placeholder.com/50" alt="썸네일" id="product-thumbnail-img">
+                </div>
+                <div class="product-details">
+                    <div class="product-details-top">
+                        <span class="product-status" id="product-status"></span>
+                        <span class="product-title" id="product-title"></span>
+                    </div>
+                    <div class="product-details-bottom">
+                        <span class="product-price" id="product-price"></span>
+                    </div>
+                </div>
+            </div>
             <div class="chat-messages" id="message-container">
                 <!-- JS로 동적 생성될 메시지 -->
             </div>
@@ -292,11 +317,11 @@
     /*<![CDATA[*/
 
     // TODO: 기존 세션형식이 아니라 뷰에서 유저 데이터를 주는 방식이 아니라 localStorage에서 토큰을 가져오는 형식으로 바꿔줘야 함 (제미나이 확인)
-    const currentUser = /*[[${currentUser}]]*/ null;
+    const currentUser = null;
 
     // CSRF Token
-    const token = document.querySelector("meta[name='_csrf']").getAttribute('content');
-    const header = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
+    const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
+    const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
 
     /*]]>*/
 </script>
@@ -424,7 +449,7 @@
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                [header]: token
+                [csrfHeader]: csrfToken
             }
         })
             .then(res => {
@@ -497,7 +522,7 @@
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                [header]: token
+                [csrfHeader]: csrfToken
             }
         })
             .then(res => {
@@ -531,7 +556,7 @@
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                [header]: token
+                [csrfHeader]: csrfToken
             }
         })
             .then(res => {
@@ -584,7 +609,7 @@
         fetch(`/api/chats/${chatId}/read`, {
             method: 'POST',
             headers: {
-                [header]: token
+                [csrfHeader]: csrfToken
             }
         })
             .then(res => {
@@ -639,7 +664,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    [header]: token
+                    [csrfHeader]: csrfToken
                 },
                 body: JSON.stringify(createChatRequest)
             });
@@ -958,7 +983,7 @@
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
-                            [header]: token
+                            [csrfHeader]: csrfToken
                         }
                     })
                         .then(res => {

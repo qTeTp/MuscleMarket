@@ -17,13 +17,15 @@ import org.springframework.stereotype.Service;
 
 import com.example.muscle_market.domain.Chat;
 import com.example.muscle_market.domain.Message;
-
+import com.example.muscle_market.domain.Product;
 import com.example.muscle_market.repository.ChatRepository;
 import com.example.muscle_market.repository.MessageRepository;
+import com.example.muscle_market.repository.ProductImageRepository;
 import com.example.muscle_market.repository.UserChatRelationshipRepository;
 import com.example.muscle_market.repository.UserRepository;
 import com.example.muscle_market.repository.ProductRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +37,7 @@ public class ChatService {
    private final UserRepository userRepository;
    private final MessageRepository messageRepository;
    private final ProductRepository productRepository;
+   private final ProductImageRepository productImageRepository;
    private final SimpMessageSendingOperations messagingTemplate;
 
    // 사용자가 속한 모든 채팅방 조회
@@ -80,13 +83,18 @@ public class ChatService {
                List<ChatUserDto> chatUsers = usersByChatId.getOrDefault(chatId, Collections.emptyList());
                Message lastMessage = lastMessageByChatId.get(chatId);
 
+               Product product = lastMessage.getChat().getProduct();
+               String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+                    .orElseGet(null);
+
                return ChatResponseDto.builder()
                    .chatId(chatId)
                    .chatTitle(lastMessage != null ? lastMessage.getChat().getChatTitle() : null)
                    .chatUsers(chatUsers)
                    .lastMessage(lastMessage != null ? lastMessage.getContent() : null)
                    .lastMessageSentAt(lastMessage != null ? lastMessage.getCreatedAt() : null)
-                   .productId(lastMessage != null ? lastMessage.getChat().getProduct().getId() : null)
+                   .product(product)
+                   .productThumbnail(productThumbnail)
                    .unreadCount(messageRepository.countUnreadMessagesAfter(chatId, myRelationship.getLastReadAt()))
                    .build();
            }).toList();
@@ -127,13 +135,18 @@ public class ChatService {
        // 알림 전송
        sendNotification(newChat, initialMessage, chatUsersDto);
 
+       Product product = newChat.getProduct();
+       String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+            .orElseGet(null);
+
        return ChatResponseDto.builder()
                .chatId(newChat.getChatId())
                .chatUsers(chatUsersDto)
                .chatTitle(newChat.getChatTitle())
                .lastMessage(initialMessage.getContent())
                .lastMessageSentAt(initialMessage.getCreatedAt())
-               .productId(newChat.getProduct().getId())
+               .product(product)
+               .productThumbnail(productThumbnail)
                .unreadCount(0L)
                .build();
    }
@@ -219,13 +232,18 @@ public class ChatService {
        // 유저 개인 구독
        relationshipRepository.findAllByChatId(chat.getChatId())
                .forEach(rel -> {
+                    Product product = chat.getProduct();
+                    String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+                        .orElseGet(null);
+
                    ChatResponseDto participantResponse = ChatResponseDto.builder()
                            .chatId(chat.getChatId())
                            .chatTitle(chat.getChatTitle())
                            .chatUsers(participants)
                            .lastMessage(message.getContent())
                            .lastMessageSentAt(message.getCreatedAt())
-                           .productId(chat.getProduct().getId())
+                           .product(product)
+                           .productThumbnail(productThumbnail)
                            .unreadCount(messageRepository.countUnreadMessagesAfter(chat.getChatId(), rel.getLastReadAt()))
                            .build();
                    messagingTemplate.convertAndSend("/sub/users/" +  rel.getUser().getId(), participantResponse);
