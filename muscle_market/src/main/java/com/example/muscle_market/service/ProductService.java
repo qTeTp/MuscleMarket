@@ -5,6 +5,7 @@ import com.example.muscle_market.domain.ProductImage;
 import com.example.muscle_market.domain.Sport;
 import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.*;
+import com.example.muscle_market.enums.TransactionStatus;
 import com.example.muscle_market.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -229,5 +230,20 @@ public class ProductService {
                     .updatedAt(product.getUpdatedAt())
                     .build();
         });
+    }
+
+    // 게시물 논리적 삭제 메서드
+    public void deleteProductSoftly(Long productId, Long currentUserId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 제품을 찾을 수 없습니다. ID: " + productId));
+
+        // 권한 확인
+        if (!product.getUser().getId().equals(currentUserId)) {
+            // Spring Security를 사용하면 @PreAuthorize로 처리하는 것이 더 일반적입니다.
+            throw new SecurityException("게시물 작성자만 삭제할 수 있습니다.");
+        }
+
+        // DELETE로 상태 변경
+        product.updateStatus(TransactionStatus.DELETE);
     }
 }

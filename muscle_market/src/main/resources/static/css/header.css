@@ -87,13 +87,13 @@
 }
 
 /* 버튼 그룹 */
-.btn-group {
+.header-btn-group {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-.action-btn {
+.header-action-btn {
     border: none;
     padding: 5px 18px;
     border-radius: 6px;
@@ -118,21 +118,17 @@
 
 .logout-btn:hover {
     background-color: rgba(255, 255, 255, 0.25);
+
 }
 
 /* 프로필 이미지 */
-.profile-img {
+.header-profile-img {
     width: 42px;
     height: 42px;
     border-radius: 50%;
     background-color: #555;
     cursor: pointer;
     border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-button:hover {
-    background: #d4a72e;
-    box-shadow: 0 8px 15px rgba(245, 197, 66, 0.4);
 }
 
 .header-right {

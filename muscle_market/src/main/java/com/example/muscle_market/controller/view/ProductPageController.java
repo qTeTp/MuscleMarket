@@ -1,10 +1,8 @@
 package com.example.muscle_market.controller.view;
 
+import com.example.muscle_market.domain.CustomUserDetails;
 import com.example.muscle_market.domain.User;
-import com.example.muscle_market.dto.ProductCreateDto;
-import com.example.muscle_market.dto.ProductDetailDto;
-import com.example.muscle_market.dto.ProductListDto;
-import com.example.muscle_market.dto.SportDto;
+import com.example.muscle_market.dto.*;
 import com.example.muscle_market.service.ProductService;
 import com.example.muscle_market.service.SportService;
 import lombok.RequiredArgsConstructor;
@@ -56,28 +54,60 @@ public class ProductPageController {
         return "productlist";
     }
 
+    // 신규 게시물 등록
     @GetMapping("/new")
-    public String newProductForm(Model model, @AuthenticationPrincipal User currentUser) {
+    public String newProductForm(Model model, @AuthenticationPrincipal CustomUserDetails authUser) {
+        if (authUser != null) {
+            ChatUserDto currentUser = ChatUserDto.builder()
+                    .userId(authUser.getId())
+                    .nickname(authUser.getNickname())
+                    .profileImageUrl(authUser.getProfileImgUrl())
+                    .build();
+            model.addAttribute("currentUser", currentUser);
+        } else {
+            model.addAttribute("currentUser", null);
+        }
+
         // sport 목록
-        List<SportDto> sports = sportService.getAllSports();
-        model.addAttribute("sports", sports);
-
-        Long currentUserId = (currentUser != null) ? currentUser.getId() : 1L; // 비로그인 시 임시 ID
-        model.addAttribute("currentUserId", currentUserId);
-        // 폼 바인딩을 위한 빈 DTO 객체 추가 (선택적)
-//        model.addAttribute("product", new ProductCreateDto());
-
+        model.addAttribute("sports", sportService.getAllSports());
         return "product_form";
     }
 
+    // 게시물 상세 페이지 반환 매핑
     @GetMapping("/{productId}")
     public String productDetail(@PathVariable Long productId, Model model) {
 
         // 게시물 상세 DTO get
         ProductDetailDto dto = productService.getProductDetail(productId);
-
         model.addAttribute("dto", dto);
 
-        return "product_detail"; // product_detail.html 템플릿 반환
+        return "product_detail";
+    }
+
+    @GetMapping("/search")
+    public String searchProducts(
+            @RequestParam String keyword, // 필수 검색 키워드
+            @RequestParam(required = false) Long sportId, // 선택적 카테고리 필터
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+        // Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("createdAt").descending());
+
+        // 서비스 호출
+        Page<ProductListDto> productPage =
+                productService.searchProducts(Optional.ofNullable(sportId), keyword, pageable);
+
+        // 모델에 데이터 먹이기
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+
+        // 검색 결과를 뷰에 전달하기 위한 추가 정보
+        model.addAttribute("currentKeyword", keyword); // 검색 결과 뷰에 키워드 유지
+        model.addAttribute("currentSportId", sportId); // 카테고리 필터 유지 (페이지네이션을 위해)
+
+        // productlist.html 재사용
+        return "productlist";
     }
 }

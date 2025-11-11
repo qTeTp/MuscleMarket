@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>상품 등록</title>
+<!--    <meta name="_csrf" th:content="${_csrf.token}"/>-->
+<!--    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
     <link th:href="@{/css/header.css}" rel="stylesheet"/>
     <style>
         body {
@@ -28,7 +30,7 @@
         form {
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             padding: 40px;
         }
 
@@ -82,7 +84,7 @@
             border: 1px solid #eee;
         }
 
-        button {
+        .submit-button {
             width: 100%;
             background-color: #F5C542;
             color: #333;
@@ -95,11 +97,11 @@
             transition: background-color 0.25s ease, transform 0.05s ease;
         }
 
-        button:hover {
+        .submit-button:hover {
             background-color: #d4a72e;
         }
 
-        button:active {
+        .submit-button:active {
             transform: scale(0.98);
         }
 
@@ -128,7 +130,8 @@
             <textarea id="description" name="description" placeholder="상품 설명을 입력하세요" required></textarea>
         </div>
 
-        <input type="hidden" name="authorId" id="authorId" th:value="${currentUserId}">
+        <!-- 로그인한 사용자 정보 없다면 컨트롤러에서 1을 넣어버림 -->
+        <input type="hidden" name="authorId" id="authorId">
 
         <div class="form-group">
             <label for="price">가격</label>
@@ -146,7 +149,8 @@
                 <option value="">-- 종목을 선택하세요 --</option>
                 <option th:each="sport : ${sports}"
                         th:value="${sport.id}"
-                        th:text="${sport.name}">헬스</option>
+                        th:text="${sport.name}">헬스
+                </option>
             </select>
         </div>
 
@@ -158,10 +162,17 @@
             <div class="preview" id="preview"></div>
         </div>
 
-        <button type="submit">등록하기</button>
+        <button class="submit-button" type="submit">등록하기</button>
     </form>
 </main>
 
+<!--로그인 사용자 정보 가져오기-->
+<script th:inline="javascript">
+    const currentUserId = [[${#authorization.expression('isAuthenticated()') ? #authentication.principal.id : null}]];
+
+    console.log("현재 로그인한 사용자 정보2:", currentUserId);
+</script>
+<script th:src="@{/js/header.js}" defer></script>
 <script>
     const sportSelect = document.getElementById('sportId');
     const form = document.getElementById('productForm');
@@ -204,14 +215,18 @@
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const authorId = document.getElementById('authorId').value;
+        if (!currentUserId) {
+            alert('로그인 후 상품 등록이 가능합니다.');
+            return;
+        }
+
         const request = {
             title: form.elements['title'].value,
             description: form.description.value,
             price: parseFloat(form.price.value),
             location: form.location.value,
             sportId: parseInt(document.getElementById('sportId').value),
-            authorId: parseInt(authorId)
+            authorId: currentUserId
         };
 
         const formData = new FormData();
@@ -220,7 +235,7 @@
         const files = Array.from(imageInput.files);
         files.forEach(file => formData.append('images', file));
 
-        const response = await fetch('/api/products', { method: 'POST', body: formData });
+        const response = await fetch('/api/products', {method: 'POST', body: formData});
 
         if (response.ok || response.status === 303) {
             alert('상품이 등록되었습니다!');
