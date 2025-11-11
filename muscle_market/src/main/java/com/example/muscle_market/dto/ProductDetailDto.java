@@ -12,7 +12,7 @@ public class ProductDetailDto {
     private Long id;
     private String title;
     private String description;
-    private Float price;
+    private Long price;
     private String location;
     private List<String> productImageUrls; // 이미지 URL 리스트
     private String status;

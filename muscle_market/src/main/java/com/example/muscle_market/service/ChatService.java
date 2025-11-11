@@ -84,7 +84,7 @@ public class ChatService {
                Message lastMessage = lastMessageByChatId.get(chatId);
 
                Product product = lastMessage.getChat().getProduct();
-               String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+               String productThumbnail = (String) productImageRepository.findThumbnailUrlByProductId(product.getId())
                     .orElseGet(null);
 
                return ChatResponseDto.builder()
@@ -136,7 +136,7 @@ public class ChatService {
        sendNotification(newChat, initialMessage, chatUsersDto);
 
        Product product = newChat.getProduct();
-       String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+       String productThumbnail = (String) productImageRepository.findThumbnailUrlByProductId(product.getId())
             .orElseGet(null);
 
        return ChatResponseDto.builder()
@@ -233,7 +233,7 @@ public class ChatService {
        relationshipRepository.findAllByChatId(chat.getChatId())
                .forEach(rel -> {
                     Product product = chat.getProduct();
-                    String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+                    String productThumbnail = (String) productImageRepository.findThumbnailUrlByProductId(product.getId())
                         .orElseGet(null);
 
                    ChatResponseDto participantResponse = ChatResponseDto.builder()
