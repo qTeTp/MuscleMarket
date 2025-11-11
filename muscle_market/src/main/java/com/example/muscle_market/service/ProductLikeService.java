@@ -1,15 +1,16 @@
 package com.example.muscle_market.service;
 
 import com.example.muscle_market.domain.Product;
+import com.example.muscle_market.domain.ProductImage;
 import com.example.muscle_market.domain.ProductLike;
 import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.ProductListDto;
 import com.example.muscle_market.repository.*;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -51,6 +52,7 @@ public class ProductLikeService {
 
     // 페이지에서 찜 목록 조회
     // productListDto랑 같이 씀
+    @Transactional(readOnly = true)
     public Page<ProductListDto> getLikedProducts(Long userId, Pageable pageable) {
         // Repository 찜 목록 조회
         Page<ProductLike> likePage = productLikeRepository.findAllByUserWithProductAndSport(userId, pageable);
@@ -61,8 +63,8 @@ public class ProductLikeService {
 
             // DTO 생성에 필요한 추가 정보 조회
             long likeCount = productLikeRepository.countByProductId(product.getId());
-            String thumbnailUrl = productImageRepository
-                    .findThumbnailUrlByProductId(product.getId())
+            String thumbnailUrl = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
+                    .map(ProductImage::getS3Url) // ProductImage 엔티티의 s3Url 필드 사용
                     .orElse("default_image.jpg");
 
             // ProductListDto로 매핑

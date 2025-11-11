@@ -1,36 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Header Preview</title>
-    <style>
-
-    </style>
-</head>
-<body>
-<header class="header">
-    <!-- 왼쪽: 로고 + 카테고리 -->
-    <div class="header-left">
-        <button class="logo-icon"></button>
-
-        <button class="category-btn">카테고리</button>
+<header class="header-container">
+    <!-- 왼쪽 -->
+    <div class="logo" onclick="window.location.href='/products'">
+        <img src="/images/logo.png" alt="Muscle Market Logo">
     </div>
 
-    <!-- 가운데: 빈 공간 -->
+    <!-- 가운데 -->
     <div class="header-center"></div>
 
-    <!-- 오른쪽: 검색 + 채팅하기 + 로그아웃 + 프로필 -->
     <div class="header-right">
-        <button class="chat-btn">채팅하기</button>
-        <button class="logout-btn">로그아웃</button>
-        <div class="search-container">
-            <input type="text" class="search-input" placeholder="검색">
-            <div class="search-icon"></div>
+        <div class="search-container" id="searchContainer">
+            <input type="text" class="search-input" id="searchInput" placeholder="검색">
+            <button class="action-btn search-icon" id="searchButton">
+                <img src="/images/search.png" alt="search icon">
+            </button>
         </div>
 
-        <div class="profile-img"></div>
+        <!-- 오른쪽 -->
+        <div class="header-btn-group">
+            <button class="header-action-btn chat-btn">채팅하기</button>
+            <button class="header-action-btn logout-btn">로그아웃</button>
+            <div class="header-profile-img"></div>
+        </div>
     </div>
 </header>
-</body>
-</html>

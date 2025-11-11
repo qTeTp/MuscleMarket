@@ -54,7 +54,7 @@ public class PostLoginController {
             return "redirect:/onboarding";
         } else {
             // true면 메인페이지로 이동
-            return "redirect:/products/list";
+            return "redirect:/products";
         }
     }
 }
