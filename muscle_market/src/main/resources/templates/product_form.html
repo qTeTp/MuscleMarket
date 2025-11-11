@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>상품 등록</title>
-<!--    <meta name="_csrf" th:content="${_csrf.token}"/>-->
-<!--    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
+    <!--    <meta name="_csrf" th:content="${_csrf.token}"/>-->
+    <!--    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
     <link th:href="@{/css/header.css}" rel="stylesheet"/>
     <style>
         body {
@@ -156,6 +156,7 @@
 
         <hr>
 
+        <!--        이미지 업로드 방식 수정 예정-->
         <div class="form-group">
             <label for="images">상품 이미지 (최대 5장)</label>
             <input type="file" id="images" name="images" accept="image/*" multiple>

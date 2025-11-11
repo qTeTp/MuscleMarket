@@ -21,5 +21,5 @@ public class TransactionDto {
 
     private Long productId; // 상품 id, 명
     private String productName;
-    private Float price;
+    private Long price;
 }

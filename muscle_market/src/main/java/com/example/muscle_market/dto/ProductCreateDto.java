@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class ProductCreateDto {
     private String title;
     private String description;
-    private Float price;
+    private Long price;
     private String location;
     private Long sportId; // 종목 ID
     private Long authorId; // 작성자 ID

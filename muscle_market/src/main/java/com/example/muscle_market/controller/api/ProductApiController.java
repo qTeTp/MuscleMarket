@@ -154,7 +154,8 @@ public class ProductApiController {
         return ResponseEntity.ok(productPage);
     }
 
-    @DeleteMapping("/{productId}")
+    // 논리적 삭제 매핑
+    @DeleteMapping("/products/{productId}")
     public ResponseEntity<Void> deleteProductSoftly(
             @PathVariable Long productId,
             @AuthenticationPrincipal User principal) {
