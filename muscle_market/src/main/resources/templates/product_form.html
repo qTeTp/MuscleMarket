@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 등록</title>
+<!--    <meta name="_csrf" th:content="${_csrf.token}"/>-->
+<!--    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
+    <link th:href="@{/css/header.css}" rel="stylesheet"/>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f6f7;
+            color: #333;
+        }
+
+        main.page-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 120px 20px 80px; /* 헤더 여백 포함 */
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        form {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 500;
+            color: #444;
+        }
+
+        input, textarea, select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #F5C542;
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        input[type="file"] {
+            border: none;
+            padding-left: 0;
+        }
+
+        .preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .preview img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .submit-button {
+            width: 100%;
+            background-color: #F5C542;
+            color: #333;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.25s ease, transform 0.05s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #d4a72e;
+        }
+
+        .submit-button:active {
+            transform: scale(0.98);
+        }
+
+        /* 입력 필드 구분선 */
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="page-content">
+    <h2>상품 등록</h2>
+
+    <form id="productForm">
+        <div class="form-group">
+            <label for="title">상품 제목</label>
+            <input type="text" id="title" name="title" placeholder="상품 제목을 입력하세요" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">상품 설명</label>
+            <textarea id="description" name="description" placeholder="상품 설명을 입력하세요" required></textarea>
+        </div>
+
+        <!-- 로그인한 사용자 정보 없다면 컨트롤러에서 1을 넣어버림 -->
+        <input type="hidden" name="authorId" id="authorId">
+
+        <div class="form-group">
+            <label for="price">가격</label>
+            <input type="number" id="price" name="price" placeholder="가격을 입력하세요" required>
+        </div>
+
+        <div class="form-group">
+            <label for="location">거래 희망 위치</label>
+            <input type="text" id="location" name="location" placeholder="예: 서울 강남구" required>
+        </div>
+
+        <div class="form-group">
+            <label for="sportId">운동 종목 선택</label>
+            <select id="sportId" name="request[sportId]" required>
+                <option value="">-- 종목을 선택하세요 --</option>
+                <option th:each="sport : ${sports}"
+                        th:value="${sport.id}"
+                        th:text="${sport.name}">헬스
+                </option>
+            </select>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label for="images">상품 이미지 (최대 5장)</label>
+            <input type="file" id="images" name="images" accept="image/*" multiple>
+            <div class="preview" id="preview"></div>
+        </div>
+
+        <button class="submit-button" type="submit">등록하기</button>
+    </form>
+</main>
+
+<!--로그인 사용자 정보 가져오기-->
+<script th:inline="javascript">
+    const currentUserId = [[${#authorization.expression('isAuthenticated()') ? #authentication.principal.id : null}]];
+
+    console.log("현재 로그인한 사용자 정보2:", currentUserId);
+</script>
+<script th:src="@{/js/header.js}" defer></script>
+<script>
+    const sportSelect = document.getElementById('sportId');
+    const form = document.getElementById('productForm');
+    const imageInput = document.getElementById('images');
+    const preview = document.getElementById('preview');
+
+    async function loadSports() {
+        try {
+            const res = await fetch('/api/sports');
+            if (!res.ok) throw new Error('스포츠 목록을 불러올 수 없습니다.');
+            const sports = await res.json();
+            sportSelect.innerHTML = '<option value="">-- 종목을 선택하세요 --</option>';
+            sports.forEach(sport => {
+                const option = document.createElement('option');
+                option.value = sport.id;
+                option.textContent = sport.name;
+                sportSelect.appendChild(option);
+            });
+        } catch (err) {
+            sportSelect.innerHTML = '<option value="">불러오기 실패</option>';
+            console.error(err);
+        }
+    }
+
+    imageInput.addEventListener('change', () => {
+        preview.innerHTML = '';
+        const files = Array.from(imageInput.files);
+        if (files.length > 5) {
+            alert('최대 5장까지만 업로드할 수 있습니다.');
+            imageInput.value = '';
+            return;
+        }
+        files.forEach(file => {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            preview.appendChild(img);
+        });
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!currentUserId) {
+            alert('로그인 후 상품 등록이 가능합니다.');
+            return;
+        }
+
+        const request = {
+            title: form.elements['title'].value,
+            description: form.description.value,
+            price: parseFloat(form.price.value),
+            location: form.location.value,
+            sportId: parseInt(document.getElementById('sportId').value),
+            authorId: currentUserId
+        };
+
+        const formData = new FormData();
+        formData.append('request', new Blob([JSON.stringify(request)], {type: 'application/json'}));
+
+        const files = Array.from(imageInput.files);
+        files.forEach(file => formData.append('images', file));
+
+        const response = await fetch('/api/products', {method: 'POST', body: formData});
+
+        if (response.ok || response.status === 303) {
+            alert('상품이 등록되었습니다!');
+            const locationHeader = response.headers.get('Location');
+            if (locationHeader) {
+                window.location.href = locationHeader;
+            } else {
+                window.location.href = '/products';
+            }
+        } else {
+            alert('상품 등록에 실패했습니다. (Status: ' + response.status + ')');
+        }
+    });
+
+    loadSports();
+</script>
+</body>
+</html>

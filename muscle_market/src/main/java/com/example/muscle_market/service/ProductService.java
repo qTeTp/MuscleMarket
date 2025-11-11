@@ -5,6 +5,7 @@ import com.example.muscle_market.domain.ProductImage;
 import com.example.muscle_market.domain.Sport;
 import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.*;
+import com.example.muscle_market.enums.TransactionStatus;
 import com.example.muscle_market.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -26,6 +28,7 @@ public class ProductService {
     private final ProductLikeRepository productLikeRepository;
     private final UserRepository userRepository;
     private final SportRepository sportRepository;
+    private final ProductImageService productImageService;
 
     // 제품 상세 정보 조회
     @Transactional // 조회수 증가 때문에 트랜잭션을 ReadOnly = false로 설정
@@ -88,8 +91,8 @@ public class ProductService {
         return productPage.map(product -> {
             long likeCount = productLikeRepository.countByProductId(product.getId());
 
-            String thumbnailUrl = productImageRepository
-                    .findThumbnailUrlByProductId(product.getId())
+            String thumbnailUrl = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
+                    .map(ProductImage::getS3Url) // ✅ ProductImage 객체에서 s3Url 추출
                     .orElse("default_image.jpg"); // 기본 이미지 설정
 
             return ProductListDto.builder()
@@ -135,17 +138,16 @@ public class ProductService {
         Product savedProduct = productRepository.save(product);
 
         // 이미지 저장 및 ProductImage 엔티티 생성
-        for (MultipartFile file : imageFiles) {
-            // 이미지 업로드 후 주소 URL 반환받아야 함
-            String imageUrl = simulateFileUpload(file);
-
-            ProductImage productImage = ProductImage.builder()
-                    .product(savedProduct)
-                    .imageUrl(imageUrl)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-
-            productImageRepository.save(productImage);
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            for (MultipartFile file : imageFiles) {
+                try {
+                    // Product ID와 파일 객체를 넘겨 업로드 및 DB 저장을 위임
+                    productImageService.uploadPhoto(savedProduct.getId(), file);
+                } catch (IOException e) {
+                    // 파일 업로드 실패 시 트랜잭션을 롤백하거나 적절히 예외 처리
+                    throw new RuntimeException("이미지 업로드 중 오류 발생", e);
+                }
+            }
         }
 
         return savedProduct.getId();
@@ -166,36 +168,29 @@ public class ProductService {
         // 기존에 등록되어 있던 이미지 삭제
         if (request.getDeletedImageIds() != null && !request.getDeletedImageIds().isEmpty()) {
             request.getDeletedImageIds().forEach(imageId -> {
-                productImageRepository.deleteById(imageId);
-                // S3의 시스템에서 이미지 파일 삭제 메서드 구현해서 넣어줘야 함
+                try {
+                    // S3 파일 삭제 및 DB 레코드 삭제를 위임
+                    productImageService.deletePhoto(imageId);
+                } catch (Exception e) {
+                    // 삭제 실패 예외 처리 (로그 기록 등)
+                    System.err.println("이미지 삭제 중 오류 발생 (ID: " + imageId + "): " + e.getMessage());
+                }
             });
         }
 
         // 수정된 새로운 이미지 추가
-        for (MultipartFile file : newImageFiles) {
-            // 물품 등록 때와 마찬가지로 S3 업로드 구현
-            String imageUrl = simulateFileUpload(file);
-
-            ProductImage productImage = ProductImage.builder()
-                    .product(product)
-                    .imageUrl(imageUrl)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-
-            productImageRepository.save(productImage);
+        if (newImageFiles != null && !newImageFiles.isEmpty()) {
+            for (MultipartFile file : newImageFiles) {
+                try {
+                    // Product ID와 파일 객체를 넘겨 업로드 및 DB 저장을 위임
+                    productImageService.uploadPhoto(productId, file);
+                } catch (IOException e) {
+                    throw new RuntimeException("새 이미지 업로드 중 오류 발생", e);
+                }
+            }
         }
 
         return product.getId();
-    }
-
-    // 이미지 파일 업로드 메서드
-    // S3 연결 이후 구현 예정
-    private String simulateFileUpload(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            return "placeholder_url/no_image.png";
-        }
-        // S3 경로/ 로컬 경로 사용
-        return "https://image-server.com/product/" + file.getOriginalFilename();
     }
 
     // 통합 검색 메서드
@@ -217,7 +212,9 @@ public class ProductService {
         // dto 변환 로직
         return productPage.map(product -> {
             long likeCount = productLikeRepository.countByProductId(product.getId());
-            String thumbnailUrl = productImageRepository.findThumbnailUrlByProductId(product.getId()).orElse("default_image.jpg");
+            String thumbnailUrl = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
+                    .map(ProductImage::getS3Url) // ✅ ProductImage 객체에서 s3Url 추출
+                    .orElse("default_image.jpg");
 
             return ProductListDto.builder()
                     .id(product.getId())
@@ -233,5 +230,20 @@ public class ProductService {
                     .updatedAt(product.getUpdatedAt())
                     .build();
         });
+    }
+
+    // 게시물 논리적 삭제 메서드
+    public void deleteProductSoftly(Long productId, Long currentUserId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 제품을 찾을 수 없습니다. ID: " + productId));
+
+        // 권한 확인
+        if (!product.getUser().getId().equals(currentUserId)) {
+            // Spring Security를 사용하면 @PreAuthorize로 처리하는 것이 더 일반적입니다.
+            throw new SecurityException("게시물 작성자만 삭제할 수 있습니다.");
+        }
+
+        // DELETE로 상태 변경
+        product.updateStatus(TransactionStatus.DELETE);
     }
 }
