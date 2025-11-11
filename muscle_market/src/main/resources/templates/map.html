@@ -104,8 +104,7 @@
     </div>
 </div>
 
-<script type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=528e100d169fddcfdc8d5420814a80f9&libraries=services"></script>
+<script th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapApiKey} + '&libraries=services'"></script>
 
 <script>
     function checkKakaoReady() {

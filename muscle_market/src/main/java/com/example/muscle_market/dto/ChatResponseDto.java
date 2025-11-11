@@ -30,7 +30,7 @@ public class ChatResponseDto {
         this.productContent = ProductSummaryForChat.builder()
             .productId(product.getId())
             .title(product.getTitle())
-            .price(product.getPrice())
+//            .price(product.getPrice())
             .status(product.getStatus())
             .thumbnail(productThumbnail)
             .build();
