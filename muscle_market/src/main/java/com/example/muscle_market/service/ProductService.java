@@ -115,7 +115,7 @@ public class ProductService {
     @Transactional
     public Long createProduct(ProductCreateDto request, List<MultipartFile> imageFiles) {
 
-        // 유저 종목 조회
+        // 유저, 종목 조회
         User author = userRepository.findById(request.getAuthorId())
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다. ID: " + request.getAuthorId()));
 
@@ -165,7 +165,7 @@ public class ProductService {
 
         product.updateProduct(request, sport);
 
-        // 기존에 등록되어 있던 이미지 삭제
+        // 기존의 이미지 삭제
         if (request.getDeletedImageIds() != null && !request.getDeletedImageIds().isEmpty()) {
             request.getDeletedImageIds().forEach(imageId -> {
                 try {
@@ -213,7 +213,7 @@ public class ProductService {
         return productPage.map(product -> {
             long likeCount = productLikeRepository.countByProductId(product.getId());
             String thumbnailUrl = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
-                    .map(ProductImage::getS3Url) // ✅ ProductImage 객체에서 s3Url 추출
+                    .map(ProductImage::getS3Url) // ProductImage 객체에서 s3Url 추출
                     .orElse("default_image.jpg");
 
             return ProductListDto.builder()
@@ -235,11 +235,10 @@ public class ProductService {
     // 게시물 논리적 삭제 메서드
     public void deleteProductSoftly(Long productId, Long currentUserId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("삭제할 제품을 찾을 수 없습니다. ID: " + productId));
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. ID: " + productId));
 
         // 권한 확인
         if (!product.getUser().getId().equals(currentUserId)) {
-            // Spring Security를 사용하면 @PreAuthorize로 처리하는 것이 더 일반적입니다.
             throw new SecurityException("게시물 작성자만 삭제할 수 있습니다.");
         }
 
