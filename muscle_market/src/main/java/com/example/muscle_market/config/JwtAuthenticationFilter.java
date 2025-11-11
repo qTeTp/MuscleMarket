@@ -69,8 +69,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 4️⃣ DB에 저장된 hashed RefreshToken과 일치하는지 확인
                 User user = userRepository.findByUsername(username).orElse(null);
                 if (user != null && user.getRefreshToken() != null) {
-                    String hashedRefresh = hashToken(refreshToken);
-                    if (hashedRefresh.equals(user.getRefreshToken())) {
+//                    String hashedRefresh = hashToken(refreshToken);
+                    if (refreshToken.equals(user.getRefreshToken())) {
                         // 일치 → AccessToken 재발급
                         String newAccessToken = jwtUtil.generateToken(username);
                         ResponseCookie newAccessCookie = ResponseCookie.from("accessToken", newAccessToken)
@@ -93,16 +93,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // SHA-256 해시 함수
-    private String hashToken(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = digest.digest(token.getBytes());
-            return Base64.getEncoder().encodeToString(hashed);
-        } catch (Exception e) {
-            throw new RuntimeException("토큰 해싱 실패", e);
-        }
-    }
+//    // SHA-256 해시 함수
+//    private String hashToken(String token) {
+//        try {
+//            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+//            byte[] hashed = digest.digest(token.getBytes());
+//            return Base64.getEncoder().encodeToString(hashed);
+//        } catch (Exception e) {
+//            throw new RuntimeException("토큰 해싱 실패", e);
+//        }
+//    }
 
     // SecurityContext에 인증 정보 설정
     private void setAuthentication(String username) {

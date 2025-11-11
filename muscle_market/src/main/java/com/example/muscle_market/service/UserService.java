@@ -18,6 +18,7 @@ import com.example.muscle_market.domain.User;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.security.MessageDigest;
 
@@ -91,12 +92,12 @@ public class UserService {
 
 
         // SHA-256으로 해싱
-        String hashedRefresh = hashToken(refreshToken);
+//        String hashedRefresh = hashToken(refreshToken);
 
         // Refresh 토큰 발급 후 user 엔티티에 저장
         User user = userRepository.findByUsername(loginDto.getUsername())
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
-        user.setRefreshToken(hashedRefresh);
+        user.setRefreshToken(refreshToken);
         userRepository.save(user);
 
         // 쿠키로 발급 (HttpOnly 방식)
@@ -120,14 +121,48 @@ public class UserService {
         response.addHeader("set-Cookie", refreshCookie.toString());
     }
 
-    // SHA-256으로 refreshToken 해싱
-    private String hashToken(String token){
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return Base64.getEncoder().encodeToString(digest.digest(token.getBytes()));
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+
+    // OAuth2 로그인 처리
+    public String[] oauthLogin(String email, String name) {
+        // 기존 유저 조회, 없으면 신규 생성
+        User user = userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setEmail(email);
+                    newUser.setUsername(email); // 이메일을 username으로 사용
+                    newUser.setNickname(name);
+                    newUser.setPassword(""); // 소셜 로그인은 비밀번호 없음
+                    newUser.setIsOnboarded(false);
+                    return userRepository.save(newUser);
+                });
+
+        // JWT 토큰 발급
+        String accessToken = jwtUtil.generateToken(user.getUsername());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+
+        // Refresh 토큰 DB에 저장
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+
+        // 쿠키 생성은 핸들러에서 진행 (순환참조 때문에)
+        return new String[]{accessToken, refreshToken};
+    }
+
+
+//    // SHA-256으로 refreshToken 해싱
+//    private String hashToken(String token){
+//        try {
+//            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+//            return Base64.getEncoder().encodeToString(digest.digest(token.getBytes()));
+//        } catch (NoSuchAlgorithmException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
+    // oauth 사용자를 위한 이메일로 유저 조회
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
     }
 
     // 로그아웃

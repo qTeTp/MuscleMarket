@@ -65,7 +65,7 @@
             box-shadow: 0 0 8px rgba(245, 197, 66, 0.5);
         }
 
-        button, .google-btn {
+        button {
             width: 100%;
             padding: 16px;
             border-radius: 8px;
@@ -75,9 +75,6 @@
             cursor: pointer;
             box-sizing: border-box;
             transition: 0.2s ease;
-        }
-
-        button {
             background: #F5C542;
             color: #111;
             margin-top: 12px;
@@ -89,9 +86,20 @@
         }
 
         .google-btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
             background: #444;
             color: white;
             margin-top: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: 0.2s ease;
         }
 
         .google-btn:hover {
@@ -113,6 +121,13 @@
         .signup a:hover {
             text-decoration: underline;
         }
+
+        /* 오류 메시지 스타일 */
+        .error-message {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
@@ -122,6 +137,9 @@
     </div>
 
     <form th:action="@{/api/login}" th:object="${loginDto}" method="post">
+        <div th:if="${error}" class="error-message">
+            <p th:text="${error}"></p>
+        </div>
 
         <div class="form-group">
             <label for="username">아이디</label>
@@ -133,18 +151,17 @@
             <input id="password" type="password" th:field="*{password}" placeholder="비밀번호 입력" required>
         </div>
 
-        <div th:if="${error}" style="color: #ff6b6b; font-size: 14px;">
-            <p th:text="${error}"></p>
-        </div>
-
         <button type="submit">로그인</button>
     </form>
+
+    <!-- 구글 로그인 버튼 -->
+    <a href="/oauth2/authorization/google" class="google-btn">
+        구글 로그인
+    </a>
 
     <div class="signup">
         아직 회원이 아니신가요? <a href="/signup">회원가입</a>
     </div>
-
-    <button class="google-btn">구글 로그인</button>
 </div>
 </body>
 </html>

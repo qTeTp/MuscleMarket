@@ -1,8 +1,10 @@
 package com.example.muscle_market.config;
 
+import com.example.muscle_market.service.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,10 +16,18 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.web.authentication.AuthenticationConverter;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    // 소셜 로그인
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
+    // 순환참조로 인해 Lazy 어노테이션 추가
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          @Lazy OAuth2SuccessHandler oAuth2SuccessHandler) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,11 +41,16 @@ public class SecurityConfig {
                         // 인증 없어도 들어가게
                         .requestMatchers("/","/api/signup", "/api/login", "/api/**", "/api/products",
                                 "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes",
-                                "/login", "/signup", "/images/**","/products/**", "/post-login").permitAll() // 회원가입/로그인은 허용
+                                "/login", "/signup", "/images/**","/products/**", "/post-login", "/oauth2/**").permitAll() // 회원가입/로그인은 허용
                         // 인증 있어야 들어가게
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
                 )
+                // OAuth2 로그인 설정
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .successHandler(oAuth2SuccessHandler))
+
                 // JWT 필터 UsernamePasswordAuthenticationFilter 앞에 추가
                 .addFilterBefore(
                         jwtAuthenticationFilter,
