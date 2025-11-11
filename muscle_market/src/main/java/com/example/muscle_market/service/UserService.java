@@ -3,8 +3,11 @@ package com.example.muscle_market.service;
 import com.example.muscle_market.config.JwtUtil;
 import com.example.muscle_market.dto.LoginDto;
 import com.example.muscle_market.dto.LoginResponseDto;
+import com.example.muscle_market.dto.PostUserDto;
 import com.example.muscle_market.dto.UserDto;
 import com.example.muscle_market.repository.UserRepository;
+
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -148,5 +151,18 @@ public class UserService {
                 userRepository.save(user);
             });
         }
+    }
+
+    // 현재 로그인한 유저 정보 조회
+    public PostUserDto getCurrentUser(Long userId) {
+        User curUser = userRepository.findById(userId)
+            .orElseThrow(() -> new EntityNotFoundException("유저 정보를 찾을 수 없습니다."));
+        
+        return PostUserDto.builder()
+            .authorId(curUser.getId())
+            .authorUsername(curUser.getUsername())
+            .authorNickname(curUser.getNickname())
+            .authorProfileImgUrl(curUser.getProfileImgUrl())
+            .build();
     }
 }
