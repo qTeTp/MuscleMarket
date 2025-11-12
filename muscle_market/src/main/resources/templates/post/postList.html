@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전체 게시글</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter 폰트 사용 (Figma와 유사한 깔끔한 폰트) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* 피그마 배경과 유사한 색상 */
+        }
+        /* 피그마의 회색 버튼 스타일 */
+        .btn-secondary {
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
+            color: #495057;
+        }
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        /* 피그마의 흰색 버튼 스타일 */
+        .btn-outline {
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+        .btn-outline:hover {
+            background-color: #f8f9fa;
+        }
+        /* 피그마의 기본 파란색 버튼 (예시) */
+        .btn-primary {
+            background-color: #3b82f6; /* 예시 파란색 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+    </style>
+    <!-- Inter 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-white">
+    <main id="board-list" class="w-full max-w-6xl mx-auto px-4 py-10">
+        <h1 class="text-3xl font-bold mb-6">전체 게시글</h1>
+
+        <!-- 필터 및 검색 영역 -->
+        <div class="flex justify-between items-center mb-4">
+            <!-- 좌측 필터 -->
+            <div class="flex items-center gap-4">
+                <select class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">-- 운동 선택 --</option>
+                    <option value="soccer">축구</option>
+                    <option value="basketball">농구</option>
+                    <option value="running">러닝</option>
+                </select>
+                <div class="flex items-center gap-2 text-sm">
+                    <input type="radio" id="meetup" name="post-type" class="text-blue-600 focus:ring-blue-500">
+                    <label for="meetup">번개 모집</label>
+                </div>
+            </div>
+            
+            <!-- 우측 검색 -->
+            <div class="relative">
+                <input type="text" placeholder="검색" class="border border-gray-300 rounded-md py-2 px-4 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 게시글 테이블 -->
+        <div class="border-t-2 border-gray-800">
+            <table class="w-full text-left">
+                <thead class="border-b border-gray-300">
+                    <tr class="text-sm text-gray-600">
+                        <th class="py-3 px-2 w-16 text-center">No</th>
+                        <th class="py-3 px-2">제목</th>
+                        <th class="py-3 px-2 w-32">작성자</th>
+                        <th class="py-3 px-2 w-32">등록일</th>
+                        <th class="py-3 px-2 w-20 text-center">조회수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Mock Data Loop -->
+                    <!-- 실제로는 이 tr이 데이터만큼 반복됩니다. -->
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-4 px-2 text-center text-sm text-gray-700">10</td>
+                        <td class="py-4 px-2 font-medium"><a href="#board-detail" class="hover:underline">게시글 제목입니다.</a></td>
+                        <td class="py-4 px-2 text-sm text-gray-700">작성자</td>
+                        <td class="py-4 px-2 text-sm text-gray-700">등록일</td>
+                        <td class="py-4 px-2 text-center text-sm text-gray-700">조회수</td>
+                    </tr>
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-4 px-2 text-center text-sm text-gray-700">9</td>
+                        <td class="py-4 px-2 font-medium"><a href="#board-detail" class="hover:underline">두 번째 게시글</a></td>
+                        <td class="py-4 px-2 text-sm text-gray-700">작성자</td>
+                        <td class="py-4 px-2 text-sm text-gray-700">등록일</td>
+                        <td class="py-4 px-2 text-center text-sm text-gray-700">조회수</td>
+                    </tr>
+                    <!-- ... (나머지 8개 목업 데이터 생략) ... -->
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-4 px-2 text-center text-sm text-gray-700">1</td>
+                        <td class="py-4 px-2 font-medium"><a href="#board-detail" class="hover:underline">마지막 게시글</a></td>
+                        <td class="py-4 px-2 text-sm text-gray-700">작성자</td>
+                        <td class="py-4 px-2 text-sm text-gray-700">등록일</td>
+                        <td class="py-4 px-2 text-center text-sm text-gray-700">조회수</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 페이지네이션 (Figma엔 없지만 일반적으로 포함됨) -->
+        <div class="flex justify-center mt-8">
+            <nav class="flex items-center gap-2">
+                <button class="px-3 py-1 rounded-md text-sm btn-outline">&laquo;</button>
+                <button class="px-3 py-1 rounded-md text-sm btn-outline bg-gray-200 font-medium">1</button>
+                <button class="px-3 py-1 rounded-md text-sm btn-outline">2</button>
+                <button class="px-3 py-1 rounded-md text-sm btn-outline">3</button>
+                <button class="px-3 py-1 rounded-md text-sm btn-outline">&raquo;</button>
+            </nav>
+        </div>
+
+        <!-- 글쓰기 버튼 -->
+        <div class="flex justify-end gap-2 mt-6">
+            <button class="btn-outline px-4 py-2 rounded-md font-medium text-sm">번개글 작성</button>
+            <button class="btn-outline px-4 py-2 rounded-md font-medium text-sm">게시글 작성</button>
+        </div>
+    </main>
+</body>
+</html>
