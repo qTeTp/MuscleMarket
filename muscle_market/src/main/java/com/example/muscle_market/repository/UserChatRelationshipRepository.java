@@ -52,11 +52,13 @@ public interface UserChatRelationshipRepository extends JpaRepository<UserChatRe
            "WHERE ucr1.user.id = :userId1 " +
            "AND ucr2.user.id = :userId2 " +
            "AND (ucr1.status = :status OR ucr2.status = :status) " +
+
+           "AND ucr1.chat.product.id = :productId " + 
            
            "AND ucr1.chat.chatId IN (" +
            "    SELECT c.chat.chatId FROM UserChatRelationship c " +
            "    GROUP BY c.chat.chatId " +
            "    HAVING COUNT(c.chat.chatId) = 2" +
            ")")
-    Optional<Chat> findActiveOneToOneChatByUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2, @Param("status") RelationshipStatus status);
+    Optional<Chat> findActiveOneToOneChatByUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2, @Param("productId") Long productId, @Param("status") RelationshipStatus status);
 }

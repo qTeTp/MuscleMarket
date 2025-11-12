@@ -53,15 +53,16 @@ public class ChatService {
 
        // 채팅방 id 리스트로 모든 참여자 정보 조회 (참가자 리스트 리턴용)
        List<UserChatRelationship> allRelationships = relationshipRepository.findAllByChat_ChatIdIn(chatIds);
-       Map<Long, List<ChatUserDto>> usersByChatId = allRelationships
+       Map<Long, List<SimplifiedUserDto>> usersByChatId = allRelationships
            .stream()
            .collect(Collectors.groupingBy(
                (UserChatRelationship ucr) -> ucr.getChat().getChatId(),
-               Collectors.mapping(ucr -> ChatUserDto.builder()
+               Collectors.mapping(ucr -> SimplifiedUserDto.builder()
                    .userId(ucr.getUser().getId())
+                   .username(ucr.getUser().getUsername())
                    .nickname(ucr.getUser().getNickname())
-                   .profileImageUrl(ucr.getUser().getProfileImgUrl())
-                   .build(), Collectors.<ChatUserDto>toList())
+                   .profileImgUrl(ucr.getUser().getProfileImgUrl())
+                   .build(), Collectors.<SimplifiedUserDto>toList())
            ));
 
        // 채팅방 id로 리스트로 각 채팅방의 마지막 메시지 정보를 조회해서 Map<chatId, Message> 형태로 저장
@@ -80,7 +81,7 @@ public class ChatService {
                    .findFirst()
                    .orElseThrow(() -> new IllegalArgumentException("UserChatRelationship not found"));
 
-               List<ChatUserDto> chatUsers = usersByChatId.getOrDefault(chatId, Collections.emptyList());
+               List<SimplifiedUserDto> chatUsers = usersByChatId.getOrDefault(chatId, Collections.emptyList());
                Message lastMessage = lastMessageByChatId.get(chatId);
 
                Product product = lastMessage.getChat().getProduct();
@@ -118,11 +119,12 @@ public class ChatService {
        chatUsers.add(me);
 
 
-       ArrayList<ChatUserDto> chatUsersDto = chatUsers.stream()
-               .map(u -> ChatUserDto.builder()
+       ArrayList<SimplifiedUserDto> chatUsersDto = chatUsers.stream()
+               .map(u -> SimplifiedUserDto.builder()
                        .userId(u.getId())
+                       .username(u.getUsername())
                        .nickname(u.getNickname())
-                       .profileImageUrl(u.getProfileImgUrl())
+                       .profileImgUrl(u.getProfileImgUrl())
                        .build())
                .collect(Collectors.toCollection(ArrayList::new));
 
@@ -164,12 +166,12 @@ public class ChatService {
        User user2 = chatUsers.get(1);
 
        // 한 명이라도 ACTIVE한지 확인
-       return relationshipRepository.findActiveOneToOneChatByUsers(user1.getId(), user2.getId(), RelationshipStatus.ACTIVE)
+       return relationshipRepository.findActiveOneToOneChatByUsers(user1.getId(), user2.getId(), productId, RelationshipStatus.ACTIVE)
                .map(existingChat -> {
                    UserChatRelationship relationship1 = relationshipRepository.findByUserIdAndChatId(user1.getId(), existingChat.getChatId())
-                           .orElseThrow(() -> new IllegalArgumentException("relationship not found!"));
+                           .orElseThrow(() -> new EntityNotFoundException("relationship not found!"));
                    UserChatRelationship relationship2 = relationshipRepository.findByUserIdAndChatId(user2.getId(), existingChat.getChatId())
-                           .orElseThrow(() -> new IllegalArgumentException("relationship not found!"));
+                           .orElseThrow(() -> new EntityNotFoundException("relationship not found!"));
 
                    relationship1.setStatus(RelationshipStatus.ACTIVE);
                    relationship2.setStatus(RelationshipStatus.ACTIVE);
@@ -190,7 +192,7 @@ public class ChatService {
 
        // 물품 지정하기 (현재는 거래를 위한 채팅만 있으므로 거래 게시글이 없으면 에러를 발생시키도록 설계)
        // newChat.setProduct(productRepository.findById(productId).orElse(null));
-       newChat.setProduct(productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("product not found")));
+       newChat.setProduct(productRepository.findById(productId).orElseThrow(() -> new EntityNotFoundException("product not found")));
 
        chatUsers.forEach(user -> {
            relationshipRepository.save(UserChatRelationship.builder()
@@ -212,13 +214,14 @@ public class ChatService {
    }
 
    // 참여자들에게 실시간 알림 전송 (채팅방 내부 + 개인 알림 채널)
-   private void sendNotification(Chat chat, Message message, List<ChatUserDto> participants) {
+   private void sendNotification(Chat chat, Message message, List<SimplifiedUserDto> participants) {
        // 채팅방 구독
        String chatUrl = "/sub/chats/" + chat.getChatId();
-       ChatUserDto senderDto = ChatUserDto.builder()
+       SimplifiedUserDto senderDto = SimplifiedUserDto.builder()
                .userId(message.getSender().getId())
+               .username(message.getSender().getUsername())
                .nickname(message.getSender().getNickname())
-               .profileImageUrl(message.getSender().getProfileImgUrl())
+               .profileImgUrl(message.getSender().getProfileImgUrl())
                .build();
 
        messagingTemplate.convertAndSend(chatUrl, ChatMessageResponse.builder()
@@ -337,11 +340,12 @@ public class ChatService {
            }
        }
 
-       List<ChatUserDto> participants = relationships.stream()
-               .map(r -> ChatUserDto.builder()
+       List<SimplifiedUserDto> participants = relationships.stream()
+               .map(r -> SimplifiedUserDto.builder()
                        .userId(r.getUser().getId())
+                       .username(r.getUser().getUsername())
                        .nickname(r.getUser().getNickname())
-                       .profileImageUrl(r.getUser().getProfileImgUrl())
+                       .profileImgUrl(r.getUser().getProfileImgUrl())
                        .build()).toList();
 
        sendNotification(currentChat, savedMessage, participants);
@@ -363,17 +367,18 @@ public class ChatService {
    }
 
    // 채팅방 유저 체크
-   public List<ChatUserDto> getParticipants(Long chatId, Long userId) {
+   public List<SimplifiedUserDto> getParticipants(Long chatId, Long userId) {
        // 요청 유효성 검사 (요청을 보낸 사람이 채팅방에 속했는지 검사, 만약 문제가 있다면 에러를 throw)
        validate(chatId, userId);
        // 1대1 채팅방이면 다른 한명이 나갔어도 보여주는게 로직상 맞는 것 같음
        // 그룹 채팅방이면 어차피 존재하는 유저만 나옴
        List<UserChatRelationship> relationships = relationshipRepository.findAllByChatId(chatId);
        return relationships.stream()
-               .map(r -> ChatUserDto.builder()
+               .map(r -> SimplifiedUserDto.builder()
                        .userId(r.getUser().getId())
+                       .username(r.getUser().getUsername())
                        .nickname(r.getUser().getNickname())
-                       .profileImageUrl(r.getUser().getProfileImgUrl())
+                       .profileImgUrl(r.getUser().getProfileImgUrl())
                        .build())
                .toList();
    }

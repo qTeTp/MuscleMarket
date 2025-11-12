@@ -3,7 +3,9 @@ package com.example.muscle_market.dto;
 import com.example.muscle_market.enums.TransactionStatus;
 
 import lombok.Builder;
+import lombok.Getter;
 
+@Getter
 public class ProductSummaryForChat {
     private Long productId;
     private String title;
