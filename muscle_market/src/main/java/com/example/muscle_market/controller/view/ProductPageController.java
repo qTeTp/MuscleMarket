@@ -58,10 +58,11 @@ public class ProductPageController {
     @GetMapping("/new")
     public String newProductForm(Model model, @AuthenticationPrincipal CustomUserDetails authUser) {
         if (authUser != null) {
-            ChatUserDto currentUser = ChatUserDto.builder()
+            SimplifiedUserDto currentUser = SimplifiedUserDto.builder()
                     .userId(authUser.getId())
+                    .username(authUser.getUsername())
                     .nickname(authUser.getNickname())
-                    .profileImageUrl(authUser.getProfileImgUrl())
+                    .profileImgUrl(authUser.getProfileImgUrl())
                     .build();
             model.addAttribute("currentUser", currentUser);
         } else {

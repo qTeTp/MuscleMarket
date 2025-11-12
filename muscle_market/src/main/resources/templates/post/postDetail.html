@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 상세</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter 폰트 사용 (Figma와 유사한 깔끔한 폰트) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* 피그마 배경과 유사한 색상 */
+        }
+        /* 피그마의 회색 버튼 스타일 */
+        .btn-secondary {
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
+            color: #495057;
+        }
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        /* 피그마의 흰색 버튼 스타일 */
+        .btn-outline {
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+        .btn-outline:hover {
+            background-color: #f8f9fa;
+        }
+        /* 피그마의 기본 파란색 버튼 (예시) */
+        .btn-primary {
+            background-color: #3b82f6; /* 예시 파란색 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+    </style>
+    <!-- Inter 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-white">
+    <main id="board-detail" class="w-full max-w-4xl mx-auto px-4 py-10">
+        
+        <!-- 게시글 본문 -->
+        <div class="border-b-2 border-gray-800 pb-6">
+            <h1 class="text-3xl font-bold mb-4">제목</h1>
+            
+            <!-- 작성자 정보 및 수정/삭제 -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200"></div> <!-- 프로필 사진 -->
+                    <div>
+                        <div class="font-semibold text-gray-800">닉네임</div>
+                        <div class="text-sm text-gray-500">
+                            <span>2025.10.31 15:25</span>
+                            <span class="mx-1">|</span>
+                            <span>조회 25</span>
+                            <span class="mx-1">|</span>
+                            <span class="text-blue-600 font-medium">운동 종류</span>
+                            <span class="mx-1">|</span>
+                            <span class="text-red-500 font-medium">번개 여기 표시</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-500 space-x-2">
+                    <a href="#board-new-post" class="hover:underline">본인 글이면 수정</a>
+                    <a href="#" class="hover:underline">본인 글이면 삭제</a>
+                </div>
+            </div>
+
+            <!-- 게시글 내용 -->
+            <div class="text-gray-800 leading-relaxed min-h-[200px]">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae imperdiet orci. Mauris placerat ullamcorper enim ac rutrum. In hac habitasse platea dictumst. Sed tristique iaculis tortor, in volutpat urna vestibulum consequat. Duis luctus vestibulum ex, vel hendrerit lectus fermentum ut. Aenean quis blandit metus. Duis quis commodo mauris, malesuada vulputate quam. Integer finibus nunc enim, sed dictum ipsum efficitur sit amet. In magna lorem, imperdiet eu mi at, bibendum sagittis ante. Suspendisse dictum vulputate nulla, nec aliquet nisl porttitor eget. Mauris neque nibh, malesuada at lectus vel, sollicitudin facilisis sem. Quisque molestie, augue ut dignissim blandit, risus nisl pulvinar dolor, et pretium lorem ante eu orci. Phasellus cursus varius volutpat. Morbi ullamcorper, ex in viverra dictum, diam dui posuere nunc, at aliquam leo nisl a eros.
+            </div>
+        </div>
+
+        <!-- 댓글 영역 -->
+        <div class="mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">댓글 2개</h2>
+                <div class="flex gap-2">
+                    <!-- 이 버튼 위치가 피그마에 따름 -->
+                    <button class="btn-outline px-4 py-2 rounded-md font-medium text-sm">번개글 작성</button>
+                    <button class="btn-outline px-4 py-2 rounded-md font-medium text-sm">게시글 작성</button>
+                </div>
+            </div>
+
+            <!-- 댓글 목록 -->
+            <div class="space-y-6">
+                <!-- 댓글 1 -->
+                <div class="flex gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0"></div>
+                    <div class="flex-grow">
+                        <div class="font-semibold">닉네임</div>
+                        <p class="text-gray-800 my-1">댓글 내용</p>
+                        <div class="text-sm text-gray-500 space-x-2">
+                            <span>2025.10.31 15:25</span>
+                            <button class="hover:underline">답글 쓰기</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 댓글 2 -->
+                <div class="flex gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0"></div>
+                    <div class="flex-grow">
+                        <div class="font-semibold">닉네임</div>
+                        <p class="text-gray-800 my-1">댓글 내용</p>
+                        <div class="text-sm text-gray-500 space-x-2">
+                            <span>2025.10.31 15:25</span>
+                            <button class="hover:underline">답글 쓰기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 댓글 작성 폼 -->
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg">
+                <div class="flex gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0"></div>
+                    <div class="flex-grow flex flex-col items-end">
+                        <textarea class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="댓글을 남겨보세요"></textarea>
+                        <button class="btn-secondary px-6 py-2 rounded-md font-medium text-sm mt-2">등록</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
