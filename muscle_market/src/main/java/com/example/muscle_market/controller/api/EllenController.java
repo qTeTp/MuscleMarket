@@ -4,6 +4,8 @@ import com.example.muscle_market.service.EllenApiClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/ellen")
 public class EllenController {
@@ -16,9 +18,9 @@ public class EllenController {
 
     // 앨런에게 질문 보내기
     @GetMapping("/chat")
-    public ResponseEntity<String> chat(@RequestParam String content) {
+    public ResponseEntity<Map<String, String>> chat(@RequestParam String content) {
         String answer = ellenApiClient.askEllen(content);
-        return ResponseEntity.ok(answer);
+        return ResponseEntity.ok(Map.of("answer", answer));
     }
 
     // 앨런 상태 초기화
