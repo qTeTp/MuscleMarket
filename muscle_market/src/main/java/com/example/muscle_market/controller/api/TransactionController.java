@@ -17,7 +17,6 @@ public class TransactionController {
     // 거래 상태 만들고 예약으로 설정
     @PostMapping
     public ResponseEntity<Long> createTransaction(@RequestBody TransactionCreateDto request) {
-
         Long transactionId = transactionService.createTransaction(request);
 
         // 201 Created 응답과 생성된 리소스의 ID 반환

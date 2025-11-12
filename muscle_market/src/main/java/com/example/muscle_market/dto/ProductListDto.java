@@ -12,7 +12,7 @@ public class ProductListDto {
     private String title;
 
     private String description;
-    private Float price;
+    private Long price;
     private String sportName;
     private String location;
 

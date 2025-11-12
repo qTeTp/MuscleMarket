@@ -24,7 +24,7 @@ public class Product {
     private String description;
 
     @Column
-    private Float price;
+    private Long price;
 
     @Column
     private String location;
@@ -75,7 +75,7 @@ public class Product {
 
     // default값 설정
     @Builder
-    public Product(Long id, String title, String description, Float price, String location, Date createdAt, Date updatedAt, Long views, User user, Sport sport, TransactionStatus status) {
+    public Product(Long id, String title, String description, Long price, String location, Date createdAt, Date updatedAt, Long views, User user, Sport sport, TransactionStatus status) {
         this.id = id;
         this.title = title;
         this.description = description;
