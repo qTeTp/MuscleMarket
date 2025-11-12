@@ -233,6 +233,7 @@ public class ProductService {
     }
 
     // 게시물 논리적 삭제 메서드
+    @Transactional
     public void deleteProductSoftly(Long productId, Long currentUserId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. ID: " + productId));
