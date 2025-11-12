@@ -1,5 +1,6 @@
 package com.example.muscle_market.controller.api;
 
+import com.example.muscle_market.domain.CustomUserDetails;
 import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.ProductCreateDto;
 import com.example.muscle_market.dto.ProductDetailDto;
@@ -158,7 +159,7 @@ public class ProductApiController {
     @DeleteMapping("/products/{productId}")
     public ResponseEntity<Void> deleteProductSoftly(
             @PathVariable Long productId,
-            @AuthenticationPrincipal User principal) {
+            @AuthenticationPrincipal CustomUserDetails principal) {
 
         // id  가져옴
         Long currentUserId = principal.getId();

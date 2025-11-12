@@ -92,7 +92,7 @@ public class ProductService {
             long likeCount = productLikeRepository.countByProductId(product.getId());
 
             String thumbnailUrl = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
-                    .map(ProductImage::getS3Url) // ✅ ProductImage 객체에서 s3Url 추출
+                    .map(ProductImage::getS3Url) // ProductImage 객체에서 s3Url 추출
                     .orElse("default_image.jpg"); // 기본 이미지 설정
 
             return ProductListDto.builder()
@@ -235,11 +235,11 @@ public class ProductService {
     // 게시물 논리적 삭제 메서드
     public void deleteProductSoftly(Long productId, Long currentUserId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. ID: " + productId));
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. ID: " + productId));
 
         // 권한 확인
         if (!product.getUser().getId().equals(currentUserId)) {
-            throw new SecurityException("게시물 작성자만 삭제할 수 있습니다.");
+            throw new IllegalArgumentException("게시물 작성자만 삭제할 수 있습니다.");
         }
 
         // DELETE로 상태 변경
