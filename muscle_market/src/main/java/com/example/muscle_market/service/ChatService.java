@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import com.example.muscle_market.domain.*;
 import com.example.muscle_market.dto.*;
 import com.example.muscle_market.enums.RelationshipStatus;
+import com.example.muscle_market.exception.EntityNotFoundException;
+
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -73,14 +75,15 @@ public class ChatService {
                UserChatRelationship myRelationship = allRelationships.stream()
                    .filter(r -> r.getUser().getId().equals(userId) && r.getChat().getChatId().equals(chatId))
                    .findFirst()
-                   .orElseThrow(() -> new IllegalArgumentException("UserChatRelationship not found"));
+                   .orElseThrow(() -> new EntityNotFoundException("UserChatRelationship not found"));
 
                List<SimplifiedUserDto> chatUsers = usersByChatId.getOrDefault(chatId, Collections.emptyList());
                Message lastMessage = lastMessageByChatId.get(chatId);
 
                Product product = lastMessage.getChat().getProduct();
-               String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+               ProductImage productImage = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
                     .orElseGet(null);
+               String productThumbnail = productImage == null ? "" : productImage.getS3Url();
 
                return ChatResponseDto.builder()
                    .chatId(chatId)
@@ -100,56 +103,57 @@ public class ChatService {
    // 채팅방 생성 (재입장 로직 포함)
    @Transactional
    public ChatResponseDto createChat(CreateChatDto request, Long myUserId) {
-       // 자기 자신 채팅 초대 방지
-       if (request.getParticipantIds().contains(myUserId)) {
-           throw new IllegalArgumentException("자기 자신을 초대할 수 없습니다");
-       }
+        // 자기 자신 채팅 초대 방지
+        if (request.getParticipantIds().contains(myUserId)) {
+            throw new IllegalArgumentException("자기 자신을 초대할 수 없습니다");
+        }
 
-       User me = findUserById(myUserId);
-       ArrayList<User> chatUsers = request.getParticipantIds()
-               .stream()
-               .map(uid -> userRepository.findById(uid).orElseThrow(() -> new IllegalArgumentException("User not found")))
-               .collect(Collectors.toCollection(ArrayList::new));
-       chatUsers.add(me);
+        User me = findUserById(myUserId);
+        ArrayList<User> chatUsers = request.getParticipantIds()
+            .stream()
+            .map(uid -> userRepository.findById(uid).orElseThrow(() -> new EntityNotFoundException("User not found")))
+            .collect(Collectors.toCollection(ArrayList::new));
+        chatUsers.add(me);
 
 
-       ArrayList<SimplifiedUserDto> chatUsersDto = chatUsers.stream()
-               .map(u -> SimplifiedUserDto.builder()
-                       .userId(u.getId())
-                       .username(u.getUsername())
-                       .nickname(u.getNickname())
-                       .profileImgUrl(u.getProfileImgUrl())
-                       .build())
-               .collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<SimplifiedUserDto> chatUsersDto = chatUsers.stream()
+            .map(u -> SimplifiedUserDto.builder()
+                .userId(u.getId())
+                .username(u.getUsername())
+                .nickname(u.getNickname())
+                .profileImgUrl(u.getProfileImgUrl())
+                .build())
+            .collect(Collectors.toCollection(ArrayList::new));
 
-       // 새 채팅방 생성 (1대1인지 단체 채팅방인지 확인)
-       Chat newChat = request.getParticipantIds().size() == 1 ? findOrCreateOneToOneChat(chatUsers, request.getProductId()) : createChatEntity(chatUsers, request.getChatTitle(), request.getProductId());
+        // 새 채팅방 생성 (1대1인지 단체 채팅방인지 확인)
+        Chat newChat = request.getParticipantIds().size() == 1 ? findOrCreateOneToOneChat(chatUsers, request.getProductId()) : createChatEntity(chatUsers, request.getChatTitle(), request.getProductId());
 
-       // 초기 메시지 세팅
-       Message initialMessage = saveInitialMessage(newChat, me, request.getInitialMessage());
+        // 초기 메시지 세팅
+        Message initialMessage = saveInitialMessage(newChat, me, request.getInitialMessage());
 
-       // 알림 전송
-       sendNotification(newChat, initialMessage, chatUsersDto);
+        // 알림 전송
+        sendNotification(newChat, initialMessage, chatUsersDto);
 
-       Product product = newChat.getProduct();
-       String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+        Product product = newChat.getProduct();
+        ProductImage productImage = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
             .orElseGet(null);
+        String productThumbnail = productImage == null ? "" : productImage.getS3Url();
 
-       return ChatResponseDto.builder()
-               .chatId(newChat.getChatId())
-               .chatUsers(chatUsersDto)
-               .chatTitle(newChat.getChatTitle())
-               .lastMessage(initialMessage.getContent())
-               .lastMessageSentAt(initialMessage.getCreatedAt())
-               .product(product)
-               .productThumbnail(productThumbnail)
-               .unreadCount(0L)
-               .build();
+        return ChatResponseDto.builder()
+            .chatId(newChat.getChatId())
+            .chatUsers(chatUsersDto)
+            .chatTitle(newChat.getChatTitle())
+            .lastMessage(initialMessage.getContent())
+            .lastMessageSentAt(initialMessage.getCreatedAt())
+            .product(product)
+            .productThumbnail(productThumbnail)
+            .unreadCount(0L)
+            .build();
    }
 
    // 유저 탐색
    private User findUserById(Long userId) {
-       return userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("user not found!"));
+       return userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("user not found!"));
    }
 
    // 1대1 채팅방 찾아서 리턴하거나 새로 생성
@@ -230,20 +234,21 @@ public class ChatService {
        relationshipRepository.findAllByChatId(chat.getChatId())
                .forEach(rel -> {
                     Product product = chat.getProduct();
-                    String productThumbnail = productImageRepository.findThumbnailUrlByProductId(product.getId())
+                    ProductImage productImage = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
                         .orElseGet(null);
+                    String productThumbnail = productImage == null ? "" : productImage.getS3Url();
 
-                   ChatResponseDto participantResponse = ChatResponseDto.builder()
-                           .chatId(chat.getChatId())
-                           .chatTitle(chat.getChatTitle())
-                           .chatUsers(participants)
-                           .lastMessage(message.getContent())
-                           .lastMessageSentAt(message.getCreatedAt())
-                           .product(product)
-                           .productThumbnail(productThumbnail)
-                           .unreadCount(messageRepository.countUnreadMessagesAfter(chat.getChatId(), rel.getLastReadAt()))
-                           .build();
-                   messagingTemplate.convertAndSend("/sub/users/" +  rel.getUser().getId(), participantResponse);
+                    ChatResponseDto participantResponse = ChatResponseDto.builder()
+                        .chatId(chat.getChatId())
+                        .chatTitle(chat.getChatTitle())
+                        .chatUsers(participants)
+                        .lastMessage(message.getContent())
+                        .lastMessageSentAt(message.getCreatedAt())
+                        .product(product)
+                        .productThumbnail(productThumbnail)
+                        .unreadCount(messageRepository.countUnreadMessagesAfter(chat.getChatId(), rel.getLastReadAt()))
+                        .build();
+                    messagingTemplate.convertAndSend("/sub/users/" +  rel.getUser().getId(), participantResponse);
                });
    }
 
@@ -252,12 +257,12 @@ public class ChatService {
    public void leaveChatRoom(Long userId, Long chatRoomId) {
        // 채팅방 존재 확인
        Chat chat = chatRepository.findById(chatRoomId)
-               .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다"));
+               .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 채팅방입니다"));
 
        // 사용자가 이 채팅방의 멤버인지 확인
        UserChatRelationship myRelationship = relationshipRepository
                .findByUserIdAndChatId(userId, chatRoomId)
-               .orElseThrow(() -> new IllegalArgumentException("채팅방에 참여하지 않았습니다"));
+               .orElseThrow(() -> new EntityNotFoundException("채팅방에 참여하지 않았습니다"));
 
        // 그룹채팅방과 1대1 채팅방의 나가기 로직은 다름
        boolean isGroupChat = chat.getChatTitle() != null && !chat.getChatTitle().isEmpty();
@@ -313,10 +318,10 @@ public class ChatService {
 
        // 유저 유효성 검사
        User sender = userRepository.findById(request.getUserId())
-               .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다"));
+               .orElseThrow(() -> new EntityNotFoundException("유저가 존재하지 않습니다"));
        // 채팅방 유효성 검사
        Chat currentChat = chatRepository.findById(request.getChatId())
-               .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다"));
+               .orElseThrow(() -> new EntityNotFoundException("채팅방이 존재하지 않습니다"));
        // 저장
        Message savedMessage = messageRepository.save(Message.builder()
                .chat(currentChat)
@@ -356,7 +361,7 @@ public class ChatService {
    @Transactional
    public void updateLastReadAt(Long chatId, Long userId) {
        UserChatRelationship relationship = relationshipRepository.findByUserIdAndChatId(userId, chatId)
-               .orElseThrow(() -> new IllegalArgumentException("채팅방 참여 정보를 찾을 수 없음"));
+               .orElseThrow(() -> new EntityNotFoundException("채팅방 참여 정보를 찾을 수 없음"));
        relationship.updateLastReadAt();
    }
 
