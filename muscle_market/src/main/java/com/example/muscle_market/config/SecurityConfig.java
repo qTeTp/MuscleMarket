@@ -41,7 +41,7 @@ public class SecurityConfig {
                         // 인증 없어도 들어가게
                         .requestMatchers("/","/api/signup", "/api/login", "/api/**", "/api/products",
                                 "/api/products/detail/{productId}", "/api/products/{sport_idx}", "/api/users/{userId}/likes",
-                                "/login", "/signup", "/images/**","/products/**", "/post-login", "/oauth2/**", "/map/**").permitAll() // 회원가입/로그인은 허용
+                                "/login", "/signup", "/api/logout", "/images/**","/products/**", "/post-login", "/oauth2/**", "/api/map/**").permitAll() // 회원가입/로그인은 허용
                         // 인증 있어야 들어가게
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()

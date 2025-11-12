@@ -6,12 +6,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class MapContorller {
+public class MapController {
 
     @Value("${kakao.map.api-key}")
     private String kakaoMapApiKey;
 
-    @GetMapping("/map")
+    @GetMapping("/api/map")
     public String mapPage(Model model){
         model.addAttribute("kakaoMapApiKey",kakaoMapApiKey);
         return "map";
