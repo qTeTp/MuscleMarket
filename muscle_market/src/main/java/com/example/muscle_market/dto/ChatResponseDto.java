@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 public class ChatResponseDto {
     private Long chatId;
-    private List<ChatUserDto> chatUsers;
+    private List<SimplifiedUserDto> chatUsers;
     private String chatTitle;
     private String lastMessage;
     private LocalDateTime lastMessageSentAt;
@@ -21,7 +21,7 @@ public class ChatResponseDto {
     private Long unreadCount;
 
     @Builder
-    public ChatResponseDto(Long chatId, List<ChatUserDto> chatUsers, String chatTitle, String lastMessage, LocalDateTime lastMessageSentAt, Product product, String productThumbnail, Long unreadCount) {
+    public ChatResponseDto(Long chatId, List<SimplifiedUserDto> chatUsers, String chatTitle, String lastMessage, LocalDateTime lastMessageSentAt, Product product, String productThumbnail, Long unreadCount) {
         this.chatId = chatId;
         this.chatUsers = chatUsers;
         this.chatTitle = chatTitle;

@@ -3,7 +3,7 @@ package com.example.muscle_market.controller.api;
 import com.example.muscle_market.domain.CustomUserDetails;
 import com.example.muscle_market.dto.LoginDto;
 import com.example.muscle_market.dto.LoginResponseDto;
-import com.example.muscle_market.dto.PostUserDto;
+import com.example.muscle_market.dto.SimplifiedUserDto;
 import com.example.muscle_market.dto.UserDto;
 import com.example.muscle_market.service.UserService;
 import jakarta.servlet.http.Cookie;
@@ -74,8 +74,8 @@ public class AuthController {
 
     // 현재 로그인한 유저 정보 확인
     @GetMapping("/api/users/me")
-    public ResponseEntity<PostUserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails authUser) {
-        PostUserDto curUser = userService.getCurrentUser(authUser.getId());
+    public ResponseEntity<SimplifiedUserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails authUser) {
+        SimplifiedUserDto curUser = userService.getCurrentUser(authUser.getId());
         return ResponseEntity.ok(curUser);
     }
 }

@@ -62,7 +62,6 @@
 
         /* --- 채팅방 리스트 패널 --- */
         .chat-list-panel { width: 100%; flex-shrink: 0; background-color: var(--bg-primary); }
-        .add-chat-btn { margin-left: auto; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
         .chat-list { overflow-y: auto; flex-grow: 1; }
         .chat-item { display: flex; padding: 15px; align-items: flex-start; cursor: pointer; }
         .chat-item.active { background-color: var(--bg-active-item); }
@@ -85,7 +84,7 @@
 
         /* --- 판매 물품 게시글 정보 스타일 --- */
         .product-info-bar { display: none; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-primary); gap: 12px; }
-        .chat-room-panel:not(.is-empty) .product-info-bar { display: flex; }
+        .product-info-bar:not(.is-empty) { display: flex; }
         .product-thumbnail img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
         .product-details { flex-grow: 1; overflow: hidden; }
         .product-details-top { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
@@ -131,6 +130,7 @@
         .opponent .profile-img { width: 40px; height: 40px; border-radius: 15px; margin-right: 10px; align-self: flex-start; }
         .opponent .sender-name { font-size: 0.9rem; margin-bottom: 5px; color: #555; }
         .opponent .message-bubble { background-color: var(--opponent-bubble-bg); color: var(--text-primary); border-top-left-radius: 0; }
+
         /* 내 메시지 */
         .mine { align-self: flex-end; }
         .mine .message-content { flex-direction: row-reverse; }
@@ -162,32 +162,6 @@
         #chat-options-modal .modal-content ul li:hover { background-color: var(--bg-hover); }
         #chat-options-modal .leave-room { color: var(--notification-bg); }
 
-        /* 채팅 생성 모달 폼 스타일 */
-        #create-chat-form h2 { margin-top: 0; }
-        #create-chat-form .form-group { margin-bottom: 15px; }
-        #create-chat-form label { display: block; margin-bottom: 5px; font-weight: bold; }
-        #create-chat-form .invite-group { display: flex; gap: 8px; }
-        #create-chat-form input, #create-chat-form textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; background-color: var(--bg-secondary); color: var(--text-primary); }
-        #create-chat-form .invite-btn { flex-shrink: 0; padding: 8px 12px; border: none; border-radius: 5px; background-color: #555; color: white; cursor: pointer; }
-        #invited-users-list {
-            list-style: none; padding: 0; margin: 10px 0;
-            /*resize: none;*/
-            border: 1px solid var(--border-color); border-radius: 5px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        #invited-users-list:empty {
-            display: none;
-        }
-        .invited-user-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0 5px 15px; border-bottom: 1px solid var(--border-color); }
-        .invited-user-item:last-child { border-bottom: none; }
-        .remove-user-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #aaa; }
-        #create-chat-form textarea { resize: vertical; min-height: 80px; }
-        #create-chat-form .form-actions { text-align: right; }
-        #create-chat-form button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; }
-        #create-chat-form button[type="submit"] { background-color: var(--accent-color); color: var(--text-inverted); }
-        #create-chat-form .cancel-btn { background-color: #ccc; margin-right: 10px; color: #333; }
-
         /* --- 채팅방 참가자 모달 스타일 --- */
         #participant-list {
             list-style: none; padding: 0; margin: 0;
@@ -217,7 +191,6 @@
         <aside class="chat-list-panel">
             <header class="panel-header">
                 <span>채팅</span>
-                <button class="add-chat-btn" id="add-chat-btn">+</button>
             </header>
             <ul class="chat-list" id="chat-list">
 
@@ -231,6 +204,7 @@
                 <span id="room-name">채팅방을 선택하세요</span>
                 <button class="menu-button" id="menu-btn">☰</button>
             </header>
+            <!-- 물품 게시글 정보 -->
             <div class="product-info-bar" id="product-info-bar">
                 <div class="product-thumbnail">
                     <img src="https://via.placeholder.com/50" alt="썸네일" id="product-thumbnail-img">
@@ -245,6 +219,7 @@
                     </div>
                 </div>
             </div>
+            <!-- 메시지 컨테이너 -->
             <div class="chat-messages" id="message-container">
                 <!-- JS로 동적 생성될 메시지 -->
             </div>
@@ -283,56 +258,20 @@
     </div>
 </div>
 
-<!-- 채팅방 생성 모달 -->
-<div class="modal-overlay" id="create-chat-modal">
-    <div class="modal-content">
-        <form id="create-chat-form">
-            <h2>새로운 채팅</h2>
-            <div class="form-group">
-                <label for="chat-title-input">채팅방 제목</label>
-                <input type="text" id="chat-title-input">
-            </div>
-            <div class="form-group">
-                <label for="participant-email-input">상대방 이메일</label>
-                <div class="invite-group">
-                    <input type="text" id="participant-email-input" placeholder="초대할 사용자의 이메일을 입력하세요.">
-                    <button type="button" class="invite-btn" id="invite-user-btn">초대</button>
-                </div>
-            </div>
-            <ul id="invited-users-list">
-
-            </ul>
-            <div class="form-group">
-                <label for="initial-message-input">초기 메시지</label>
-                <textarea id="initial-message-input" required></textarea>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="cancel-btn" id="close-create-modal-btn">취소</button>
-                <button type="submit">채팅방 생성</button>
-            </div>
-        </form>
-    </div>
-</div>
-<script th:inline="javascript">
-    /*<![CDATA[*/
-
-    // TODO: 기존 세션형식이 아니라 뷰에서 유저 데이터를 주는 방식이 아니라 localStorage에서 토큰을 가져오는 형식으로 바꿔줘야 함 (제미나이 확인)
+<!-- socket 관련 함수 불러오기 -->
+<script th:src="@{/chat/socket-connector.js}"></script>
+<script>
+    // 현재 로그인한 유저 (API 호출로 데이터 받아오기)
     const currentUser = null;
 
     // CSRF Token
     const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
     const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
 
-    /*]]>*/
-</script>
-<!-- socket 관련 함수 불러오기 -->
-<script th:src="@{/chat/socket-connector.js}"></script>
-<script>
     // --- 상태 관리를 위한 변수 ---
     let currentChatId = null; // 현재 선택된 채팅방 ID
     const DESKTOP_WIDTH = 768; // 데스크탑 뷰 기준 너비
     let lastMessageDate = null;
-    let invitedUsers = []; // 초대를 위한 배열
     let currentChatParticipants = [];
 
     // 쓰로틀링을 위한 변수
@@ -340,7 +279,7 @@
     const READ_MARKER_THROTTLE_MS = 3000;
 
     // 기본 프사 <- static에서 가져오기
-    const basicProfileImage = '/images/default-user-profile.png';
+    const basicProfileImage = '/images/default_image.png';
 
     // --- 요소 가져오기 ---
     const chatLayout = document.getElementById('chat-layout');
@@ -358,19 +297,17 @@
     const closeParticipantModalBtn = document.getElementById('close-participant-modal-btn');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const leaveRoomBtn = document.getElementById('leave-room-btn');
-    const addChatBtn = document.getElementById('add-chat-btn');
-    const createChatModal = document.getElementById('create-chat-modal');
-    const inviteUserBtn = document.getElementById('invite-user-btn');
-    const participantEmailInput = document.getElementById('participant-email-input');
-    const invitedUsersList = document.getElementById('invited-users-list');
-    const createChatForm = document.getElementById('create-chat-form');
-    const closeCreateModalBtn = document.getElementById('close-create-modal-btn');
     const chatRoomPanel = document.querySelector('.chat-room-panel');
+    const productHeaderEl = document.getElementById('product-info-bar');
+    const productImage = document.getElementById('product-thumbnail-img');
+    const productStatus = document.getElementById('product-status');
+    const productTitle = document.getElementById('product-title');
+    const productPrice = document.getElementById('product-price');
 
     // --- 함수 정의 ---
 
     /** 채팅방을 선택했을 때의 모든 동작을 처리하는 함수 */
-    function selectChatRoom(chatId, chatTitle) {
+    function selectChatRoom(chatId, chatTitle, productInfo) {
         // textarea 초기화
         messageInput.value = '';
         // 참가자 목록 모달 초기화
@@ -400,6 +337,18 @@
         // 이전 메시지들 로드
         renderPrevMessages(chatId);
         readMessages(chatId);
+
+        // 물품 게시글 로드 (물품 게시글 데이터는 채팅 리스트를 불러올 때 가져온 데이터에 들어있다.)
+        if (productInfo && productInfo.productId) {
+            productImage.src = productInfo.productThumbnail;
+            productTitle.textContent = escapeHtml(productInfo.productTitle);
+            productPrice.textContent = Number(productInfo.productPrice).toLocaleString() + '원';
+            productStatus.textContent = productInfo.productStatus;
+
+            productHeaderEl.classList.remove('is-empty');
+        } else {
+            productHeaderEl.classList.add('is-empty');
+        }
 
         // socket-connector.js로부터 채팅방 소켓 연결 함수 불러오기
         SocketManager.subscribeTo("/sub/chats/" + chatId, function(message) {
@@ -432,6 +381,13 @@
         messageContainer.innerHTML = '';
         messageContainer.classList.add('is-empty');
         chatRoomPanel.classList.add('is-empty');
+
+        productImage.src = "";
+        productTitle.textContent = "";
+        productPrice.textContent = "";
+        productStatus.textContent = "";
+
+        productHeaderEl.classList.add('is-empty');
 
         chatLayout.classList.remove('show-room');
 
@@ -483,7 +439,7 @@
         const messageRow = document.createElement('div');
         const isMine = message.sender.userId === currentUser.userId;
 
-        const profileImageUrl = message.sender.profileImageUrl ? message.sender.profileImageUrl : basicProfileImage;
+        const profileImageUrl = message.sender.profileImgUrl ? message.sender.profileImgUrl : basicProfileImage;
         messageRow.className = isMine ? 'message-row mine' : 'message-row opponent';
         const escapedContent = escapeHtml(message.content);
 
@@ -629,112 +585,6 @@
             .catch(error => console.error('Error marking chat as read: ', error));
     }
 
-    // 채팅 생성 함수
-    async function createChat(event) {
-        event.preventDefault();
-        const chatTitleField = document.getElementById('chat-title-input');
-        const chatTitleInput = escapeHtml(chatTitleField.value.trim());
-        const messageTextField = document.getElementById('initial-message-input');
-        const initialMessage = escapeHtml(messageTextField.value);
-
-        if (invitedUsers.length === 0) {
-            alert('최소 한 명 이상의 사용자를 초대해야 합니다.');
-            return;
-        } else if (invitedUsers.some((user) => user.userId === currentUser.userId)) {
-            alert('본인을 초대할 수 없습니다.');
-            return;
-        }
-
-        const participantIds = invitedUsers.map(user => user.userId);
-
-        try {
-            // 그룹 채팅방인데 제목이 비어있으면 초대한 사람 외 n-1명으로 이름 지정해서 저장
-            let chatTitle;
-            if (participantIds.length === 1) chatTitle = null;
-            else if (chatTitleInput === '' || chatTitleInput === null) chatTitle = null;
-            else chatTitle = chatTitleInput;
-
-            const createChatRequest = {
-                participantIds: participantIds,
-                initialMessage: initialMessage,
-                chatTitle: chatTitle
-            };
-
-            const chatResponse = await fetch('/api/chats', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    [csrfHeader]: csrfToken
-                },
-                body: JSON.stringify(createChatRequest)
-            });
-
-            if (!chatResponse.ok) throw new Error('채팅방 생성에 실패했습니다!');
-
-            const newChat = await chatResponse.json();
-
-            // 모달 닫기
-            createChatModal.classList.remove('show');
-            createChatForm.reset();
-            invitedUsers = [];
-            renderInvitedUsers();
-
-            // UI에 새 채팅방 추가 및 정렬
-            updateOrCreateChat(newChat);
-            sortChatList(newChat.chatId);
-
-            // 생성된 채팅방으로 입장
-            selectChatRoom(newChat.chatId, chatTitle);
-        } catch (error) {
-            alert(error.message);
-        }
-    }
-
-    // 초대할 유저 UI 렌더링
-    function renderInvitedUsers() {
-        invitedUsersList.innerHTML = '';
-        invitedUsers.forEach(user => {
-            const userItem = document.createElement('li');
-            userItem.className = 'invited-user-item';
-            userItem.dataset.userId = user.userId;
-            userItem.innerHTML = `
-                <span>${escapeHtml(user.nickname)}</span>
-                <button type="button" class="remove-user-btn">x</button>
-            `;
-            invitedUsersList.appendChild(userItem);
-        });
-    }
-
-    // 유저 탐색
-    async function findUser() {
-        const email = participantEmailInput.value.trim();
-        if (!email) return;
-
-        // 이미 초대했는지 체크
-        if (invitedUsers.some(user => user.email === email)) {
-            participantEmailInput.value = '';
-            alert('이미 초대 리스트에 추가한 사용자입니다.');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/users?email=${encodeURIComponent(email)}`);
-            if (!response.ok) { throw new Error('해당 이메일의 사용자를 찾을 수 없습니다.'); }
-
-            const user = await response.json();
-
-            // 본인이면 에러 메시지
-            if (user.userId === currentUser.userId) throw new Error('본인은 초대 대상이 아닙니다.');
-
-            invitedUsers.push(user);
-            renderInvitedUsers();
-            participantEmailInput.value = '';
-        } catch (error) {
-            participantEmailInput.value = '';
-            alert(error.message);
-        }
-    }
-
     // 채팅 업데이트/생성 함수
     function updateOrCreateChat(chatResponse) {
         let chatListItem = document.getElementById('chat-item-' + chatResponse.chatId);
@@ -751,10 +601,19 @@
         const isGroupChat = chatResponse.chatTitle !== null && chatResponse.chatTitle.trim() !== '';
         const oneToOneParticipant = chatResponse.chatUsers?.find(p => p.userId !== currentUser.userId);
         const chatName = isGroupChat ? chatResponse.chatTitle : (oneToOneParticipant ? oneToOneParticipant.nickname : '알 수 없음');
-        const profileImageUrl = isGroupChat ? basicProfileImage : (oneToOneParticipant.profileImageUrl ? oneToOneParticipant.profileImageUrl : basicProfileImage);
+        const profileImageUrl = isGroupChat ? basicProfileImage : (oneToOneParticipant.profileImgUrl ? oneToOneParticipant.profileImgUrl : basicProfileImage);
 
         chatListItem.dataset.chatId = chatResponse.chatId;
         chatListItem.dataset.chatName = chatName;
+
+        // 물품 게시글 연결
+        if (chatResponse.productContent) {
+            chatListItem.dataset.productId = chatResponse.productContent.productId;
+            chatListItem.dataset.productTitle = chatResponse.productContent.title;
+            chatListItem.dataset.productPrice = chatResponse.productContent.price;
+            chatListItem.dataset.productStatus = chatResponse.productContent.status;
+            chatListItem.dataset.productThumbnail = chatResponse.productContent.thumbnail;
+        }
 
         chatListItem.innerHTML = `
                 <img src="${profileImageUrl}" alt="profile" class="profile-img">
@@ -795,58 +654,31 @@
         }
     }
 
-    // XSS 공격 방지
-    function escapeHtml(text) {
-        if (!text) return '';
-        return text
-            .replace(/&/g, "&amp")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
+    // 현재 로그인한 유저 정보 가져오기
+    async function fetchCurrentUserAndInit() {
+        try {
+            const res = await fetch('/api/users/me', {
+                method: 'GET',
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
+            });
 
-    // 같은 날짜인지 확인
-    function isSameDate(date1, date2) {
-        return date1.getFullYear() === date2.getFullYear() &&
-            date1.getMonth() === date2.getMonth() &&
-            date1.getDate() === date2.getDate();
-    }
+            if (!res.ok) {
+                throw new Error('인증 실패. 로그인이 필요합니다.');
+            }
 
-    // 채팅 리스트 마지막 메시지 시간 포메팅
-    function formatLastMessageSentAt(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const now = new Date();
-
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-
-        if (date >= today) {
-            return date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', hour12: true });
-        } else if (date >= yesterday) {
-            return '어제';
-        } else if (date.getFullYear() === now.getFullYear()) {
-            return date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
-        } else {
-            return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            currentUser = await res.json();
+            initializeApp();
+        } catch (error) {
+            console.error(error.message);
+            // 로그인 페이지로 강제 이동
+            window.location.href = "/login";
         }
-    }
+    } 
 
-    // 채팅 메시지 시간 포메팅
-    function formatMessageSentAt(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', hour12: true });
-    }
-
-    // 채팅 날짜 구분선
-    function formatDateSeparator(date) {
-        return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-    }
-
-    // 페이지 로드 시
-    document.addEventListener('DOMContentLoaded', () => {
+    // 페이지 로드 될 때 실행되는 함수
+    function initializeApp() {
         if (currentUser) {
             // console.log(currentUser);
             SocketManager.init(currentUser);
@@ -883,7 +715,14 @@
             if (chatItem) {
                 const chatId = chatItem.dataset.chatId;
                 const chatName = chatItem.dataset.chatName;
-                selectChatRoom(chatId, chatName);
+                const productInfo = {
+                    productId: chatListItem.dataset.productId,
+                    productTitle: chatListItem.dataset.productTitle,
+                    productPrice: chatListItem.dataset.productPrice,
+                    productStatus: chatListItem.dataset.productStatus,
+                    productThumbnail: chatListItem.dataset.productThumbnail
+                }
+                selectChatRoom(chatId, chatName, productInfo);
             }
         });
 
@@ -905,40 +744,6 @@
                 submitMessage();
             }
         });
-
-        // --- 채팅 생성 모달 이벤트 리스너 ---
-        // 채팅 생성 모달 열기
-        addChatBtn.addEventListener('click', () => {
-            createChatModal.classList.add('show');
-        });
-
-        // 채팅 생성 모달 닫기
-        closeCreateModalBtn.addEventListener('click', () => {
-            createChatModal.classList.remove('show');
-        });
-        createChatModal.addEventListener('click', (e) => {
-            if (e.target === createChatModal) createChatModal.classList.remove('show');
-        });
-
-        // 유저 초대 버튼
-        inviteUserBtn.addEventListener('click', findUser);
-
-        // 초대된 사용자 목록에서 닫기
-        invitedUsersList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('remove-user-btn')) {
-                const userItem = e.target.closest('.invited-user-item');
-                const userIdToRemove = Number(userItem.dataset.userId);
-
-                // 배열에서도 삭제
-                invitedUsers = invitedUsers.filter(user => user.userId !== userIdToRemove);
-
-                // 다시 UI 렌더링
-                renderInvitedUsers();
-            }
-        });
-
-        // 채팅 생성 폼 제출
-        createChatForm.addEventListener('submit', createChat);
 
         // --- 채팅 모달 관련 이벤트 리스너 ---
         // 채팅 모달 열기
@@ -1000,6 +805,62 @@
                 }
             }
         });
+    }
+
+    // XSS 공격 방지
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // 같은 날짜인지 확인
+    function isSameDate(date1, date2) {
+        return date1.getFullYear() === date2.getFullYear() &&
+            date1.getMonth() === date2.getMonth() &&
+            date1.getDate() === date2.getDate();
+    }
+
+    // 채팅 리스트 마지막 메시지 시간 포메팅
+    function formatLastMessageSentAt(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const now = new Date();
+
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+
+        if (date >= today) {
+            return date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', hour12: true });
+        } else if (date >= yesterday) {
+            return '어제';
+        } else if (date.getFullYear() === now.getFullYear()) {
+            return date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+        } else {
+            return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+        }
+    }
+
+    // 채팅 메시지 시간 포메팅
+    function formatMessageSentAt(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+
+    // 채팅 날짜 구분선
+    function formatDateSeparator(date) {
+        return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+    }
+
+
+    // 페이지 로드 시
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchCurrentUserAndInit();
     });
 
     // 채팅방 - 채팅 알림 이벤트 리스너
@@ -1011,8 +872,6 @@
         // 정렬
         sortChatList(chatResponse.chatId);
     });
-
-
 </script>
 
 </body>
