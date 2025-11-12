@@ -15,9 +15,10 @@ import java.util.List;
 public class ProductUpdateDto {
     private String title;
     private String description;
-    private Float price;
+    private Long price;
     private String location;
     private Long sportId;
+    private String status;
     // 이미지 리스트
     private List<Long> deletedImageIds;
 }

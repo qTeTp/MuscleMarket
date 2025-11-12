@@ -1,23 +1,18 @@
 package com.example.muscle_market.service;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.example.muscle_market.domain.User;
-import com.example.muscle_market.domain.UserChatRelationship;
+import com.example.muscle_market.domain.*;
 import com.example.muscle_market.dto.*;
 import com.example.muscle_market.enums.RelationshipStatus;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import com.example.muscle_market.domain.Chat;
-import com.example.muscle_market.domain.Message;
-import com.example.muscle_market.domain.Product;
 import com.example.muscle_market.repository.ChatRepository;
 import com.example.muscle_market.repository.MessageRepository;
 import com.example.muscle_market.repository.ProductImageRepository;
@@ -25,7 +20,6 @@ import com.example.muscle_market.repository.UserChatRelationshipRepository;
 import com.example.muscle_market.repository.UserRepository;
 import com.example.muscle_market.repository.ProductRepository;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 

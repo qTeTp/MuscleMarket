@@ -1,5 +1,7 @@
 package com.example.muscle_market.controller.api;
 
+import com.example.muscle_market.domain.CustomUserDetails;
+import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.ProductCreateDto;
 import com.example.muscle_market.dto.ProductDetailDto;
 import com.example.muscle_market.dto.ProductListDto;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -106,16 +109,18 @@ public class ProductApiController {
     public ResponseEntity<Long> createProduct(
             @RequestPart("request") ProductCreateDto request, // JSON 데이터
             @RequestPart("images") List<MultipartFile> imageFiles) { // 이미지 파일 리스트
-
-        if (imageFiles == null || imageFiles.isEmpty()) {
-            // 이미지 없을 시 디폴트 이미지 추가
-            // 추후 구현
-        }
+        // 이미지 없을 시 디폴트 이미지는 프론트에서 구현
 
         Long productId = productService.createProduct(request, imageFiles);
 
-        // 201 Created 응답, 생성된 게시글의 ID 반환
-        return new ResponseEntity<>(productId, HttpStatus.CREATED);
+        String detailUrl = "/products/" + productId;
+
+        // 상태 코드 303
+        // 등록 후 상세 페이지로 url 반환
+        return ResponseEntity
+                .status(HttpStatus.SEE_OTHER)
+                .header("Location", detailUrl)
+                .build();
     }
 
     // 게시물 수정
@@ -148,6 +153,22 @@ public class ProductApiController {
                 productService.searchProducts(Optional.ofNullable(sportId), keyword, pageable);
 
         return ResponseEntity.ok(productPage);
+    }
+
+    // 논리적 삭제 매핑
+    @DeleteMapping("/products/{productId}")
+    public ResponseEntity<Void> deleteProductSoftly(
+            @PathVariable Long productId,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        // id  가져옴
+        Long currentUserId = principal.getId();
+
+        // 논리적 삭제 서비스
+        productService.deleteProductSoftly(productId, currentUserId);
+
+        // HTTP 204 No Content 반환 (성공적으로 처리되었음을 의미)
+        return ResponseEntity.noContent().build();
     }
 }
 
