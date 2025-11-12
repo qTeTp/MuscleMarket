@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.ChatMessageResponse;
 import com.example.muscle_market.dto.ChatResponseDto;
-import com.example.muscle_market.dto.ChatUserDto;
+import com.example.muscle_market.dto.SimplifiedUserDto;
 import com.example.muscle_market.dto.CreateChatDto;
 import com.example.muscle_market.service.ChatService;
 
@@ -66,7 +65,7 @@ public class ChatController {
 
    // 채팅방 참가자 확인
    @GetMapping("/chats/{chatId}/participants")
-   public ResponseEntity<List<ChatUserDto>> getParticipants(@PathVariable Long chatId, @AuthenticationPrincipal CustomUserDetails authUser) {
+   public ResponseEntity<List<SimplifiedUserDto>> getParticipants(@PathVariable Long chatId, @AuthenticationPrincipal CustomUserDetails authUser) {
        return ResponseEntity.ok(chatService.getParticipants(chatId, authUser.getId()));
    }
 }

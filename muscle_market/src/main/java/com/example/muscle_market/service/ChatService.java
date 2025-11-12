@@ -49,15 +49,15 @@ public class ChatService {
 
         // 채팅방 id 리스트로 모든 참여자 정보 조회 (참가자 리스트 리턴용)
         List<UserChatRelationship> allRelationships = relationshipRepository.findAllByChat_ChatIdIn(chatIds);
-        Map<Long, List<ChatUserDto>> usersByChatId = allRelationships
+        Map<Long, List<SimplifiedUserDto>> usersByChatId = allRelationships
                 .stream()
                 .collect(Collectors.groupingBy(
                         (UserChatRelationship ucr) -> ucr.getChat().getChatId(),
-                        Collectors.mapping(ucr -> ChatUserDto.builder()
+                        Collectors.mapping(ucr -> SimplifiedUserDto.builder()
                                 .userId(ucr.getUser().getId())
                                 .nickname(ucr.getUser().getNickname())
                                 .profileImageUrl(ucr.getUser().getProfileImgUrl())
-                                .build(), Collectors.<ChatUserDto>toList())
+                                .build(), Collectors.<SimplifiedUserDto>toList())
                 ));
 
         // 채팅방 id로 리스트로 각 채팅방의 마지막 메시지 정보를 조회해서 Map<chatId, Message> 형태로 저장
@@ -76,7 +76,7 @@ public class ChatService {
                             .findFirst()
                             .orElseThrow(() -> new IllegalArgumentException("UserChatRelationship not found"));
 
-                    List<ChatUserDto> chatUsers = usersByChatId.getOrDefault(chatId, Collections.emptyList());
+                    List<SimplifiedUserDto> chatUsers = usersByChatId.getOrDefault(chatId, Collections.emptyList());
                     Message lastMessage = lastMessageByChatId.get(chatId);
 
                     Product product = lastMessage.getChat().getProduct();
@@ -115,8 +115,8 @@ public class ChatService {
         chatUsers.add(me);
 
 
-        ArrayList<ChatUserDto> chatUsersDto = chatUsers.stream()
-                .map(u -> ChatUserDto.builder()
+        ArrayList<SimplifiedUserDto> chatUsersDto = chatUsers.stream()
+                .map(u -> SimplifiedUserDto.builder()
                         .userId(u.getId())
                         .nickname(u.getNickname())
                         .profileImageUrl(u.getProfileImgUrl())
@@ -211,10 +211,10 @@ public class ChatService {
     }
 
     // 참여자들에게 실시간 알림 전송 (채팅방 내부 + 개인 알림 채널)
-    private void sendNotification(Chat chat, Message message, List<ChatUserDto> participants) {
+    private void sendNotification(Chat chat, Message message, List<SimplifiedUserDto> participants) {
         // 채팅방 구독
         String chatUrl = "/sub/chats/" + chat.getChatId();
-        ChatUserDto senderDto = ChatUserDto.builder()
+        SimplifiedUserDto senderDto = SimplifiedUserDto.builder()
                 .userId(message.getSender().getId())
                 .nickname(message.getSender().getNickname())
                 .profileImageUrl(message.getSender().getProfileImgUrl())
@@ -337,8 +337,8 @@ public class ChatService {
             }
         }
 
-        List<ChatUserDto> participants = relationships.stream()
-                .map(r -> ChatUserDto.builder()
+        List<SimplifiedUserDto> participants = relationships.stream()
+                .map(r -> SimplifiedUserDto.builder()
                         .userId(r.getUser().getId())
                         .nickname(r.getUser().getNickname())
                         .profileImageUrl(r.getUser().getProfileImgUrl())
@@ -363,14 +363,14 @@ public class ChatService {
     }
 
     // 채팅방 유저 체크
-    public List<ChatUserDto> getParticipants(Long chatId, Long userId) {
+    public List<SimplifiedUserDto> getParticipants(Long chatId, Long userId) {
         // 요청 유효성 검사 (요청을 보낸 사람이 채팅방에 속했는지 검사, 만약 문제가 있다면 에러를 throw)
         validate(chatId, userId);
         // 1대1 채팅방이면 다른 한명이 나갔어도 보여주는게 로직상 맞는 것 같음
         // 그룹 채팅방이면 어차피 존재하는 유저만 나옴
         List<UserChatRelationship> relationships = relationshipRepository.findAllByChatId(chatId);
         return relationships.stream()
-                .map(r -> ChatUserDto.builder()
+                .map(r -> SimplifiedUserDto.builder()
                         .userId(r.getUser().getId())
                         .nickname(r.getUser().getNickname())
                         .profileImageUrl(r.getUser().getProfileImgUrl())

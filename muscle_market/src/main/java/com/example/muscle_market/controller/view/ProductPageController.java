@@ -1,7 +1,6 @@
 package com.example.muscle_market.controller.view;
 
 import com.example.muscle_market.domain.CustomUserDetails;
-import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.*;
 import com.example.muscle_market.service.ProductService;
 import com.example.muscle_market.service.SportService;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -57,8 +55,9 @@ public class ProductPageController {
     // 신규 게시물 등록
     @GetMapping("/new")
     public String newProductForm(Model model, @AuthenticationPrincipal CustomUserDetails authUser) {
+        // 사용자 확인
         if (authUser != null) {
-            ChatUserDto currentUser = ChatUserDto.builder()
+            SimplifiedUserDto currentUser = SimplifiedUserDto.builder()
                     .userId(authUser.getId())
                     .nickname(authUser.getNickname())
                     .profileImageUrl(authUser.getProfileImgUrl())
