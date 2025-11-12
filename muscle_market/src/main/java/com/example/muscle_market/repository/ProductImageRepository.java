@@ -22,6 +22,4 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Long
 
     // product에 연결된 모든 이미지 엔티티 리스트 조회
     List<ProductImage> findAllByProductIdOrderByIdAsc(Long productId);
-
-    Optional<Object> findThumbnailUrlByProductId(Long id);
 }

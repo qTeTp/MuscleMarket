@@ -459,7 +459,7 @@
                 .then(response => {
                     if (response.status === 204) { // 204 No Content
                         alert('게시물이 성공적으로 삭제되었습니다.');
-                        window.location.href = '/products/list'; // 목록 페이지로 이동
+                        window.location.href = '/products'; // 목록 페이지로 이동
                     } else {
                         alert('삭제 실패: ' + response.status + ' - ' + response.statusText);
                     }
