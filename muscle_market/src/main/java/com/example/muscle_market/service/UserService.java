@@ -186,6 +186,9 @@ public class UserService {
                 userRepository.save(user);
             });
         }
+
+        // 인증정보 클리어
+        SecurityContextHolder.clearContext();
     }
 
     // 현재 로그인한 유저 정보 조회

@@ -57,7 +57,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         if (user.getIsOnboarded() != null && !user.getIsOnboarded()) {
             response.sendRedirect("/onboarding");   // 온보딩 필요
         } else {
-            response.sendRedirect("/products/list");
+            response.sendRedirect("/products");
         }
     }
 }
