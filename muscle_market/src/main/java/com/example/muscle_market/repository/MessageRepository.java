@@ -17,8 +17,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
    // 채팅방 메시지 전체 조회 시 추후 페이지네이션 적용 필요한 쿼리
    @Query("SELECT new com.example.muscle_market.dto.ChatMessageResponse(" +
           "    m.chat.chatId, " +
-          "    new com.example.muscle_market.dto.ChatUserDto(" +
-          "        m.sender.id, m.sender.nickname, m.sender.profileImgUrl" +
+          "    new com.example.muscle_market.dto.SimplifiedUserDto(" +
+          "        m.sender.id, m.sender.username, m.sender.nickname, m.sender.profileImgUrl" +
           "    ), " +
           "    m.content, " +
           "    m.createdAt" +

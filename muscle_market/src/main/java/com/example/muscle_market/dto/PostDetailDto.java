@@ -21,7 +21,7 @@ public class PostDetailDto {
     private LocalDateTime createdAt;
     private Integer views;
     private PostStatus postStatus;
-    private PostUserDto postAuthor;
+    private SimplifiedUserDto postAuthor;
     private Boolean isBungae;
     private String bungaeLocation;
     private Integer maxParticipants;
@@ -38,11 +38,11 @@ public class PostDetailDto {
             .sportName(post.getSport().getName())
             .createdAt(post.getCreatedAt())
             .views(post.getViews())
-            .postAuthor(PostUserDto.builder()
-                .authorId(post.getAuthor().getId())
-                .authorUsername(post.getAuthor().getUsername())
-                .authorNickname(post.getAuthor().getNickname())
-                .authorProfileImgUrl(post.getAuthor().getProfileImgUrl())
+            .postAuthor(SimplifiedUserDto.builder()
+                .userId(post.getAuthor().getId())
+                .username(post.getAuthor().getUsername())
+                .nickname(post.getAuthor().getNickname())
+                .profileImgUrl(post.getAuthor().getProfileImgUrl())
                 .build()
             )
             .isBungae(post.getIsBungae())
