@@ -42,10 +42,10 @@ jwt:
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 값 없으면 기본 7일
 
 # 앨런 API 설정
-ellen:
-  client-id: ${ELLEN_CLIENT_ID}
-  api-url: ${ELLEN_API_URL}
-  reset-url: ${ELLEN_RESET_URL}
+alan:
+  client-id: ${ALAN_CLIENT_ID}
+  api-url: ${ALAN_API_URL}
+  reset-url: ${ALAN_RESET_URL}
 
 # S3 설정
 cloud:

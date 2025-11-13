@@ -3,27 +3,31 @@ package com.example.muscle_market.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Service
-public class EllenApiClient {
+import java.util.Map;
 
-    @Value("${ellen.client-id}")
+@Service
+public class AlanApiClient {
+
+    @Value("${alan.client-id}")
     private String clientId;
 
     // baseUrl은 도메인까지만 (경로 중복 방지)
-    @Value("${ellen.api-url}")
+    @Value("${alan.api-url}")
     private String apiUrl; // ex: https://kdt-api-function.azurewebsites.net
 
-    @Value("${ellen.reset-url}")
+    @Value("${alan.reset-url}")
     private String resetUrl;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // 앨런에게 질문 (GET 요청)
-    public String askEllen(String content) {
+    public String askAlan(String content) {
         WebClient client = WebClient.builder()
                 .baseUrl(apiUrl) // baseUrl에 path 포함 X
                 .build();
@@ -41,7 +45,7 @@ public class EllenApiClient {
                     .bodyToMono(String.class)
                     .block();
 
-            System.out.println("Raw Ellen API response: " + response);
+            System.out.println("Raw Alan API response: " + response);
 
             // JSON 파싱 후 "content" 필드 반환
             JsonNode root = objectMapper.readTree(response);
@@ -56,15 +60,25 @@ public class EllenApiClient {
     // 상태 초기화 (DELETE 요청)
     public void resetState() {
         WebClient client = WebClient.builder()
-                .baseUrl(resetUrl)
+                .baseUrl(resetUrl) // 이미 https://.../api/v1/reset-state 포함
                 .build();
 
-        client.delete()
-                .uri(uriBuilder -> uriBuilder
-                        .queryParam("client_id", clientId)
-                        .build())
-                .retrieve()
-                .bodyToMono(Void.class)
-                .block();
+        try {
+            client.method(HttpMethod.DELETE) // DELETE 요청
+                    .uri("") // baseUrl에 이미 경로 포함 시 빈 문자열
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .bodyValue(Map.of("client_id", clientId)) // body 전달
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .block();
+
+            System.out.println("Alan 상태 초기화 성공");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Alan 상태 초기화 실패: " + e.getMessage());
+        }
     }
+
 }
