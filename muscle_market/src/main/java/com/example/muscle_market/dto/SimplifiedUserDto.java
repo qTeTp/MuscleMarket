@@ -2,19 +2,19 @@ package com.example.muscle_market.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class SimplifiedUserDto {
     private Long userId;
+    private String username;
     private String nickname;
-    private String profileImageUrl;
+    private String profileImgUrl;
 
     @Builder
-    public SimplifiedUserDto(Long userId, String nickname, String profileImageUrl) {
+    public SimplifiedUserDto(Long userId, String username, String nickname, String profileImgUrl) {
         this.userId = userId;
+        this.username = username;
         this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
+        this.profileImgUrl = profileImgUrl;
     }
 }

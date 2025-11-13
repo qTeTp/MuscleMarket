@@ -59,8 +59,9 @@ public class ProductPageController {
         if (authUser != null) {
             SimplifiedUserDto currentUser = SimplifiedUserDto.builder()
                     .userId(authUser.getId())
+                    .username(authUser.getUsername())
                     .nickname(authUser.getNickname())
-                    .profileImageUrl(authUser.getProfileImgUrl())
+                    .profileImgUrl(authUser.getProfileImgUrl())
                     .build();
             model.addAttribute("currentUser", currentUser);
         } else {

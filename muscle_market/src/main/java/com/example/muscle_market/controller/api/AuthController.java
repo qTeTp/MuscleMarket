@@ -3,9 +3,11 @@ package com.example.muscle_market.controller.api;
 import com.example.muscle_market.domain.CustomUserDetails;
 import com.example.muscle_market.dto.LoginDto;
 import com.example.muscle_market.dto.LoginResponseDto;
-import com.example.muscle_market.dto.PostUserDto;
+import com.example.muscle_market.dto.SimplifiedUserDto;
 import com.example.muscle_market.dto.UserDto;
 import com.example.muscle_market.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -48,15 +50,32 @@ public class AuthController {
 
     // 로그아웃
     @PostMapping("/api/logout")
-    public ResponseEntity<String> logout(@AuthenticationPrincipal String username){
+    public ResponseEntity<String> logout(HttpServletResponse response) {
         userService.logout();
+
+        // accessToken, refreshToken 쿠키 제거
+        Cookie accessCookie = new Cookie("accessToken", null);
+        accessCookie.setMaxAge(0);
+        accessCookie.setPath("/");
+        accessCookie.setHttpOnly(true);
+//        accessCookie.setSecure(true);
+
+        Cookie refreshCookie = new Cookie("refreshToken", null);
+        refreshCookie.setMaxAge(0);
+        refreshCookie.setPath("/");
+        refreshCookie.setHttpOnly(true);
+//        refreshCookie.setSecure(true);
+
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
+
         return ResponseEntity.ok("로그아웃 완료");
     }
 
     // 현재 로그인한 유저 정보 확인
     @GetMapping("/api/users/me")
-    public ResponseEntity<PostUserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails authUser) {
-        PostUserDto curUser = userService.getCurrentUser(authUser.getId());
+    public ResponseEntity<SimplifiedUserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails authUser) {
+        SimplifiedUserDto curUser = userService.getCurrentUser(authUser.getId());
         return ResponseEntity.ok(curUser);
     }
 }

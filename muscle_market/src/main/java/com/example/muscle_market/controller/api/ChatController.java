@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.muscle_market.dto.ChatMessageResponse;
 import com.example.muscle_market.dto.ChatResponseDto;
-import com.example.muscle_market.dto.SimplifiedUserDto;
 import com.example.muscle_market.dto.CreateChatDto;
+import com.example.muscle_market.dto.SimplifiedUserDto;
 import com.example.muscle_market.service.ChatService;
 
 import lombok.RequiredArgsConstructor;
