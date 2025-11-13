@@ -1,32 +1,32 @@
 package com.example.muscle_market.controller.api;
 
-import com.example.muscle_market.service.EllenApiClient;
+import com.example.muscle_market.service.AlanApiClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/ellen")
-public class EllenController {
+@RequestMapping("/api/alan")
+public class AlanController {
 
-    private final EllenApiClient ellenApiClient;
+    private final AlanApiClient alanApiClient;
 
-    public EllenController(EllenApiClient ellenApiClient) {
-        this.ellenApiClient = ellenApiClient;
+    public AlanController(AlanApiClient alanApiClient) {
+        this.alanApiClient = alanApiClient;
     }
 
     // 앨런에게 질문 보내기
     @GetMapping("/chat")
     public ResponseEntity<Map<String, String>> chat(@RequestParam String content) {
-        String answer = ellenApiClient.askEllen(content);
+        String answer = alanApiClient.askAlan(content);
         return ResponseEntity.ok(Map.of("answer", answer));
     }
 
     // 앨런 상태 초기화
-    @PostMapping("/reset")
+    @DeleteMapping("/reset")
     public ResponseEntity<String> reset() {
-        ellenApiClient.resetState();
+        alanApiClient.resetState();
         return ResponseEntity.ok("앨런 상태 초기화 완료");
     }
 }
