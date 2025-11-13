@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -40,14 +41,22 @@ public class ProductPageController {
         // 현재 페이지, 페이지 크기, 정렬 기준 (최신순)
         Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("createdAt").descending());
 
+        // 서비스, 종목 드랍다운에 들어갈 카테고리
         Page<ProductListDto> productPage = productService.getProductList(Optional.ofNullable(sportId), pageable);
+        List<SportDto> sports = sportService.getAllSports();
+        String selectedSportName = sportId != null
+                ? sports.stream().filter(s -> s.getId().equals(sportId)).findFirst().map(SportDto::getName).orElse("전체 종목")
+                : "전체 종목";
 
         // 데이터 전달
         model.addAttribute("productPage", productPage);
-
-        // 페이지네이션 처리를 위한 정보 추가
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", productPage.getTotalPages());
+
+        // 페이지네이션 처리를 위한 정보 추가
+        model.addAttribute("sports", sports);
+        model.addAttribute("currentSportId", sportId);
+        model.addAttribute("selectedSportName", selectedSportName);
 
         return "productlist";
     }
@@ -75,13 +84,20 @@ public class ProductPageController {
 
     // 게시물 상세 페이지 반환 매핑
     @GetMapping("/{productId}")
-    public String productDetail(@PathVariable Long productId, Model model) {
+    public String productDetail(@PathVariable Long productId, Model model, @AuthenticationPrincipal CustomUserDetails principal) {
+        try {
+            // 게시물 상세 DTO get
+            ProductDetailDto dto = productService.getProductDetail(productId, principal.getId());
+            model.addAttribute("dto", dto);
 
-        // 게시물 상세 DTO get
-        ProductDetailDto dto = productService.getProductDetail(productId);
-        model.addAttribute("dto", dto);
+            return "product_detail";
+        } catch (IllegalArgumentException e) {
+            // status가 DELETE인 게시물에 대한 처리
+            System.err.println("Product Access Error: " + e.getMessage());
 
-        return "product_detail";
+            // 목록 페이지로 리다이렉트
+            return "redirect:/products";
+        }
     }
 
     @GetMapping("/search")

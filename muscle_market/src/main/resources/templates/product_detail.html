@@ -350,7 +350,7 @@
 
             <div class="product-info-sidebar">
                 <p class="product-header-meta">
-                    <span th:text="|${dto.createdAt} · 조회 ${dto.views} · 채팅 0 · 찜 ${dto.likeCount}|">13분 전 · 조회 1 · 채팅 0 · 찜 0</span>
+                    <span th:text="|${dto.createdAt} · 조회 ${dto.views} · 채팅 0|">13분 전 · 조회 1 · 채팅 0 · 찜 0</span>
                     <br>
                     <span>종목:</span><span th:text="${dto.sportName}">헬스</span>
                     <br>
@@ -384,8 +384,11 @@
 
                 <div th:unless="${#authorization.expression('isAuthenticated()') and (dto.user.id == #authentication.principal.id)}"
                      class="action-buttons-group">
-                    <button id="like-button"><i class="far fa-heart" style="margin-right: 8px;"></i>찜 <span
-                            th:text="${dto.likeCount}">0</span></button>
+                    <button id="like-button" class="btn-outline-warning" style="flex:1" th:data-product-id="${dto.id}">
+                        <i class="fa-heart" th:classappend="${dto.isLiked} ? 'fas' : 'far'"
+                           style="margin-right: 8px;"></i>
+                        찜 <span id="likeCountDisplay" th:text="${dto.likeCount}">0</span>
+                    </button>
                     <button id="chat-button"><i class="fas fa-comment-dots" style="margin-right: 8px;"></i>채팅하기</button>
                 </div>
 
@@ -422,6 +425,7 @@
 <script th:src="@{/js/header.js}" defer></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
+    // dto의 정보 받아옴
     const productId = [[${dto.id}]];
     const currentUserId = [[${#authorization.expression('isAuthenticated()') ? #authentication.principal.id : null}]];
     const imageCount = [[${dto.productImageUrls.size()}]];
@@ -444,9 +448,9 @@
         alert('상태 변경 모달 창');
     }
 
-    // --- 게시물 삭제 (논리적 삭제) ---
+    // 게시물 삭제 (논리적 삭제)
     function deleteProduct(productId) {
-        if (confirm('정말로 이 게시물을 삭제하시겠습니까?')) {
+        if (confirm('정말로 삭제하시겠습니까?')) {
             fetch('/api/products/' + productId, {
                 method: 'DELETE',
                 headers: {
@@ -470,15 +474,46 @@
 
     // 찜
     document.getElementById('like-button')?.addEventListener('click', async () => {
-        if (!currentUserId) {
+        const likeButton = document.getElementById('like-button');
+        const likeIcon = likeButton.querySelector('i');
+        const likeCountDisplay = document.getElementById('likeCountDisplay');
+        let currentCount = parseInt(likeCountDisplay.textContent);
+
+        if (currentUserId == null) {
             alert('로그인이 필요한 서비스입니다.');
-            // window.location.href = '/login';
             return;
         }
-        // TODO: 실제 찜하기 API 호출 로직 구현
-        alert('찜하기 버튼');
-        // fetch(`/api/users/${currentUserId}/likes/${productId}`, { method: 'POST' })
-        // .then(response => { /* ... */ });
+
+        try {
+            // post 요청
+            const response = await fetch(`/api/products/${productId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            // 찜 여부
+            if (response.ok) {
+                const isLiked = await response.json(); // true 또는 false 반환
+
+                if (isLiked) {
+                    // 찜 추가 성공
+                    likeIcon.classList.remove('far');
+                    likeIcon.classList.add('fas');
+                    likeCountDisplay.textContent = currentCount + 1;
+                } else {
+                    // 찜 취소 성공
+                    likeIcon.classList.remove('fas');
+                    likeIcon.classList.add('far');
+                    likeCountDisplay.textContent = currentCount - 1;
+                }
+            } else {
+                alert('찜하기 처리 실패');
+            }
+        } catch (error) {
+            console.error('Like Toggle Error:', error);
+        }
     });
 
     // 채팅

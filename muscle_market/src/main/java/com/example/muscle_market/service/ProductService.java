@@ -32,16 +32,28 @@ public class ProductService {
 
     // 제품 상세 정보 조회
     @Transactional // 조회수 증가 때문에 트랜잭션을 ReadOnly = false로 설정
-    public ProductDetailDto getProductDetail(Long productId) {
+    public ProductDetailDto getProductDetail(Long productId, Long currentUserId) {
         // Product 엔티티 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 제품을 찾을 수 없습니다. ID: " + productId));
+
+        // 삭제된 게시물
+        if (product.getStatus() == TransactionStatus.DELETE) {
+            throw new IllegalArgumentException("삭제된 게시물입니다.");
+        }
 
         // 조회수 1 증가
         product.setViews();
 
         // 좋아요 수 계산
         long likeCount = productLikeRepository.countByProductId(productId);
+
+        // 사용자의 찜 상태 확인
+        boolean isLiked = false;
+        if (currentUserId != null) {
+            // 사용자의 찜 상태 확인
+            isLiked = productLikeRepository.findByUserIdAndProductId(currentUserId, productId).isPresent();
+        }
 
         // 모든 이미지 URL 조회
         List<String> imageUrls = productImageRepository.findAllImageUrlsByProductId(productId);
@@ -70,6 +82,7 @@ public class ProductService {
                 .updatedAt(product.getUpdatedAt())
                 .user(userDto) // userDto 포함 필요한 거만 뽑아서 쓰기
                 .sportName(product.getSport().getName())
+                .isLiked(isLiked)
                 .build();
     }
 
