@@ -40,7 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         // 인증 없어도 들어가게
                         .requestMatchers("/", "/api/signup", "/api/login", "/api/**", "/api/products",
-                                "/api/products/**", "/api/users/{userId}/likes",
+                                "/api/products/**", "/api/users/{userId}/likes", "/api/products/{productId}/like",
                                 "/login", "/signup", "/images/**", "/products/**", "/products/new", "/post-login", "/api/sports",
                                 "/api/sports/**", "/products/detail/**", "/products", "/products/**", "/post-login", "/oauth2/**", "/map/**").permitAll() // 회원가입/로그인은 허용
                         // 인증 있어야 들어가게

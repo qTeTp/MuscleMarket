@@ -195,11 +195,97 @@
             font-size: 1.1em;
             line-height: 1;
         }
+
+        /* --- 카테고리 드롭다운 스타일 --- */
+        .category-filter-bar {
+            position: absolute;
+            top: 100px; /* h1과 겹치지 않게 아래로 */
+            right: 140px;
+            z-index: 100;
+        }
+
+        .category-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* 버튼 기본 스타일 */
+        .category-button {
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 10px 18px;
+            /*버튼 너비 나중에 긴 이름의 종목이 나올 수 있어서 길게 잡읍*/
+            width: 200px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: left;
+        }
+
+        .category-button:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* 메뉴 박스 */
+        .category-menu {
+            list-style: none;
+            margin: 0;
+            padding: 8px 0;
+            position: absolute;
+            top: 0;
+            width: 200px;
+            /*left: 100%;*/ /*나오게 되는 위치*/
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none; /* 기본 숨김 */
+        }
+
+        /* hover 시 표시 */
+        .category-wrapper:hover .category-menu {
+            display: block;
+        }
+
+        /* 메뉴 아이템 스타일 */
+        .category-menu li {
+            padding: 10px 15px;
+            color: #333;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .category-menu li:hover {
+            background-color: #f0f0f0;
+        }
     </style>
     <link th:href="@{/css/header.css}" rel="stylesheet"/>
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
+
+<div class="category-filter-bar">
+    <div class="category-wrapper">
+        <button id="categoryButton" class="category-button">
+            <span id="selectedCategory"
+                  th:text="${selectedSportName != null ? selectedSportName : '전체 종목'}">
+            전체 종목
+        </span>
+        </button>
+        <ul class="category-menu" id="categoryMenu">
+            <li data-sport-id="null">전체 종목</li>
+            <li th:each="sport : ${sports}"
+                th:data-sport-id="${sport.id}"
+                th:text="${sport.name}">
+                축구
+            </li>
+        </ul>
+    </div>
+</div>
 
 <main class="page-content">
     <h1>경제적인 장비 업그레이드</h1>
@@ -233,9 +319,10 @@
 
     <div class="pagination" th:if="${productPage.totalPages > 0}">
         <span th:each="pageNum : ${#numbers.sequence(0, productPage.totalPages - 1)}">
-            <a th:href="@{/products(page=${pageNum})}"
+            <a th:href="@{/products(page=${pageNum}, sportId=${currentSportId})}"
                th:class="${pageNum == currentPage ? 'active' : ''}"
-               th:text="${pageNum + 1}">1</a>
+               th:text="${pageNum + 1}">1
+            </a>
         </span>
     </div>
 </main>
@@ -256,5 +343,40 @@
     </button>
 </div>
 <script th:src="@{/js/header.js}" defer></script>
+<script th:inline="javascript">
+    // url에서 sportId 가져옴
+    // function getQueryParam(param) {
+    //     const urlParams = new URLSearchParams(window.location.search);
+    //     return urlParams.get(param);
+    // }
+    //
+    // const currentSportId = [[${currentSportId}]] || null;
+    // const currentSportName = [[${selectedSportName}]] || '전체 종목';
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const menu = document.getElementById("categoryMenu");
+        const selectedText = document.getElementById("selectedCategory");
+
+        // 각 항목 클릭 시 페이지 이동 및 이름 변경
+        menu.addEventListener("click", function (e) {
+            const item = e.target.closest("li");
+            if (!item) return;
+
+            const sportId = item.dataset.sportId;
+            const sportName = item.textContent.trim();
+            selectedText.textContent = sportName; // 버튼 텍스트 변경
+
+            // URL 이동
+            let targetUrl = '/products';
+            if (sportId && sportId !== 'null') {
+                targetUrl += `?sportId=${sportId}`;
+            }
+            window.location.href = targetUrl;
+        });
+        console.log("선택된 종목 ID:", selectedId);
+        console.log("선택된 종목명:", selectedName);
+    });
+
+</script>
 </body>
 </html>

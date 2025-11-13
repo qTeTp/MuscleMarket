@@ -26,4 +26,5 @@ public class ProductDetailDto {
     private String sportName; // 운동
 
     private Long likeCount;
+    private boolean isLiked; // 현재 사용자가 찜했나?
 }
