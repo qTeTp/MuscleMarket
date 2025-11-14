@@ -75,7 +75,7 @@ public class ProductService {
                 .price(product.getPrice())
                 .location(product.getLocation())
                 .productImageUrls(imageUrls) // 이미지 URL 리스트 사용
-                .status("판매중") // 거래 상태는 아직 미구현 임시값 부여
+                .status(String.valueOf(product.getStatus())) // 거래 상태는 아직 미구현 임시값 부여
                 .views(product.getViews())
                 .likeCount(likeCount)
                 .createdAt(product.getCreatedAt())
@@ -258,5 +258,23 @@ public class ProductService {
 
         // DELETE로 상태 변경
         product.updateStatus(TransactionStatus.DELETE);
+    }
+
+    // 게시물 status 변경
+    @Transactional
+    public void changeProductStatus(Long productId, Long currentUserId, TransactionStatus newStatus) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. ID: " + productId));
+
+        // 권한 확인
+        if (!product.getUser().getId().equals(currentUserId)) {
+            throw new IllegalArgumentException("게시물 작성자만 수정할 수 있습니다.");
+        }
+
+        // 사용자가 원하는 상태로 변경
+        // SELLING("판매중"),
+        // RESERVED("예약중"),
+        // SOLD("거래완료"),
+        product.updateStatus(newStatus);
     }
 }
