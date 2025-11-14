@@ -11,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class AlanChatResponse {
     private String alanAnswer;
-    private List<Product> recommendProducts;
+    private List<ProductSimpleResponse> recommendProducts;
 }

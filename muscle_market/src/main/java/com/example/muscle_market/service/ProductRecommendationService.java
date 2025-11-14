@@ -3,6 +3,7 @@ package com.example.muscle_market.service;
 import com.example.muscle_market.domain.Product;
 import com.example.muscle_market.domain.Sport;
 import com.example.muscle_market.dto.AlanChatResponse;
+import com.example.muscle_market.dto.ProductSimpleResponse;
 import com.example.muscle_market.repository.ProductRepository;
 import com.example.muscle_market.repository.SportRepository;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductRecommendationService {
@@ -83,17 +85,19 @@ public class ProductRecommendationService {
         }
 
         // List로 변환
-        List<Product> recommendProducts = new ArrayList<>(recommendProductsSet);
+        List<ProductSimpleResponse> recommendProductsDto = recommendProductsSet.stream()
+                .map(ProductSimpleResponse::new)
+                .collect(Collectors.toList());
 
         // 콘솔 출력
         System.out.println("앨런 답변 : " + alanAnswer);
         System.out.println("추천 상품 : ");
-        for (Product p :  recommendProducts) {
+        for (ProductSimpleResponse p :  recommendProductsDto) {
             System.out.println("- " + p.getTitle() + " / " + p.getPrice() + "원");
         }
 
         // 결과 반환
-        return new AlanChatResponse(alanAnswer, recommendProducts);
+        return new AlanChatResponse(alanAnswer, recommendProductsDto);
     }
 
     // 상태 초기화
