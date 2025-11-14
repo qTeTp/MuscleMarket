@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/api/signup", "/api/login", "/api/**", "/api/products",
                                 "/api/products/**", "/api/users/{userId}/likes",
                                 "/login", "/signup", "/images/**", "/products/**", "/products/new", "/post-login", "/api/sports",
-                                "/api/sports/**", "/products/detail/**", "/products", "/products/**", "/post-login", "/oauth2/**", "/api/map/**").permitAll() // 회원가입/로그인은 허용
+                                "/api/sports/**", "/products/detail/**", "/products", "/products/**", "/post-login", "/oauth2/**", "/api/map/**", "/api/alan/chat").permitAll() // 회원가입/로그인은 허용
                         // 인증 있어야 들어가게
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
