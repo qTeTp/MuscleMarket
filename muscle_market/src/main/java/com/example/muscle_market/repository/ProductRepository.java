@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     // 페이징 지원
@@ -23,4 +25,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // sportId null일 시 전체 카테고리 검색, !null일 시 특정 카테고리 검색
     @Query("SELECT p FROM Product p JOIN FETCH p.sport s WHERE p.status != 'DELETE' AND (:sportId IS NULL OR s.id = :sportId) AND (p.title LIKE %:keyword% OR p.description LIKE %:keyword%) ORDER BY p.createdAt DESC")
     Page<Product> searchByKeywordAndSport(@Param("sportId") Long sportId, @Param("keyword") String keyword, Pageable pageable);
+
+
+    // 물품게시글 스포츠 종목 검색
+//    List<Product> findBySportId(Long sportId);
+    // 제목에 키워드 포함된 상품 검색
+    List<Product> findByTitleContainingIgnoreCase(String title);
 }

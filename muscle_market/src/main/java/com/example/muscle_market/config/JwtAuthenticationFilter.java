@@ -42,7 +42,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String accessToken = null;
         String refreshToken = null;
 
-        // 1️⃣ 쿠키에서 AccessToken, RefreshToken 추출
+        // 헤더에서 Bearer 토큰 확인
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            accessToken = header.substring(7);  // Bearer 제거
+        }
+
+        // 쿠키에서 AccessToken, RefreshToken 추출
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("accessToken".equals(cookie.getName())) {

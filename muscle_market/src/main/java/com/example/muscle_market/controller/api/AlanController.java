@@ -8,6 +8,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/alan")
+// 테스트용 컨트롤러
 public class AlanController {
 
     private final AlanApiClient alanApiClient;
@@ -16,17 +17,17 @@ public class AlanController {
         this.alanApiClient = alanApiClient;
     }
 
-    // 앨런에게 질문 보내기
-    @GetMapping("/chat")
-    public ResponseEntity<Map<String, String>> chat(@RequestParam String content) {
-        String answer = alanApiClient.askAlan(content);
-        return ResponseEntity.ok(Map.of("answer", answer));
-    }
+//    // 앨런에게 질문 보내기
+//    @GetMapping("/chat")
+//    public ResponseEntity<Map<String, String>> chat(@RequestParam String content) {
+//        String answer = alanApiClient.askAlan(content);
+//        return ResponseEntity.ok(Map.of("answer", answer));
+//    }
 
-    // 앨런 상태 초기화
-    @DeleteMapping("/reset")
-    public ResponseEntity<String> reset() {
-        alanApiClient.resetState();
-        return ResponseEntity.ok("앨런 상태 초기화 완료");
-    }
+//    // 앨런 상태 초기화
+//    @DeleteMapping("/reset")
+//    public ResponseEntity<String> reset() {
+//        alanApiClient.resetState();
+//        return ResponseEntity.ok("앨런 상태 초기화 완료");
+//    }
 }
