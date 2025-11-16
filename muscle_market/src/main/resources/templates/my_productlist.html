@@ -270,19 +270,13 @@
 
 <div class="category-filter-bar">
     <div class="category-wrapper">
-        <button id="categoryButton" class="category-button">
-            <span id="selectedCategory"
-                  th:text="${selectedSportName != null ? selectedSportName : '전체 종목'}">
-            전체 종목
-        </span>
+        <button id="statusButton" class="category-button">
+            <span id="selectedStatus"></span>
         </button>
-        <ul class="category-menu" id="categoryMenu">
-            <li data-sport-id="null">전체 종목</li>
-            <li th:each="sport : ${sports}"
-                th:data-sport-id="${sport.id}"
-                th:text="${sport.name}">
-                축구
-            </li>
+        <ul class="category-menu" id="statusMenu">
+            <li data-status-value="SELLING">판매 중</li>
+            <li data-status-value="RESERVED">예약 중</li>
+            <li data-status-value="SOLD">판매 완료</li>
         </ul>
     </div>
 </div>
@@ -318,14 +312,12 @@
     </ul>
 
     <div class="pagination" th:if="${productPage.totalPages > 0}">
-      <span th:each="pageNum : ${#numbers.sequence(0, productPage.totalPages - 1)}">
-        <a th:href="@{${isLikePage != null and isLikePage} ?
-                        '/products/likes'(page=${pageNum}, sportId=${currentSportId}) :
-                        '/products'(page=${pageNum}, sportId=${currentSportId})}"
-           th:class="${pageNum == currentPage ? 'active' : ''}"
-           th:text="${pageNum + 1}">1
-        </a>
-    </span>
+        <span th:each="pageNum : ${#numbers.sequence(0, productPage.totalPages - 1)}">
+            <a th:href="@{/products(page=${pageNum}, sportId=${currentSportId})}"
+               th:class="${pageNum == currentPage ? 'active' : ''}"
+               th:text="${pageNum + 1}">1
+            </a>
+        </span>
     </div>
 
 </main>
@@ -356,30 +348,36 @@
     // const currentSportId = [[${currentSportId}]] || null;
     // const currentSportName = [[${selectedSportName}]] || '전체 종목';
 
+    const STATUS_MAP = {
+        'SELLING': '판매 중',
+        'RESERVED': '예약 중',
+        'SOLD': '판매 완료'
+    };
+
+    const currentStatus = [[${currentStatus}]] || 'SELLING';
+
     document.addEventListener("DOMContentLoaded", function () {
-        const menu = document.getElementById("categoryMenu");
-        const selectedText = document.getElementById("selectedCategory");
+        const selectedStatusText = document.getElementById("selectedStatus");
+        const statusMenu = document.getElementById("statusMenu");
 
-        // 찜 페이지인지 확인
-        const isLikePage = window.location.pathname.includes('/likes');
+        // 초기 텍스트
+        selectedStatusText.textContent = STATUS_MAP[currentStatus] || '판매 중';
 
-        // 각 항목 클릭 시 페이지 이동 및 이름 변경
-        menu.addEventListener("click", function (e) {
-            const item = e.target.closest("li"); // li 태그에서 값을 가져옴
+        statusMenu.addEventListener("click", function (e) {
+            const item = e.target.closest("li");
             if (!item) return;
 
-            const sportId = item.dataset.sportId;
-            const sportName = item.textContent.trim();
-            selectedText.textContent = sportName; // 버튼 텍스트 변경
+            const newStatus = item.dataset.statusValue;
+            const newStatusName = item.textContent.trim();
+            selectedStatusText.textContent = newStatusName;
 
-            // URL 이동
-            let targetPath = isLikePage ? '/products/likes' : '/products';
-            let targetUrl = targetPath;
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('status', newStatus);
+            urlParams.set('page', '0');
 
-            if (sportId && sportId !== 'null') {
-                targetUrl += `?sportId=${sportId}`;
-            }
-            window.location.href = targetUrl;
+            document.getElementById("selectedStatus").textContent = newStatusName;
+            // /products/my 경로로 이동 (status 필터 적용)
+            window.location.href = '/products/my?' + urlParams.toString();
         });
     });
 

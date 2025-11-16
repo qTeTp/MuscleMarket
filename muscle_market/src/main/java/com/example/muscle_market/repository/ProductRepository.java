@@ -1,6 +1,7 @@
 package com.example.muscle_market.repository;
 
 import com.example.muscle_market.domain.Product;
+import com.example.muscle_market.enums.TransactionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,6 +27,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p JOIN FETCH p.sport s WHERE p.status != 'DELETE' AND (:sportId IS NULL OR s.id = :sportId) AND (p.title LIKE %:keyword% OR p.description LIKE %:keyword%) ORDER BY p.createdAt DESC")
     Page<Product> searchByKeywordAndSport(@Param("sportId") Long sportId, @Param("keyword") String keyword, Pageable pageable);
 
+    // 작성자, 상태, 삭제가 안된 상태
+    @Query("SELECT p FROM Product p JOIN FETCH p.sport s " +
+            "WHERE p.user.id = :authorId " +
+            "AND p.status = :status " +
+            "AND p.status != 'DELETE' " +
+            "ORDER BY p.createdAt DESC")
+    Page<Product> findAllByAuthorIdAndStatus(
+            @Param("authorId") Long authorId,
+            @Param("status") TransactionStatus status, // ENUM은 JPQL에서 String으로 처리
+            Pageable pageable);
 
     // 물품게시글 스포츠 종목 검색
 //    List<Product> findBySportId(Long sportId);

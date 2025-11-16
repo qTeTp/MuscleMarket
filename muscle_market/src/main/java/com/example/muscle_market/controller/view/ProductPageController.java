@@ -2,6 +2,7 @@ package com.example.muscle_market.controller.view;
 
 import com.example.muscle_market.domain.CustomUserDetails;
 import com.example.muscle_market.dto.*;
+import com.example.muscle_market.service.ProductLikeService;
 import com.example.muscle_market.service.ProductService;
 import com.example.muscle_market.service.SportService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class ProductPageController {
 
     // 한 페이지에 표시할 아이템 수 (가로 4줄 * 세로 5줄 = 20개)
     private static final int PAGE_SIZE = 20;
+    private final ProductLikeService productLikeService;
 
     @GetMapping
     public String productList(
@@ -124,6 +126,60 @@ public class ProductPageController {
         model.addAttribute("currentSportId", sportId); // 카테고리 필터 유지 (페이지네이션을 위해)
 
         // productlist.html 재사용
+        return "productlist";
+    }
+
+    @GetMapping("/my")
+    public String getMyPosts(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestParam(defaultValue = "SELLING") String status,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+        // Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("createdAt").descending());
+
+        // 서비스 호출
+        Page<ProductListDto> productPage =
+                productService.getMySellingProducts(principal.getId(), status, pageable);
+
+        // 모델 전달 (productlist.html 재사용)
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+
+        // 현재 상태
+        model.addAttribute("currentStatus", status);
+        // 기존의 상품 목록 템플릿 재사용
+        return "my_productlist";
+    }
+
+    @GetMapping("/likes")
+    public String getMyLikedProducts(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+        Long userId = principal.getId();
+
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("id").descending());
+
+        // 서비스 호출
+        Page<ProductListDto> productPage =
+                productLikeService.getLikedProducts(userId, pageable);
+
+        // 종목 목록
+        List<SportDto> sports = sportService.getAllSports();
+
+        // 모델에 데이터 추가
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("sports", sports);
+
+        // 현재 페이지가 좋아요 페이지임을 알리는 플래그
+        model.addAttribute("isLikePage", true);
+
         return "productlist";
     }
 }

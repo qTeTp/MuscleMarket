@@ -19,7 +19,25 @@
         <div class="header-btn-group">
             <button class="header-action-btn chat-btn">채팅하기</button>
             <button class="header-action-btn logout-btn">로그아웃</button>
-            <div class="header-profile-img"></div>
+            <div class="header-profile-img" id="profileBtn">
+                <div class="user-menu-dropdown" id="userDropdownMenu">
+                    <ul id="userMenuLinks">
+                        <li class="user-menu-item user-menu-auth-required">로그인이 필요합니다.</li>
+
+                        <li class="user-menu-item user-menu-authenticated" onclick="location.href='/products/my'">
+                            <i class="fas fa-box-open fa-fw me-2"></i> 내 판매 게시물
+                        </li>
+
+                        <li class="user-menu-item user-menu-authenticated" onclick="location.href='/products/likes'">
+                            <i class="fas fa-heart fa-fw me-2"></i> 찜한 게시물 조회
+                        </li>
+
+                        <li class="user-menu-item user-menu-authenticated" onclick="location.href='/users/1/transactions/sold'">
+                            <i class="fas fa-shopping-bag fa-fw me-2"></i> 구매 내역
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </header>
