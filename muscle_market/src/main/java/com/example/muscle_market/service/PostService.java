@@ -78,7 +78,9 @@ public class PostService {
         if (post.getAuthor() == null) throw new EntityNotFoundException("author not found");
         // 삭제된 글은 볼 수 없고, 숨김이면 본인만 볼 수 있어야 함
         validatePostAccess(post, curUserId);
-        return PostDetailDto.fromEntity(post);
+        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElseGet(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId).orElseGet(null);
+        return PostDetailDto.fromEntity(post, prevPost, nextPost);
     }
 
     // 게시글 작성
@@ -121,7 +123,9 @@ public class PostService {
         
         // 저장 후 dto 리턴
         Post savedPost = postRepository.save(post);
-        return PostDetailDto.fromEntity(savedPost);
+        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(post.getPostId()).orElseGet(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(post.getPostId()).orElseGet(null);
+        return PostDetailDto.fromEntity(savedPost, prevPost, nextPost);
     }
 
     // 게시글 수정
@@ -177,7 +181,9 @@ public class PostService {
             post.addImage(image);
         }
 
-        return PostDetailDto.fromEntity(post);
+        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElseGet(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId).orElseGet(null);
+        return PostDetailDto.fromEntity(post, prevPost, nextPost);
     }   
 
     // 게시글 조회수 증가
@@ -230,5 +236,13 @@ public class PostService {
         validatePostAccess(post, curUserId);
         
         postRepository.delete(post);
+    }
+
+    // 게시글이 번개인지 판별
+    public boolean isBungae(Long postId) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+        
+        return Boolean.TRUE.equals(post.getIsBungae());
     }
 }

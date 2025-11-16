@@ -18,6 +18,7 @@ public class CommentResponseDto {
     private SimplifiedUserDto targetAuthor;
     private boolean isDeleted;
     private boolean isReply;
+    private Long parentId;
 
     public static CommentResponseDto fromEntity(Comment comment) {
         return new CommentResponseDto(comment);
@@ -28,6 +29,12 @@ public class CommentResponseDto {
         this.commentId = entity.getCommentId();
         this.createdAt = entity.getCreatedAt();
         this.isReply = entity.getParent() != null;
+        if (this.isReply == true) {
+            this.parentId = entity.getParent().getCommentId();
+        } else {
+            this.parentId = null;
+        }
+
         this.author = SimplifiedUserDto.builder()
             .userId(entity.getAuthor().getId())
             .username(entity.getAuthor().getUsername())

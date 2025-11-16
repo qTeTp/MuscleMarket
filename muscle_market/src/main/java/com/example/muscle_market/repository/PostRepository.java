@@ -21,4 +21,10 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.views = COALESCE(p.views, 0) + 1 WHERE p.id = :postId")
     void increaseView(@Param("postId") Long postId);
+
+    // 이전 게시글 탐색
+    Optional<Post> findFirstByPostIdLessThanOrderByPostIdDesc(Long postId);
+
+    // 다음 게시글 탐색
+    Optional<Post> findFirstByPostIdGreaterThanOrderByPostIdAsc(Long postId);
 }
