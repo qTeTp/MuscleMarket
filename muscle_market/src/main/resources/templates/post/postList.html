@@ -316,6 +316,11 @@
                     e.preventDefault();
                     alert('글을 작성하려면 로그인이 필요합니다');
                 });
+            } else {
+                // 현재 상태를 보존하려 함
+                const initialUrl = window.location.href;
+                const encodedReturnUrl = encodeURIComponent(initialUrl);
+                newPostBtn.href = `/posts/new?returnUrl=${encodedReturnUrl}`;
             }
         }
 

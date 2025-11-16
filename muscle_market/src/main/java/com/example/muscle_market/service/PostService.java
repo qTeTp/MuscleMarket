@@ -92,7 +92,7 @@ public class PostService {
             .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         // 운동 카테고리 검증
-        Sport sport = sportRepository.findByName(request.getSportName())
+        Sport sport = sportRepository.findById(request.getSportId())
             .orElseThrow(() -> new EntityNotFoundException("Sport not found"));
 
 
@@ -145,7 +145,7 @@ public class PostService {
         validatePostAccess(post, curUserId);
 
         // 운동 카테고리 검증
-        Sport sport = sportRepository.findByName(request.getSportName())
+        Sport sport = sportRepository.findById(request.getSportId())
             .orElseThrow(() -> new EntityNotFoundException("Sport not found"));
 
         // 게시글 제목, 내용, 운동 수정
