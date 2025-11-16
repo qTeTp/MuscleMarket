@@ -277,4 +277,36 @@ public class ProductService {
         // SOLD("거래완료"),
         product.updateStatus(newStatus);
     }
+
+    // 내 판매 게시물
+    @Transactional(readOnly = true)
+    public Page<ProductListDto> getMySellingProducts(Long authorId, String statusString, Pageable pageable) {
+        // 상태 문자열 변환
+        TransactionStatus statusEnum = TransactionStatus.valueOf(statusString.toUpperCase());
+        // Repository 호출
+        Page<Product> productPage =
+                productRepository.findAllByAuthorIdAndStatus(authorId, statusEnum, pageable);
+
+        // DTO 변환 로직 (기존 getProductList와 동일)
+        return productPage.map(product -> {
+            long likeCount = productLikeRepository.countByProductId(product.getId());
+            String thumbnailUrl = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
+                    .map(ProductImage::getS3Url)
+                    .orElse("default_image.jpg");
+
+            return ProductListDto.builder()
+                    .id(product.getId())
+                    .title(product.getTitle())
+                    .description(product.getDescription())
+                    .price(product.getPrice())
+                    .location(product.getLocation())
+                    .sportName(product.getSport().getName())
+                    .views(product.getViews())
+                    .likeCount(likeCount)
+                    .thumbnailUrl(thumbnailUrl)
+                    .createdAt(product.getCreatedAt())
+                    .updatedAt(product.getUpdatedAt())
+                    .build();
+        });
+    }
 }

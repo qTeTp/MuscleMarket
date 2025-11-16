@@ -46,11 +46,13 @@ public class SecurityConfig {
                         // 정적 컨텐츠들 접근 허용
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/products/**").permitAll()
+                        .requestMatchers("/products", "/products/**").permitAll()
                         // 인증 없어도 들어가게
                         .requestMatchers("/", "/api/signup", "/api/login", "/api/**", "/api/products",
                                 "/api/products/**", "/api/users/{userId}/likes", "/api/products/{productId}/like",
                                 "/login", "/signup", "/images/**", "/products/**", "/products/new", "/post-login", "/api/sports",
-                                "/api/sports/**", "/products/detail/**", "/products", "/products/**", "/post-login", "/oauth2/**", "/api/map/**", "/api/alan/chat").permitAll() // 회원가입/로그인은 허용
+                                "/api/sports/**", "/products/detail/**", "/products", "/products/**", "/post-login", "/oauth2/**",
+                                "/api/map/**", "/api/alan/chat", "/products/my", "/products/my/**").permitAll() // 회원가입/로그인은 허용
                         // 인증 있어야 들어가게
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
