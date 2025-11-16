@@ -3,46 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title>전체 게시글</title>
     <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Inter 폰트 사용 (Figma와 유사한 깔끔한 폰트) */
+        /* (공통 스타일은 이전과 동일) */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa; /* 피그마 배경과 유사한 색상 */
-        }
-        /* 피그마의 회색 버튼 스타일 */
-        .btn-secondary {
-            background-color: #f1f3f5;
-            border: 1px solid #dee2e6;
-            color: #495057;
-        }
-        .btn-secondary:hover {
-            background-color: #e9ecef;
-        }
-        /* 피그마의 흰색 버튼 스타일 */
-        .btn-outline {
-            background-color: #ffffff;
-            border: 1px solid #ced4da;
-            color: #495057;
-        }
-        .btn-outline:hover {
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
             background-color: #f8f9fa;
         }
-        /* 피그마의 기본 파란색 버튼 (예시) */
+        .btn-secondary {
+            background-color: #f1f3f5; border: 1px solid #dee2e6; color: #495057;
+        }
+        .btn-secondary:hover { background-color: #e9ecef; }
+        .btn-outline {
+            background-color: #ffffff; border: 1px solid #ced4da; color: #495057;
+        }
+        .btn-outline:hover { background-color: #f8f9fa; }
         .btn-primary {
-            background-color: #3b82f6; /* 예시 파란색 */
-            color: white;
+            background-color: #3b82f6; color: white;
         }
-        .btn-primary:hover {
-            background-color: #2563eb;
+        .btn-primary:hover { background-color: #2563eb; }
+        .pagination-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 2.25rem; height: 2.25rem; padding: 0 0.75rem;
+            border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500;
+            user-select: none; transition: background-color 0.2s;
         }
+        .pagination-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+        .pagination-btn.active {
+            background-color: #3b82f6; color: white; border-color: #3b82f6;
+        }
+        .pagination-btn.inactive {
+            background-color: #ffffff; border: 1px solid #ced4da; color: #495057;
+        }
+        .pagination-btn.inactive:hover:not([disabled]) { background-color: #f8f9fa; }
     </style>
-    <!-- Inter 폰트 로드 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="bg-white">
     <main id="board-list" class="w-full max-w-6xl mx-auto px-4 py-10">
@@ -52,22 +50,22 @@
         <div class="flex justify-between items-center mb-4">
             <!-- 좌측 필터 -->
             <div class="flex items-center gap-4">
-                <select class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="filter-category" class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">-- 운동 선택 --</option>
-                    <option value="soccer">축구</option>
-                    <option value="basketball">농구</option>
-                    <option value="running">러닝</option>
                 </select>
                 <div class="flex items-center gap-2 text-sm">
-                    <input type="radio" id="meetup" name="post-type" class="text-blue-600 focus:ring-blue-500">
-                    <label for="meetup">번개 모집</label>
+                    <input type="checkbox" id="meetup-only" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="meetup-only" class="cursor-pointer">번개</label>
                 </div>
+                <button id="filter-search-btn" class="btn-secondary px-4 py-2 rounded-md font-medium text-sm">
+                    조회
+                </button>
             </div>
             
             <!-- 우측 검색 -->
             <div class="relative">
-                <input type="text" placeholder="검색" class="border border-gray-300 rounded-md py-2 px-4 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <input id="filter-search-input" type="text" placeholder="검색" class="border border-gray-300 rounded-md py-2 px-4 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" id="post-search-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -82,56 +80,317 @@
                     <tr class="text-sm text-gray-600">
                         <th class="py-3 px-2 w-16 text-center">No</th>
                         <th class="py-3 px-2">제목</th>
+                        <th class="py-3 px-2 w-32">카테고리</th>
                         <th class="py-3 px-2 w-32">작성자</th>
                         <th class="py-3 px-2 w-32">등록일</th>
                         <th class="py-3 px-2 w-20 text-center">조회수</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- Mock Data Loop -->
-                    <!-- 실제로는 이 tr이 데이터만큼 반복됩니다. -->
-                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                        <td class="py-4 px-2 text-center text-sm text-gray-700">10</td>
-                        <td class="py-4 px-2 font-medium"><a href="#board-detail" class="hover:underline">게시글 제목입니다.</a></td>
-                        <td class="py-4 px-2 text-sm text-gray-700">작성자</td>
-                        <td class="py-4 px-2 text-sm text-gray-700">등록일</td>
-                        <td class="py-4 px-2 text-center text-sm text-gray-700">조회수</td>
-                    </tr>
-                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                        <td class="py-4 px-2 text-center text-sm text-gray-700">9</td>
-                        <td class="py-4 px-2 font-medium"><a href="#board-detail" class="hover:underline">두 번째 게시글</a></td>
-                        <td class="py-4 px-2 text-sm text-gray-700">작성자</td>
-                        <td class="py-4 px-2 text-sm text-gray-700">등록일</td>
-                        <td class="py-4 px-2 text-center text-sm text-gray-700">조회수</td>
-                    </tr>
-                    <!-- ... (나머지 8개 목업 데이터 생략) ... -->
-                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                        <td class="py-4 px-2 text-center text-sm text-gray-700">1</td>
-                        <td class="py-4 px-2 font-medium"><a href="#board-detail" class="hover:underline">마지막 게시글</a></td>
-                        <td class="py-4 px-2 text-sm text-gray-700">작성자</td>
-                        <td class="py-4 px-2 text-sm text-gray-700">등록일</td>
-                        <td class="py-4 px-2 text-center text-sm text-gray-700">조회수</td>
-                    </tr>
+                <tbody id="post-table-body">
+                    <!-- JS에 의해 동적으로 채워짐 -->
                 </tbody>
             </table>
         </div>
 
-        <!-- 페이지네이션 (Figma엔 없지만 일반적으로 포함됨) -->
-        <div class="flex justify-center mt-8">
-            <nav class="flex items-center gap-2">
-                <button class="px-3 py-1 rounded-md text-sm btn-outline">&laquo;</button>
-                <button class="px-3 py-1 rounded-md text-sm btn-outline bg-gray-200 font-medium">1</button>
-                <button class="px-3 py-1 rounded-md text-sm btn-outline">2</button>
-                <button class="px-3 py-1 rounded-md text-sm btn-outline">3</button>
-                <button class="px-3 py-1 rounded-md text-sm btn-outline">&raquo;</button>
-            </nav>
+        <!-- 페이지네이션 -->
+        <div id="pagination-container" class="flex justify-center items-center gap-2 mt-8">
+            <!-- JS에 의해 동적으로 채워짐 -->
         </div>
 
-        <!-- 글쓰기 버튼 -->
-        <div class="flex justify-end gap-2 mt-6">
-            <button class="btn-outline px-4 py-2 rounded-md font-medium text-sm">번개글 작성</button>
-            <button class="btn-outline px-4 py-2 rounded-md font-medium text-sm">게시글 작성</button>
+        <!-- 글쓰기 버튼 (링크 수정) -->
+        <div class="flex justify-end gap-2 mt-6" id="new-post-btn">
+            <a href="/posts/new" class="btn-outline px-4 py-2 rounded-md font-medium text-sm">게시글 작성</a>
         </div>
     </main>
+
+    <script>
+        // 현재 로그인한 유저
+        let currentUser = null;
+        
+        // CSRF Token
+        const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
+        const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
+
+        // Pagination options
+        const postsPerPage = 10; // 페이지 당 게시글 수 (size)
+        const pageGroupSize = 10; // 한 번에 10개까지의 페이지만 보여주기
+
+        // 요소 가져오기
+        const filterPostBtn = document.getElementById('filter-search-btn');
+        const postSearchInput = document.getElementById('filter-search-input');
+        const postSearchBtn = document.getElementById('post-search-btn');
+        const newPostBtn = document.getElementById('new-post-btn');
+        const postSportFilterContainer = document.getElementById('filter-category');
+        const bungaeCheckBox = document.getElementById('meetup-only');
+        const postListContainer = document.getElementById('post-table-body');
+        const paginationContainer = document.getElementById('pagination-container');
+
+        // URL 패러미터에서 필터나 페이지 값 읽어오기
+        function applyUrlParamsToFilters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sportId = escapeHtml(urlParams.get('sportId')) || '';
+            const isBungae = escapeHtml(urlParams.get('isBungae')) === 'true';
+            const keyword = escapeHtml(urlParams.get('keyword')) || '';
+
+            postSportFilterContainer.value = sportId;
+            bungaeCheckBox.checked = isBungae;
+            postSearchInput.value = keyword;
+        }
+
+        // 게시글 불러오기
+        async function fetchPostList(page) {
+            // 필터 읽기
+            const sportId = escapeHtml(postSportFilterContainer.value);
+            const isBungae = escapeHtml(bungaeCheckBox.checked);
+            const keyword = escapeHtml(postSearchInput.value);
+
+            // API 호출 쿼리 생성
+            const params = new URLSearchParams({
+                page: page,
+                size: postsPerPage,
+                sort: 'postId,desc'
+            });
+
+            if (sportId) params.append('sportId', sportId);
+            if (isBungae) params.append('isBungae', 'true');
+            if (keyword) params.append('keyword', keyword);
+
+            // url 상태 업데이트
+            const stateUrl = `${window.location.pathname}?${params.toString()}`;
+            if (window.location.search !== `?${params.toString()}`) {
+                history.pushState({ page, sportId, isBungae, keyword }, '', stateUrl);
+            }
+
+            try {
+                const res = await fetch(`/api/posts?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('게시글 불러오기 실패');
+                }
+
+                const pageData = await res.json();
+
+                renderPosts(pageData);
+
+                createPagination(
+                    pageData,
+                    (pageIndex) => fetchPostList(pageIndex)
+                );
+            } catch (error) {
+                console.error(error.message);
+                if (postListContainer) {
+                    postListContainer.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-red-500">데이터 로드 실패</td></tr>';
+                }
+            }
+        }
+
+        // 게시글 렌더링
+        function renderPosts(pageData) {
+            if (!postListContainer) return;
+
+            const posts = pageData.content;
+            const totalElements = pageData.totalElements;
+            const size = pageData.size;
+            const pageNumber = pageData.pageable.pageNumber;
+
+            postListContainer.innerHTML = '';
+
+            if (posts.length === 0) {
+                postListContainer.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-500">게시글이 없습니다.</td></tr>';
+                return;
+            }
+
+            posts.forEach((post, index) => {
+                const postNumber = totalElements - (pageNumber * size) - index;
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-200 hover:bg-gray-50';
+                // 상세 페이지 링크를 board-detail.html?id= 로 변경
+                tr.innerHTML = `
+                    <td class="py-4 px-2 text-center text-sm text-gray-700">${postNumber}</td>
+                    <td class="py-4 px-2 font-medium">
+                        <a href="/posts/${post.postId}" data-id="${post.postId}" class="hover:underline">
+                            ${post.isBungae ? '<span class="text-xs font-bold text-red-500 mr-1">[번개]</span>' : ''}
+                            ${escapeHtml(post.title)}
+                        </a>
+                    </td>
+                    <td class="py-4 px-2 text-sm text-gray-700">${escapeHtml(post.sportName)}</td>
+                    <td class="py-4 px-2 text-sm text-gray-700">${escapeHtml(post.authorName)}</td>
+                    <td class="py-4 px-2 text-sm text-gray-700">${post.createdAt}</td>
+                    <td class="py-4 px-2 text-center text-sm text-gray-700">${post.views}</td>
+                `;
+                postListContainer.appendChild(tr);
+            });
+        }
+
+        // 페이지네이션 생성 함수
+        function createPagination(pageData, onPageClick) {
+            if (!paginationContainer) return;
+
+            paginationContainer.innerHTML = '';
+            const { totalPages, first, last } = pageData;
+            const currentPage = pageData.pageable.pageNumber;
+
+            if (totalPages === 0) return;
+
+            const currentGroup = Math.floor(currentPage / pageGroupSize);
+            const startPage = currentGroup * pageGroupSize + 1;
+            const endPage = Math.min(startPage + pageGroupSize - 1, totalPages);
+
+            const createButton = (text, pageIndex, isDisabled = false, classes = 'inactive') => {
+                const button = document.createElement('button');
+                button.innerText = text;
+                button.className = `pagination-btn ${classes}`;
+                button.disabled = isDisabled;
+                button.addEventListener('click', () => onPageClick(pageIndex));
+                return button;
+            };
+
+            // "이전 장" (◀◀)
+            const prevGroupPage = (currentGroup - 1) * pageGroupSize;
+            const prevGroupButton = createButton('◀◀', prevGroupPage, currentGroup === 0);
+            container.appendChild(prevGroupButton);
+                
+            // "이전" (개별)
+            const prevPage = currentPage - 1;
+            const prevButton = createButton('이전', prevPage, first);
+            container.appendChild(prevButton);
+
+            // 페이지 번호 버튼
+            for (let i = startPage; i <= endPage; i++) {
+                const pageIndex = i - 1;
+                const isActive = (pageIndex === currentPage);
+                const button = createButton(i, pageIndex, false, isActive ? 'active' : 'inactive');
+                container.appendChild(button);
+            }
+
+            // "다음" (개별)
+            const nextPage = currentPage + 1;
+            const nextButton = createButton('다음', nextPage, last);
+            container.appendChild(nextButton);
+
+            // "다음 장" (▶▶)
+            const nextGroupPage = (currentGroup + 1) * pageGroupSize;
+            const isLastGroup = endPage === totalPages;
+            const nextGroupButton = createButton('▶▶', nextGroupPage, isLastGroup);
+            container.appendChild(nextGroupButton);
+        }
+
+        // 스포츠 카테고리 불러오기
+        async function fetchSports() {
+            try {
+                const res = await fetch('/api/sports', {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('스포츠 리스트 불러오기 실패');
+                }
+
+                sports = await res.json();
+                sports.forEach((sport) => {
+                    const option = document.createElement('option');
+                    option.value = sport.id;
+                    option.textContent = sport.name;
+                    postSportFilterContainer.appendChild(option);
+                });
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+
+        // 글쓰기 버튼 설정
+        function setupCreatePostButton() {
+            if (!newPostBtn) return;
+
+            if (currentUser === null) {
+                newPostBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                newPostBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('글을 작성하려면 로그인이 필요합니다');
+                });
+            }
+        }
+
+        // 현재 로그인한 유저 정보 가져오기
+        async function fetchCurrentUserAndInit() {
+            try {
+                const res = await fetch('/api/users/me', {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('인증 실패. 로그인이 필요합니다.');
+                }
+
+                currentUser = await res.json();
+                initializeApp();
+            } catch (error) {
+                console.error(error.message);
+                // 로그인 페이지로 강제 이동
+                window.location.href = "/login";
+            }
+        } 
+
+        // 페이지 로드 될 때 실행되는 함수
+        function initializeApp() {
+            const initialParams = new URLSearchParams(window.location.search);
+            const initialPage = parseInt(initialParams.get('page')) || 0;
+            // 2. 페이지네이션이 된 글 정보 가져오기
+            fetchPostList(initialPage);
+            // 3. 운동 목록 api로 불러오기
+            fetchSports();
+            // 4. 버튼들 이벤트 등록
+            // 4-1. 조회 버튼 기능 추가 (선택된 운동 값과 번개 여부를 request에 담아서 다시 페이지네이션 함수를 호출)
+            if (filterPostBtn) {
+                filterPostBtn.addEventListener('click', () => fetchPostList(0));
+            }
+            // 4-2. 검색 버튼 기능 추가 (검색어를 request에 담아서 다시 페이지네이션 함수 호출)
+            if (postSearchBtn) {
+                postSearchBtn.addEventListener('click', () => fetchPostList(0));
+            }
+            if (postSearchInput) {
+                postSearchInput.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') fetchPostList(0);
+                });
+            }
+            // 4-3. 게시글 작성 버튼 기능 추가 (/posts/new로 리다이렉트, 단 로그인 유저만 허용)
+            setupCreatePostButton();
+
+            // 뒤로가기/앞으로가기 (브라우저 버튼) 감지
+            window.addEventListener('popstate', (event) => {
+                applyUrlParamsToFilters(); // URL이 바뀌었으니 필터 UI 다시 맞추기
+                const params = new URLSearchParams(window.location.search);
+                const page = parseInt(params.get('page')) || 0;
+                fetchPostList(page); // 바뀐 URL의 page 값으로 데이터 다시 불러오기
+            });
+        }
+
+        // XSS 공격 방지
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. 로그인 유저 정보 가져오고 다른 데이터 fetch
+            fetchCurrentUserAndInit();
+        });
+    </script>
 </body>
 </html>

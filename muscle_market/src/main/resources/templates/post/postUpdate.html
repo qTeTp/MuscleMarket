@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>게시판 템플릿</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>게시글 작성</title>
     <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Inter 폰트 사용 (Figma와 유사한 깔끔한 폰트) */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
             background-color: #f8f9fa; /* 피그마 배경과 유사한 색상 */
         }
         /* 피그마의 회색 버튼 스타일 */
@@ -45,47 +47,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="bg-white">
-    <main id="board-new-meetup" class="w-full max-w-4xl mx-auto px-4 py-10">
-        <h1 class="text-3xl font-bold mb-8">번개 모집 작성</h1>
+    <main id="board-new-post" class="w-full max-w-4xl mx-auto px-4 py-10">
+        <h1 class="text-3xl font-bold mb-8">게시글 작성</h1>
 
         <div class="space-y-6">
-            <!-- 위치 -->
+            <!-- 제목 -->
             <div class="flex items-center">
-                <input type="text" placeholder="위치를 입력해주세요" class="flex-grow border border-gray-300 rounded-md p-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" placeholder="제목을 작성해주세요" class="flex-grow border border-gray-300 rounded-md p-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select class="border border-gray-300 rounded-md p-3 text-sm ml-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">-- 운동 선택 --</option>
                     <option value="soccer">축구</option>
                     <option value="basketball">농구</option>
                 </select>
             </div>
-
-            <!-- 인원 및 날짜 -->
-            <div class="grid grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">현재 인원</label>
-                    <input type="number" placeholder="현재 인원 수를 입력해주세요" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">최대 인원</label>
-                    <input type="number" placeholder="최대 인원 수를 입력해주세요" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">날짜 및 시간</label>
-                    <!-- 
-                      HTML5 'datetime-local' input을 사용하면 
-                      브라우저 기본 날짜/시간 선택기가
-                      자동으로 나타납니다. 
-                      JavaScript가 필요 없습니다.
-                      (참고: value 형식은 YYYY-MM-DDTHH:MM 입니다)
-                    -->
-                    <input type="datetime-local" value="2025-10-31T20:00" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-            </div>
             
-            <!-- 기타 내용 -->
+            <!-- 본문 -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">기타 내용</label>
-                <textarea class="w-full border border-gray-300 rounded-md p-3 h-64 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="추가 설명을 작성해주세요"></textarea>
+                <textarea class="w-full border border-gray-300 rounded-md p-3 h-96 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="본문을 작성해주세요"></textarea>
             </div>
 
             <!-- 버튼 영역 -->
@@ -100,5 +78,60 @@
             </div>
         </div>
     </main>
+
+    <script>
+        // 현재 로그인한 유저
+        let currentUser = null;
+        
+        // CSRF Token
+        const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
+        const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
+
+
+        // 현재 로그인한 유저 정보 가져오기
+        async function fetchCurrentUserAndInit() {
+            try {
+                const res = await fetch('/api/users/me', {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('인증 실패. 로그인이 필요합니다.');
+                }
+
+                currentUser = await res.json();
+                initializeApp();
+            } catch (error) {
+                console.error(error.message);
+                // 로그인 페이지로 강제 이동
+                window.location.href = "/login";
+            }
+        } 
+
+        // 페이지 로드 될 때 실행되는 함수
+        function initializeApp() {
+
+        }
+
+
+        // XSS 공격 방지
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. 로그인 유저 정보 가져오고 다른 데이터 fetch
+            fetchCurrentUserAndInit();
+        });
+    </script>
 </body>
 </html>

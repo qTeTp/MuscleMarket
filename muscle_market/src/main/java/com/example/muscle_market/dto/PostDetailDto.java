@@ -29,8 +29,10 @@ public class PostDetailDto {
     private String bungaeDatetime;
     private BungaeStatus bungaeStatus;
     private List<String> postImages;
+    private SimplifiedPostDto prevPost;
+    private SimplifiedPostDto nextPost;
 
-    public static PostDetailDto fromEntity(Post post) {        
+    public static PostDetailDto fromEntity(Post post, Post prev, Post next) {        
         return PostDetailDto.builder()
             .postId(post.getPostId())
             .title(post.getTitle())
@@ -52,6 +54,8 @@ public class PostDetailDto {
             .bungaeDatetime(post.getBungaeDatetime())
             .bungaeStatus(post.getBungaeStatus())
             .postImages(post.getPostImages().stream().map(PostImage::getImageUrl).toList())
+            .prevPost(new SimplifiedPostDto(prev))
+            .nextPost(new SimplifiedPostDto(next))
             .build();
     }
 }
