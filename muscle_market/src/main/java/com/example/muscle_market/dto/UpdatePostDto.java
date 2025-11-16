@@ -14,7 +14,7 @@ import lombok.Setter;
 public class UpdatePostDto {
     private String title;
     private String content;
-    private String sportName;
+    private Long sportId;
     private String bungaeLocation;
     private Integer maxParticipants;
     private Integer curParticipants;
