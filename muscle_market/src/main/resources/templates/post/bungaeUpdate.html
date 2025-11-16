@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title>게시글 작성</title>
+    <title>게시판 템플릿</title>
     <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -47,54 +47,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="bg-white">
-    <main id="board-new-post" class="w-full max-w-4xl mx-auto px-4 py-10">
-        <h1 class="text-3xl font-bold mb-8">게시글 작성</h1>
+    <main id="board-new-meetup" class="w-full max-w-4xl mx-auto px-4 py-10">
+        <h1 class="text-3xl font-bold mb-8">번개 모집 작성</h1>
 
         <div class="space-y-6">
-            <!-- 제목 -->
-            <div class="flex items-start gap-4">
-                <input type="text" placeholder="제목을 작성해주세요" class="flex-grow border border-gray-300 rounded-md p-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <select class="border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-[50px]">
+            <!-- 위치 -->
+            <div class="flex items-center">
+                <input type="text" placeholder="위치를 입력해주세요" class="flex-grow border border-gray-300 rounded-md p-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select class="border border-gray-300 rounded-md p-3 text-sm ml-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">-- 운동 선택 --</option>
                     <option value="soccer">축구</option>
                     <option value="basketball">농구</option>
                 </select>
             </div>
 
-            <!-- [추가] 번개 게시글 체크박스 -->
-            <div class="flex items-center justify-end">
-                <input id="is-meetup-checkbox" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                <label for="is-meetup-checkbox" class="ml-2 block text-sm font-medium text-gray-900">번개 게시글</label>
-            </div>
-
-            <!-- [추가] 번개 모집 추가 필드 (Initially Hidden) -->
-            <div id="meetup-fields-container" class="space-y-6 hidden border-t border-b border-gray-200 py-6">
-                <!-- 위치 -->
+            <!-- 인원 및 날짜 -->
+            <div class="grid grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">위치</label>
-                    <input type="text" placeholder="위치를 입력해주세요" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">현재 인원</label>
+                    <input type="number" placeholder="현재 인원 수를 입력해주세요" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-
-                <!-- 인원 및 날짜 -->
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">현재 인원</label>
-                        <input type="number" placeholder="현재 인원 수" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">최대 인원</label>
-                        <input type="number" placeholder="최대 인원 수" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">날짜 및 시간</label>
-                        <input type="datetime-local" value="2025-10-31T20:00" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">최대 인원</label>
+                    <input type="number" placeholder="최대 인원 수를 입력해주세요" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">날짜 및 시간</label>
+                    <!-- 
+                      HTML5 'datetime-local' input을 사용하면 
+                      브라우저 기본 날짜/시간 선택기가
+                      자동으로 나타납니다. 
+                      JavaScript가 필요 없습니다.
+                      (참고: value 형식은 YYYY-MM-DDTHH:MM 입니다)
+                    -->
+                    <input type="datetime-local" value="2025-10-31T20:00" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
             
-            <!-- 본문 (기존 '기타 내용'의 역할) -->
+            <!-- 기타 내용 -->
             <div>
-                <textarea id="post-content-area" class="w-full border border-gray-300 rounded-md p-3 h-96 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="본문을 작성해주세요"></textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-1">기타 내용</label>
+                <textarea class="w-full border border-gray-300 rounded-md p-3 h-64 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="추가 설명을 작성해주세요"></textarea>
             </div>
 
             <!-- 버튼 영역 -->
@@ -118,24 +111,6 @@
         const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
         const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
 
-        // 요소 가져오기
-        const checkbox = document.getElementById('is-meetup-checkbox');
-        const meetupFields = document.getElementById('meetup-fields-container');
-        const contentTextarea = document.getElementById('post-content-area');
-
-
-        // 체크박스 상태에 따라 필드 표시/숨김 및 플레이스홀더 변경
-        function toggleBungae() {
-            if (checkbox.checked) {
-                meetupFields.classList.remove('hidden');
-                // 번개글일 때 본문 플레이스홀더 변경 (선택 사항)
-                contentTextarea.placeholder = "추가 설명을 작성해주세요 (ex: 준비물, 참가비 등)";
-            } else {
-                meetupFields.classList.add('hidden');
-                // 일반글일 때
-                contentTextarea.placeholder = "본문을 작성해주세요";
-            }
-        }
 
         // 현재 로그인한 유저 정보 가져오기
         async function fetchCurrentUserAndInit() {
@@ -163,9 +138,6 @@
         // 페이지 로드 될 때 실행되는 함수
         function initializeApp() {
 
-
-            // 체크박스에 'change' 이벤트 리스너 추가
-            checkbox.addEventListener('change', toggleBungae);
         }
 
 
@@ -181,10 +153,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. 로그인 유저 정보 가져오기
-            // fetchCurrentUserAndInit();
+            // 1. 로그인 유저 정보 가져오고 다른 데이터 fetch
+            fetchCurrentUserAndInit();
         });
-
     </script>
 </body>
 </html>
