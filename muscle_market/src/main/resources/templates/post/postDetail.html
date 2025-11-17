@@ -89,10 +89,6 @@
             pointer-events: none;
         }
     </style>
-    <!-- Inter 폰트 로드 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="bg-white">
     <main id="board-detail" class="w-full max-w-4xl mx-auto px-4 py-10">
@@ -121,6 +117,10 @@
 
             <!-- ★[요청] 번개글 정보 (본문 위) -->
             <div id="detail-meetup-info" class="hidden mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
+                <div class="flex items-center">
+                    <span class="font-semibold w-20">상태:</span>
+                    <span id="detail-meetup-status" class="font-medium text-blue-600">...</span>
+                </div>
                 <div class="flex items-center">
                     <span class="font-semibold w-20">위치:</span>
                     <span id="detail-meetup-location" class="text-gray-700">...</span>
@@ -203,6 +203,7 @@
         const postMetadata = document.getElementById('detail-meta');
         const postContent = document.getElementById('detail-content');
         const bungaeInfo = document.getElementById('detail-meetup-info');
+        const bungaeStatus = document.getElementById('detail-meetup-status');
         const bungaeLocation = document.getElementById('detail-meetup-location');
         const bungaeDatetime = document.getElementById('detail-meetup-datetime');
         const bungaeParticipant = document.getElementById('detail-meetup-capacity');
@@ -232,6 +233,7 @@
 
                 // 만약 번개 게시글이라면...
                 if (postData.isBungae) {
+                    bungaeStatus.innerText = postData.bungaeStatus;
                     bungaeLocation.innerText = escapeHtml(postData.bungaeLocation);
                     bungaeDatetime.innerText = postData.bungaeDatetime;
                     bungaeParticipant.innerText = `${postData.curParticipants} / ${postData.maxParticipants}명`;
@@ -261,7 +263,7 @@
             const container = document.getElementById('detail-actions');
             if (!container) return;
 
-            const isAuthor = currentUser && postData.author.userId === currentUser.userId;
+            const isAuthor = currentUser && postData.postAuthor.userId === currentUser.userId;
             let html = '';
             if (isAuthor) {
                 html = `

@@ -280,7 +280,7 @@
                     thumbnailDiv.className = 'thumbnail-item';
                     thumbnailDiv.innerHTML = `
                         <img src="${e.target.result}" alt="${file.name}" class="thumbnail-img">
-                        <button type="button" class="thumbnail-remove-btn" data-index="${index}">×</button>
+                        <button type="button" class="thumbnail-remove-btn" data-index="${index}">x</button>
                     `;
                     container.appendChild(thumbnailDiv);
                 };
@@ -289,23 +289,24 @@
             });
         }
 
-        // TODO: 이미지 S3로 업로드하는 함수
+        // 이미지 S3로 업로드하는 함수
         async function uploadFilesToS3(files) {
             const uploadPromises = files.map(async (file) => {
                 const formData = new FormData();
-                formData.append('image', file);
+                formData.append('file', file);
 
                 try {
-                    // TODO: S3 이미지 업로드 API 불러오기
-                    const url = '';
+                    const url = '/api/files/upload';
                     const res = await fetch(url, {
                         method: 'POST',
                         body: formData
                     });
 
                     if (!res.ok) throw new Error(`'${file.name}' 업로드 실패`);
-                    const result = await res.json();
-                    return result.s3Url;
+                    const result = await res.text();
+                    const fileUrl = result.split(" ").pop();
+                    if (!fileUrl || !fileUrl.startsWith('http')) throw new Error("서버가 유효한 URL을 반환하지 않았습니다.");
+                    return fileUrl;
                 } catch (error) {
                     console.error(error.message);
                     throw error;
