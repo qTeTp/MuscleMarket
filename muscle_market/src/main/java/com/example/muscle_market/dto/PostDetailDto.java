@@ -17,6 +17,7 @@ public class PostDetailDto {
     private Long postId;
     private String title;
     private String content;
+    private Long sportId;
     private String sportName;
     private LocalDateTime createdAt;
     private Integer views;
@@ -37,6 +38,7 @@ public class PostDetailDto {
             .postId(post.getPostId())
             .title(post.getTitle())
             .content(post.getContent())
+            .sportId(post.getSport().getId())
             .sportName(post.getSport().getName())
             .createdAt(post.getCreatedAt())
             .views(post.getViews())
