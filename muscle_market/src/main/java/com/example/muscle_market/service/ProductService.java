@@ -32,16 +32,28 @@ public class ProductService {
 
     // 제품 상세 정보 조회
     @Transactional // 조회수 증가 때문에 트랜잭션을 ReadOnly = false로 설정
-    public ProductDetailDto getProductDetail(Long productId) {
+    public ProductDetailDto getProductDetail(Long productId, Long currentUserId) {
         // Product 엔티티 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 제품을 찾을 수 없습니다. ID: " + productId));
+
+        // 삭제된 게시물
+        if (product.getStatus() == TransactionStatus.DELETE) {
+            throw new IllegalArgumentException("삭제된 게시물입니다.");
+        }
 
         // 조회수 1 증가
         product.setViews();
 
         // 좋아요 수 계산
         long likeCount = productLikeRepository.countByProductId(productId);
+
+        // 사용자의 찜 상태 확인
+        boolean isLiked = false;
+        if (currentUserId != null) {
+            // 사용자의 찜 상태 확인
+            isLiked = productLikeRepository.findByUserIdAndProductId(currentUserId, productId).isPresent();
+        }
 
         // 모든 이미지 URL 조회
         List<String> imageUrls = productImageRepository.findAllImageUrlsByProductId(productId);
@@ -63,13 +75,14 @@ public class ProductService {
                 .price(product.getPrice())
                 .location(product.getLocation())
                 .productImageUrls(imageUrls) // 이미지 URL 리스트 사용
-                .status("판매중") // 거래 상태는 아직 미구현 임시값 부여
+                .status(String.valueOf(product.getStatus())) // 거래 상태는 아직 미구현 임시값 부여
                 .views(product.getViews())
                 .likeCount(likeCount)
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .user(userDto) // userDto 포함 필요한 거만 뽑아서 쓰기
                 .sportName(product.getSport().getName())
+                .isLiked(isLiked)
                 .build();
     }
 
@@ -233,6 +246,7 @@ public class ProductService {
     }
 
     // 게시물 논리적 삭제 메서드
+    @Transactional
     public void deleteProductSoftly(Long productId, Long currentUserId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. ID: " + productId));
@@ -244,5 +258,55 @@ public class ProductService {
 
         // DELETE로 상태 변경
         product.updateStatus(TransactionStatus.DELETE);
+    }
+
+    // 게시물 status 변경
+    @Transactional
+    public void changeProductStatus(Long productId, Long currentUserId, TransactionStatus newStatus) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. ID: " + productId));
+
+        // 권한 확인
+        if (!product.getUser().getId().equals(currentUserId)) {
+            throw new IllegalArgumentException("게시물 작성자만 수정할 수 있습니다.");
+        }
+
+        // 사용자가 원하는 상태로 변경
+        // SELLING("판매중"),
+        // RESERVED("예약중"),
+        // SOLD("거래완료"),
+        product.updateStatus(newStatus);
+    }
+
+    // 내 판매 게시물
+    @Transactional(readOnly = true)
+    public Page<ProductListDto> getMySellingProducts(Long authorId, String statusString, Pageable pageable) {
+        // 상태 문자열 변환
+        TransactionStatus statusEnum = TransactionStatus.valueOf(statusString.toUpperCase());
+        // Repository 호출
+        Page<Product> productPage =
+                productRepository.findAllByAuthorIdAndStatus(authorId, statusEnum, pageable);
+
+        // DTO 변환 로직 (기존 getProductList와 동일)
+        return productPage.map(product -> {
+            long likeCount = productLikeRepository.countByProductId(product.getId());
+            String thumbnailUrl = productImageRepository.findFirstByProductIdOrderByIdAsc(product.getId())
+                    .map(ProductImage::getS3Url)
+                    .orElse("default_image.jpg");
+
+            return ProductListDto.builder()
+                    .id(product.getId())
+                    .title(product.getTitle())
+                    .description(product.getDescription())
+                    .price(product.getPrice())
+                    .location(product.getLocation())
+                    .sportName(product.getSport().getName())
+                    .views(product.getViews())
+                    .likeCount(likeCount)
+                    .thumbnailUrl(thumbnailUrl)
+                    .createdAt(product.getCreatedAt())
+                    .updatedAt(product.getUpdatedAt())
+                    .build();
+        });
     }
 }

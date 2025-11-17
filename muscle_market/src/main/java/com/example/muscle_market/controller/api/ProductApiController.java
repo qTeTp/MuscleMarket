@@ -1,11 +1,11 @@
 package com.example.muscle_market.controller.api;
 
 import com.example.muscle_market.domain.CustomUserDetails;
-import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.ProductCreateDto;
 import com.example.muscle_market.dto.ProductDetailDto;
 import com.example.muscle_market.dto.ProductListDto;
 import com.example.muscle_market.dto.ProductUpdateDto;
+import com.example.muscle_market.enums.TransactionStatus;
 import com.example.muscle_market.service.ProductLikeService;
 import com.example.muscle_market.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -54,9 +55,11 @@ public class ProductApiController {
 
     // 제품 상세 조회
     @GetMapping("/products/detail/{productId}")
-    public ResponseEntity<ProductDetailDto> getProductDetail(@PathVariable Long productId) {
+    public ResponseEntity<ProductDetailDto> getProductDetail(
+            @PathVariable Long productId,
+            @AuthenticationPrincipal CustomUserDetails principal) {
         try {
-            ProductDetailDto dto = productService.getProductDetail(productId);
+            ProductDetailDto dto = productService.getProductDetail(productId, principal.getId());
             // 200 신호, 상세 정보 반환
             return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {
@@ -85,6 +88,24 @@ public class ProductApiController {
         }
         // 정상 결과
         return ResponseEntity.ok(productPage);
+    }
+
+    // 찜하기 api
+    @PostMapping("/products/{productId}/like")
+    public ResponseEntity<Boolean> toggleProductLike(
+            @PathVariable Long productId,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+        // 사용자 null 판별
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Long userId = principal.getId();
+
+        // Service의 토글 로직 호출
+        boolean isLiked = productLikeService.toggleLike(userId, productId);
+
+        return ResponseEntity.ok(isLiked);
     }
 
     // 찜 리스트 페이지 반환
@@ -161,14 +182,26 @@ public class ProductApiController {
             @PathVariable Long productId,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        // id  가져옴
-        Long currentUserId = principal.getId();
-
         // 논리적 삭제 서비스
-        productService.deleteProductSoftly(productId, currentUserId);
+        productService.deleteProductSoftly(productId, principal.getId());
 
         // HTTP 204 No Content 반환 (성공적으로 처리되었음을 의미)
         return ResponseEntity.noContent().build();
+    }
+
+    // 거래 상태 수정
+    @PatchMapping("/products/{productId}")
+    public ResponseEntity<Void> changeProductSoftly(
+            @PathVariable Long productId,
+            @RequestBody Map<String, String> requestBody,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        // status 키의 값을 가져와 이넘으로 변환
+        String statusString = requestBody.get("status");
+        TransactionStatus newStatus = TransactionStatus.valueOf(statusString.toUpperCase());
+        productService.changeProductStatus(productId, principal.getId(), newStatus);
+
+        return ResponseEntity.ok().build();
     }
 }
 

@@ -27,5 +27,4 @@ public class SportService {
                         .build())
                 .collect(Collectors.toList());
     }
-
 }
