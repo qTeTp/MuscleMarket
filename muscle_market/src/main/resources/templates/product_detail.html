@@ -194,7 +194,7 @@
             background-color: #d4a72e;
         }
 
-        /* ✅ 내 상품 관리 버튼 그룹 (위로 올리기, 카페 등록, 상품 수정, 상태 변경, 상품 삭제) */
+        /* 내 상품 관리 버튼 그룹 (위로 올리기, 카페 등록, 상품 수정, 상태 변경, 상품 삭제) */
         .owner-actions-group {
             display: flex;
             flex-wrap: wrap; /* 버튼이 많으면 줄바꿈 */
@@ -346,6 +346,12 @@
             border-color: #F5C542;
             color: #fff;
         }
+
+        #sendInitialChatBtn {
+            background-color: #F5C542;
+            border-color: #F5C542;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -475,6 +481,34 @@
     </div>
 </div>
 
+<!--채팅 시작 모달-->
+<div class="modal fade" id="chatStartModal" tabindex="-1" aria-labelledby="chatStartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="chatStartModalLabel">판매자에게 채팅 시작</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="chatStartForm">
+                    <div class="mb-3">
+                        <label for="initialMessage" class="form-label">메시지 입력</label>
+                        <input type="text" class="form-control" id="initialMessage" rows="3"
+                                  placeholder="판매자에게 보낼 첫 메시지를 입력하세요." required></input>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="sendInitialChatBtn">전송</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous">
@@ -484,17 +518,24 @@
     /*<![CDATA[*/
     // dto의 정보 받아옴
     const productId = [[${dto.id}]];
+    const sellerId = [[${dto.user.id}]]
     const currentUserId = [[${#authorization.expression('isAuthenticated()') ? #authentication.principal.id : null}]];
     const imageCount = [[${dto.productImageUrls.size()}]];
 
+    // 채팅에 필요한 요소 참조
+    const chatStartModalElement = document.getElementById('chatStartModal');
+    const chatStartModal = new bootstrap.Modal(chatStartModalElement);
+    const sendInitialChatBtn = document.getElementById('sendInitialChatBtn');
+    const initialMessageInput = document.getElementById('initialMessage');
+
     console.log("현재 로그인한 사용자 정보:", currentUserId);
 
-    const csrfMeta = document.querySelector('meta[name="_csrf"]');
-    const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+    // const csrfMeta = document.querySelector('meta[name="_csrf"]');
+    // const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
 
     // 토큰이 null이여도 통과
-    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : null;
-    const csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.getAttribute('content') : null;
+    // const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : null;
+    // const csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.getAttribute('content') : null;
 
 
     // 이미지 카운터
@@ -509,6 +550,22 @@
             });
         }
     });
+
+    // 메시지 전송 모달 초기 설정
+    function updateSendButtonState() {
+        if (initialMessageInput) {
+            // 메시지 내용이 비어있거나 공백만 있으면 true
+            const isDisabled = initialMessageInput.value.trim().length === 0;
+            sendInitialChatBtn.disabled = isDisabled;
+        }
+    }
+
+    // 입력 이벤트 리스너 상태 보고
+    // 전송 버튼 활성화/비활성화
+    if (initialMessageInput && sendInitialChatBtn) {
+        // 입력 내용이 바뀔 때마다 버튼 상태를 갱신
+        initialMessageInput.addEventListener('input', updateSendButtonState);
+    }
 
     // 게시물 삭제 (논리적 삭제)
     function deleteProduct(productId) {
@@ -667,18 +724,40 @@
 
     // 채팅
     document.getElementById('chat-button')?.addEventListener('click', async () => {
+        // 로그인 예외 처리
         if (!currentUserId) {
             alert('로그인이 필요한 서비스입니다.');
-            // window.location.href = '/login';
             return;
         }
-        const sellerId = [[${dto.user.id}]];
         if (sellerId == currentUserId) {
             alert('자신의 상품과는 채팅할 수 없습니다.');
             return;
         }
-        // TODO: 실제 채팅방 생성/이동 API 호출 로직 구현
-        alert('채팅하기 버튼 클릭! (API 연동 필요)');
+
+        // 버튼 상태 및 메시지 입력창 초기화
+        initialMessageInput.value = '';
+        updateSendButtonState();
+
+        // 모달 보여주기
+        chatStartModal.show();
+    });
+
+
+    // 전송버튼
+    sendInitialChatBtn.addEventListener('click', function () {
+        const initialMessage = document.getElementById('initialMessage').value.trim();
+
+        // 전송 버튼 활성화와 공존
+        if (initialMessage.length === 0) {
+            alert("최소 한 글자 이상의 메시지를 입력해야 합니다.");
+            return;
+        }
+
+        // 일단 alert 실행
+        alert('채팅 api 연결');
+
+        // 모달 닫기
+        chatStartModal.hide();
     });
 </script>
 </body>
