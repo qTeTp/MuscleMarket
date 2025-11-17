@@ -107,6 +107,11 @@
     color: black;
 }
 
+.community-btn{
+    background-color: #a98100;
+    color: black;
+}
+
 .chat-btn:hover {
     background-color: #d4a72e;
 }
