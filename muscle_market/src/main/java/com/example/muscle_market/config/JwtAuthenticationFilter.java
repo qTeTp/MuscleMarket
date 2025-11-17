@@ -18,10 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -59,42 +55,76 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        try {
-            // AccessToken 유효 → 그대로 인증
-            if (accessToken != null && jwtUtil.validateToken(accessToken)) {
-                setAuthentication(jwtUtil.extractUsername(accessToken));
-            }
+        if (accessToken != null ) {
+            // AccessToken 만료 여부 확인
+            if (jwtUtil.isTokenExpired(accessToken)) {
+                System.out.println("AccessToken 만료됨, RefreshToken 확인 중..");
 
-        } catch (ExpiredJwtException e) {
-            // AccessToken 만료 → RefreshToken 검사
-            System.out.println("AccessToken 만료됨, RefreshToken 확인 중...");
+                if(refreshToken != null && jwtUtil.validateToken(refreshToken)) {
+                    String username = jwtUtil.extractUsername(refreshToken);
 
-            if (refreshToken != null && jwtUtil.validateToken(refreshToken)) {
-                String username = jwtUtil.extractUsername(refreshToken);
-
-                // 4️⃣ DB에 저장된 hashed RefreshToken과 일치하는지 확인
-                User user = userRepository.findByUsername(username).orElse(null);
-                if (user != null && user.getRefreshToken() != null) {
-//                    String hashedRefresh = hashToken(refreshToken);
-                    if (refreshToken.equals(user.getRefreshToken())) {
-                        // 일치 → AccessToken 재발급
+                    // DB에 저장된 refreshToken과 일치 확인
+                    User user = userRepository.findByUsername(username).orElse(null);
+                    if (user != null && refreshToken.equals(user.getRefreshToken())) {
+                        // AccessToken 재발급
                         String newAccessToken = jwtUtil.generateToken(username);
                         ResponseCookie newAccessCookie = ResponseCookie.from("accessToken", newAccessToken)
                                 .httpOnly(true)
                                 .path("/")
-                                .maxAge(60 * 15)
+                //                .secure(true) // HTTPS 연결에서만 전송
+//                                .sameSite("Strict")   // 다른 사이트에서 요청시 쿠키 자동전송 방지
+                                .maxAge(60*15)
                                 .build();
-
                         response.addHeader("Set-Cookie", newAccessCookie.toString());
                         System.out.println("새 AccessToken 재발급 완료 : " + username);
 
                         setAuthentication(username);
                     }
+                } else {
+                    System.out.println("RefreshToken 만료 또는 없음 재로그인 필요함");
                 }
             } else {
-                System.out.println("RefreshToken 만료 또는 없음 → 재로그인 필요");
+                // AccessToken 유효
+                setAuthentication(jwtUtil.extractUsername(accessToken));
             }
         }
+//
+//        try {
+//            // AccessToken 유효 → 그대로 인증
+//            if (accessToken != null && jwtUtil.validateToken(accessToken)) {
+//                setAuthentication(jwtUtil.extractUsername(accessToken));
+//            }
+//
+//        } catch (ExpiredJwtException e) {
+//            // AccessToken 만료 → RefreshToken 검사
+//            System.out.println("AccessToken 만료됨, RefreshToken 확인 중...");
+//
+//            if (refreshToken != null && jwtUtil.validateToken(refreshToken)) {
+//                String username = jwtUtil.extractUsername(refreshToken);
+//
+//                // 4️⃣ DB에 저장된 hashed RefreshToken과 일치하는지 확인
+//                User user = userRepository.findByUsername(username).orElse(null);
+//                if (user != null && user.getRefreshToken() != null) {
+////                    String hashedRefresh = hashToken(refreshToken);
+//                    if (refreshToken.equals(user.getRefreshToken())) {
+//                        // 일치 → AccessToken 재발급
+//                        String newAccessToken = jwtUtil.generateToken(username);
+//                        ResponseCookie newAccessCookie = ResponseCookie.from("accessToken", newAccessToken)
+//                                .httpOnly(true)
+//                                .path("/")
+//                                .maxAge(60 * 15)
+//                                .build();
+//
+//                        response.addHeader("Set-Cookie", newAccessCookie.toString());
+//                        System.out.println("새 AccessToken 재발급 완료 : " + username);
+//
+//                        setAuthentication(username);
+//                    }
+//                }
+//            } else {
+//                System.out.println("RefreshToken 만료 또는 없음 → 재로그인 필요");
+//            }
+//        }
 
         filterChain.doFilter(request, response);
     }

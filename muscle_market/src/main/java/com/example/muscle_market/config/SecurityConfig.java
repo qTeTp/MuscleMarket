@@ -35,10 +35,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // patch 적용시키기 위해 필요함
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((req, res, authException) -> {
-                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            res.setContentType("application/json");
-                            res.getWriter().write("{\"error\":\"Unauthorized\"}");
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            String uri = request.getRequestURI();
+
+                            // API 호출이면 JSON 반환
+                            if (uri.startsWith("/api/")) {
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.setContentType("application/json");
+                                response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                            } else {
+                                // HTML 요청이면 로그인 페이지로 리다이렉트
+                                response.sendRedirect("/login?redirect=" + uri);
+                            }
                         })
                 )
                 // 요청 권한 설정
@@ -46,14 +54,15 @@ public class SecurityConfig {
                         // 정적 컨텐츠들 접근 허용
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/products/**").permitAll()
-                        .requestMatchers("/products", "/products/**").permitAll()
+                        .requestMatchers("/products").permitAll()
+                        .requestMatchers("/", "/login", "/api/signup","/api/login").permitAll()
                         // 인증 없어도 들어가게
-                        .requestMatchers("/", "/api/signup", "/api/login", "/api/**", "/api/products",
-                                "/api/products/**", "/api/users/{userId}/likes", "/api/products/{productId}/like",
-                                "/login", "/signup", "/images/**", "/products/**", "/products/new", "/post-login", "/api/sports",
-                                "/api/sports/**", "/products/detail/**", "/products", "/products/**", "/post-login", "/oauth2/**",
-                                "/api/map/**", "/api/alan/chat", "/products/my", "/products/my/**").permitAll() // 회원가입/로그인은 허용
-                        // 인증 있어야 들어가게
+//                        .requestMatchers("/api/**", "/api/products",
+//                                "/api/products/**", "/api/users/{userId}/likes", "/api/products/{productId}/like",
+//                                "/login", "/signup", "/images/**", "/products/**", "/products/new", "/post-login", "/api/sports",
+//                                "/api/sports/**", "/products/detail/**", "/products", "/products/**", "/post-login", "/oauth2/**",
+//                                "/api/map/**", "/api/alan/chat", "/products/my", "/products/my/**").permitAll() // 회원가입/로그인은 허용
+                        //  나머지는 인증 있어야 들어가게
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
                 )
