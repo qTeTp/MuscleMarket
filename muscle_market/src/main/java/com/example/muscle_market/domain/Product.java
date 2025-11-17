@@ -5,7 +5,9 @@ import com.example.muscle_market.dto.ProductUpdateDto;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Entity
@@ -50,6 +52,10 @@ public class Product {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionStatus status;
+
+    // 이미지 관계
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<ProductImage> images = new ArrayList<>();
 
     // 조회수 증가
     public void setViews() {
