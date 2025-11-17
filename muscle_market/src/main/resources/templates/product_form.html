@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>상품 등록</title>
+    <title th:text="${isEditMode} ? '상품 수정' : '상품 등록'">상품 등록</title>
     <!--    <meta name="_csrf" th:content="${_csrf.token}"/>-->
     <!--    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
     <link th:href="@{/css/header.css}" rel="stylesheet"/>
@@ -117,68 +117,95 @@
 <div th:replace="~{fragments/header :: header}"></div>
 
 <main class="page-content">
-    <h2>상품 등록</h2>
+    <h2 th:if="${isEditMode}" th:text="|상품 수정: ${dto.title}|">상품 수정</h2>
+    <h2 th:unless="${isEditMode}">상품 등록</h2>
 
     <form id="productForm">
         <div class="form-group">
             <label for="title">상품 제목</label>
-            <input type="text" id="title" name="title" placeholder="상품 제목을 입력하세요" required>
+            <input type="text" id="title" name="title"
+                   th:value="${dto?.title}"
+                   placeholder="상품 제목을 입력하세요" required>
         </div>
 
         <div class="form-group">
             <label for="description">상품 설명</label>
-            <textarea id="description" name="description" placeholder="상품 설명을 입력하세요" required></textarea>
+            <textarea id="description" name="description"
+                      th:text="${dto?.description}"
+                      placeholder="상품 설명을 입력하세요" required></textarea>
         </div>
 
-        <!-- 로그인한 사용자 정보 없다면 컨트롤러에서 1을 넣어버림 -->
         <input type="hidden" name="authorId" id="authorId">
 
         <div class="form-group">
             <label for="price">가격</label>
-            <input type="number" id="price" name="price" placeholder="가격을 입력하세요" required>
+            <input type="number" id="price" name="price"
+                   th:value="${dto?.price}"
+                   placeholder="가격을 입력하세요" required>
         </div>
 
         <div class="form-group">
             <label for="location">거래 희망 위치</label>
-            <input type="text" id="location" name="location" placeholder="예: 서울 강남구" required>
+            <input type="text" id="location" name="location"
+                   th:value="${dto?.location}"
+                   placeholder="예: 서울 강남구" required>
         </div>
 
         <div class="form-group">
             <label for="sportId">운동 종목 선택</label>
-            <select id="sportId" name="request[sportId]" required>
+            <select id="sportId" name="sportId" required>
                 <option value="">-- 종목을 선택하세요 --</option>
                 <option th:each="sport : ${sports}"
                         th:value="${sport.id}"
-                        th:text="${sport.name}">헬스
+                        th:text="${sport.name}"
+                        th:selected="${dto?.sportName == sport.name}">헬스
                 </option>
             </select>
         </div>
-
         <hr>
 
         <!--        이미지 업로드 방식 수정 예정-->
         <div class="form-group">
-            <label for="images">상품 이미지 (최대 5장)</label>
+            <label for="images">상품 이미지 관리 (최대 5장)</label>
+
+            <div th:if="${isEditMode}" id="currentImages" class="preview">
+                <div th:each="url, iterStat : ${dto?.productImageUrls}"
+                     class="image-container"
+                     th:data-image-id="${dto?.productImageIds[__${iterStat.index}__]}">
+                    <img th:src="${url}" alt="기존 이미지" onclick="toggleDelete(this)">
+                </div>
+                <hr>
+            </div>
+
+            <label>새 파일 추가</label>
             <input type="file" id="images" name="images" accept="image/*" multiple>
+
             <div class="preview" id="preview"></div>
         </div>
 
-        <button class="submit-button" type="submit">등록하기</button>
+        <button class="submit-button" type="submit"
+                th:text="${isEditMode} ? '수정 완료' : '등록하기'">등록하기
+        </button>
     </form>
 </main>
 
 <!--로그인 사용자 정보 가져오기-->
 <script th:inline="javascript">
     const currentUserId = [[${#authorization.expression('isAuthenticated()') ? #authentication.principal.id : null}]];
+    const isEditMode = [[${isEditMode}]] || false;
+    const currentProductId = isEditMode ? [[${productId}]] : null;
 
+    let deletedImageIds = [];
     console.log("현재 로그인한 사용자 정보2:", currentUserId);
 </script>
 <script th:src="@{/js/header.js}" defer></script>
 <script>
-    const sportSelect = document.getElementById('sportId');
+    // const sportSelect = document.getElementById('sportId');
     const form = document.getElementById('productForm');
     const imageInput = document.getElementById('images');
-    const preview = document.getElementById('preview');
+    // const preview = document.getElementById('preview');
+    const previewContainer = document.getElementById('preview');
+    const currentImagesContainer = document.getElementById('currentImages');
 
     async function loadSports() {
         try {
@@ -198,8 +225,9 @@
         }
     }
 
+    // 이미지 업로드
     imageInput.addEventListener('change', () => {
-        preview.innerHTML = '';
+        previewContainer.innerHTML = '';
         const files = Array.from(imageInput.files);
         if (files.length > 5) {
             alert('최대 5장까지만 업로드할 수 있습니다.');
@@ -209,10 +237,29 @@
         files.forEach(file => {
             const img = document.createElement('img');
             img.src = URL.createObjectURL(file);
-            preview.appendChild(img);
+            previewContainer.appendChild(img);
         });
     });
 
+    // 기존 이미지 삭제
+    function toggleDelete(imgElement) {
+        const container = imgElement.parentNode;
+        const imageId = container.dataset.imageId;
+
+        if (container.classList.toggle('deleted')) {
+            // 삭제 대기 추가
+            if (imageId) deletedImageIds.push(parseInt(imageId));
+            container.style.opacity = '0.4';
+            container.style.border = '2px solid red';
+        } else {
+            // 삭제 대기 취소
+            if (imageId) deletedImageIds = deletedImageIds.filter(id => id !== parseInt(imageId));
+            container.style.opacity = '1';
+            container.style.border = 'none';
+        }
+    }
+
+    // 전송 버튼
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -221,33 +268,56 @@
             return;
         }
 
+        document.getElementById('authorId').value = currentUserId;
+
+        // dto
+        // 수정 페이지를 위해 변ㄱ경
         const request = {
             title: form.elements['title'].value,
-            description: form.description.value,
-            price: parseFloat(form.price.value),
-            location: form.location.value,
+            description: form.elements['description'].value,
+            price: parseFloat(form.elements['price'].value),
+            location: form.elements['location'].value,
             sportId: parseInt(document.getElementById('sportId').value),
             authorId: currentUserId
         };
 
+        // 수정 페이지에서만 이미지 id 추가
+        const url = isEditMode ? `/api/products/${currentProductId}` : '/api/products';
+        const method = isEditMode ? 'PUT' : 'POST';
+        const imageKey = isEditMode ? 'newImages' : 'images';
+
+        // 지워진 사진들 포함
+        if (isEditMode) {
+            request.deletedImageIds = deletedImageIds;
+        }
+
+        // 전송할 폼
         const formData = new FormData();
+        // 폼에 텍스트 추가
         formData.append('request', new Blob([JSON.stringify(request)], {type: 'application/json'}));
 
+        // 폼에 파일들 추가
         const files = Array.from(imageInput.files);
-        files.forEach(file => formData.append('images', file));
+        files.forEach(file => formData.append(imageKey, file));
 
-        const response = await fetch('/api/products', {method: 'POST', body: formData});
+        // 요청
+        const response = await fetch(url, {method: method, body: formData});
 
+        // 등록|수정
         if (response.ok || response.status === 303) {
-            alert('상품이 등록되었습니다!');
+            alert('상품이 ' + (isEditMode ? '수정' : '등록') + '되었습니다!');
             const locationHeader = response.headers.get('Location');
+
+            // 등록 후 상세 페이지, 수정 후 해당 상품 상세 페이지로 이동
             if (locationHeader) {
                 window.location.href = locationHeader;
+            } else if (isEditMode) {
+                window.location.href = `/products/${currentProductId}`;
             } else {
                 window.location.href = '/products';
             }
         } else {
-            alert('상품 등록에 실패했습니다. (Status: ' + response.status + ')');
+            alert('상품 처리 중 실패했습니다. (Status: ' + response.status + ')');
         }
     });
 
