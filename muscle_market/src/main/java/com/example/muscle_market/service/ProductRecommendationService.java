@@ -36,40 +36,7 @@ public class ProductRecommendationService {
         // 앨런 API 호출
         String alanAnswer = alanApiClient.askAlan(content);
 
-
-// 스포츠 테이블에서 비교하는 방법
-
-//        // 모든 스포츠 불러오기
-//        List<Sport> allSports = sportRepository.findAll();
-//
-//        // 앨런 답변에 포함된 운동종목 찾기
-//        Sport matchedSport = null;
-//        for (Sport sport : allSports) {
-//            if (alanAnswer.contains(sport.getName())) {
-//                matchedSport = sport;
-//                break;
-//            }
-//        }
-//
-//        // 운동 종목에 해당하는 물품 게시글 불러오기
-//        List<Product> recommendProducts = new ArrayList<>();
-//        if (matchedSport != null) {
-//            recommendProducts = productRepository.findBySportId(matchedSport.getId());
-//            System.out.println("추천된 운동 종목 : " + matchedSport.getName() );
-//        } else {
-//            System.out.println("매칭되는 운동 종목이 없습니다.");
-//        }
-//
-//        // 콘솔에 추천 상품 출력
-//        if (!recommendProducts.isEmpty()) {
-//            System.out.println("추천 상품 목록 : ");
-//            for (Product p : recommendProducts) {
-//                System.out.println("- " + p.getTitle() + " / " + p.getPrice() + "원");
-//            }
-//        }
-
-// 앨런 강조된 부분에서 키워드 추출
-
+        // 앨런 강조된 부분에서 키워드 추출
         // 앨런 답변에서 **...** 부분 추출하기
         List<String> keywords = new ArrayList<>();
         Matcher matcher = Pattern.compile("\\*\\*(.*?)\\*\\*").matcher(alanAnswer);
@@ -80,7 +47,7 @@ public class ProductRecommendationService {
         // 중복 제거 후 DB 검색
         Set<Product> recommendProductsSet = new HashSet<>();
         for (String keyword : keywords) {
-            List<Product> matched = productRepository.findByTitleContainingIgnoreCase(keyword);
+            List<Product> matched = productRepository.findByTitleContainingIgnoreCaseWithImages(keyword);
             recommendProductsSet.addAll(matched);
         }
 

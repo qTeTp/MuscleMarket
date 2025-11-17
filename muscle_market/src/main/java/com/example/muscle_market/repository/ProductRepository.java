@@ -38,8 +38,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("status") TransactionStatus status, // ENUM은 JPQL에서 String으로 처리
             Pageable pageable);
 
-    // 물품게시글 스포츠 종목 검색
-//    List<Product> findBySportId(Long sportId);
     // 제목에 키워드 포함된 상품 검색
-    List<Product> findByTitleContainingIgnoreCase(String title);
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images " +
+            "WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Product> findByTitleContainingIgnoreCaseWithImages(@Param("keyword")String title);
 }

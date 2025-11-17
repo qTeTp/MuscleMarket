@@ -109,7 +109,7 @@ public class UserService {
                 .path("/")
 //                .secure(true) // HTTPS 연결에서만 전송
 //                .sameSite("Strict")   // 다른 사이트에서 요청시 쿠키 자동전송 방지
-                .maxAge(60*15)  // 15분
+                .maxAge(60*30)  // 15분
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)

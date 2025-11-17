@@ -69,4 +69,16 @@ public class JwtUtil {
             return false;
         }
     }
+
+    // AccessToken 만료 여부 체크 메서드
+    public boolean isTokenExpired(String token){
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return false; // 정상
+        } catch (ExpiredJwtException e){
+            return true; // 만료
+        } catch (JwtException e){
+            return true; // 유효하지 않음
+        }
+    }
 }
