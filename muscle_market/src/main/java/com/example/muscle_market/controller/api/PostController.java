@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,14 +56,17 @@ public class PostController {
 
     // 게시글 작성
     @PostMapping
-    public ResponseEntity<PostDetailDto> createPost(@AuthenticationPrincipal CustomUserDetails authUser, CreatePostDto request) {
+    public ResponseEntity<PostDetailDto> createPost(@AuthenticationPrincipal CustomUserDetails authUser, @RequestBody CreatePostDto request) {
+        System.out.println(request.getTitle());
+        System.out.println(request.getContent());
+        System.out.println(request.getSportId());
         PostDetailDto createdPost = postService.createPost(authUser.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 
     // 게시글 수정
     @PutMapping("/{postId}")
-    public ResponseEntity<PostDetailDto> updatePost(@AuthenticationPrincipal CustomUserDetails authUser, @PathVariable Long postId, UpdatePostDto request) {
+    public ResponseEntity<PostDetailDto> updatePost(@AuthenticationPrincipal CustomUserDetails authUser, @PathVariable Long postId, @RequestBody UpdatePostDto request) {
         PostDetailDto updatedPost = postService.updatePost(authUser.getId(), postId, request);
         return ResponseEntity.ok(updatedPost);
     }

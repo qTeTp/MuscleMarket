@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,14 +37,14 @@ public class CommentController {
 
     // 댓글 작성
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<CommentResponseDto> createComment(@PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails authUser, CreateCommentDto request) {
+    public ResponseEntity<CommentResponseDto> createComment(@PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails authUser, @RequestBody CreateCommentDto request) {
         CommentResponseDto createdComment = commentService.createComment(postId, authUser.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
     }
 
     // 댓글 수정
     @PutMapping("/{postId}/comments/{commentId}")
-    public ResponseEntity<CommentResponseDto> updateComment(@PathVariable Long postId, @PathVariable Long commentId, @AuthenticationPrincipal CustomUserDetails authUser, UpdateCommentDto request) {
+    public ResponseEntity<CommentResponseDto> updateComment(@PathVariable Long postId, @PathVariable Long commentId, @AuthenticationPrincipal CustomUserDetails authUser, @RequestBody UpdateCommentDto request) {
         CommentResponseDto updatedComment = commentService.updateComment(postId, commentId, authUser.getId(), request);
         return ResponseEntity.ok(updatedComment);
     }
