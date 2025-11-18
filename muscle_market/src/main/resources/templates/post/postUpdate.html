@@ -164,7 +164,7 @@
                 setupImageUploadListeners();
             } catch (error) {
                 console.error(error.message);
-                location.href = `/posts/${postId}`;
+                window.location.href = `/posts/${postId}`;
             }
         }
 
@@ -178,7 +178,7 @@
                         }
                     }
 
-                    location.href = `/posts/${currentPostId}`;
+                    window.location.href = `/posts/${currentPostId}`;
                 });
             }
         }
@@ -338,7 +338,7 @@
 
                 const updatedPost = await res.json();
 
-                location.href = `/posts/${updatedPost.postId}`;
+                window.location.href = `/posts/${updatedPost.postId}`;
             } catch (error) {
                 console.error(error.message);
                 alert(error.message);
