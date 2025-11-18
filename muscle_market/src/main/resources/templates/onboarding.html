@@ -5,8 +5,15 @@
     <title>온보딩</title>
     <style>
         /* 전체 기본 설정 */
-        * { box-sizing: border-box; }
-        html, body { height: 100%; margin: 0; }
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
         body {
             font-family: 'Montserrat', 'Pretendard', sans-serif;
             background: #111;
@@ -26,9 +33,9 @@
             background: rgba(20, 20, 20, 0.88);
             padding: 40px 36px;
             border-radius: 14px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         h2 {
@@ -44,7 +51,7 @@
         }
 
         .form-group label {
-            display:block;
+            display: block;
             color: #eaeaea;
             font-size: 13px;
             margin-bottom: 6px;
@@ -67,12 +74,12 @@
         .control:focus {
             outline: none;
             border-color: #F5C542;
-            box-shadow: 0 0 10px rgba(245,197,66,0.25);
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.25);
             background: #1f1f1f;
         }
 
         .control.button {
-            background: linear-gradient(180deg,#F5C542,#d4a72e);
+            background: linear-gradient(180deg, #F5C542, #d4a72e);
             color: #111;
             text-align: center;
             cursor: pointer;
@@ -83,7 +90,7 @@
 
         .control.button:hover {
             filter: brightness(0.95);
-            box-shadow: 0 8px 18px rgba(213,167,46,0.28);
+            box-shadow: 0 8px 18px rgba(213, 167, 46, 0.28);
         }
 
         select.control {
@@ -93,16 +100,32 @@
         }
 
         @media (max-width: 500px) {
-            .onboarding-container { padding: 28px 20px; }
-            .control { padding: 12px 12px; }
+            .onboarding-container {
+                padding: 28px 20px;
+            }
+
+            .control {
+                padding: 12px 12px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="onboarding-container">
-    <h2>기본정보 입력</h2>
+    <!-- 온보딩 수정 페이지에서는 다르게 보임   -->
+    <h2 th:text="${isEditMode} ? '선호 운동 수정' : '기본정보 입력'">기본정보 입력</h2>
 
     <form id="onboardingForm" th:object="${onboardingDto}">
+
+        <!--        <div class="form-group">-->
+        <!--            <label for="sportSelect">선호 운동명</label>-->
+        <!--            <select id="sportSelect" class="control" required>-->
+        <!--                <option th:if="${onboardingDto.sportName}" th:value="${onboardingDto.sportName}"-->
+        <!--                        th:text="${onboardingDto.sportName}" selected>선택-->
+        <!--                </option>-->
+        <!--                <option th:unless="${onboardingDto.sportName}" value="">선택</option>-->
+        <!--            </select>-->
+        <!--        </div>-->
 
         <div class="form-group">
             <label for="sportSelect">선호 운동명</label>
@@ -113,7 +136,7 @@
 
         <div class="form-group">
             <label for="skillLevel">실력</label>
-            <select id="skillLevel" class="control" th:field="*{skillLevel}" required>
+            <select id="skillLevel" class="control" name="skillLevel" th:field="*{skillLevel}" required>
                 <option value="">선택</option>
                 <option value="BEGINNER">BEGINNER</option>
                 <option value="LOW">LOW</option>
@@ -126,46 +149,75 @@
     </form>
 </div>
 
-<script>
-
+<script th:inline="javascript">
     /* 페이지 로드 시 스포츠 목록 불러오기 */
-    window.onload = function() {
+    window.onload = function () {
+        const onboardingData = /*[[${onboardingDto}]]*/ {};
+        const isEditMode = /*[[${isEditMode}]]*/ false;
+
+        const existingSportName = onboardingData.sportName;
+
         fetch('/api/sports')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('스포츠 목록 불러오기 실패');
+                return response.json();
+            })
             .then(sports => {
                 const sportSelect = document.getElementById('sportSelect');
 
+                // 기존의 placeholder option을 제거
+                sportSelect.innerHTML = '<option value="">선택</option>';
+
                 sports.forEach(sport => {
                     const option = document.createElement('option');
-                    option.value = sport.id;     // id 저장
-                    option.textContent = sport.name; // 운동명 표시
+
+                    // 밸류는 스포츠명으로 유지
+                    option.value = sport.name;
+                    option.textContent = sport.name;
+
+                    // 수정 모드에서는 받아온 온보딩 데이터에서 들어감
+                    if (isEditMode && existingSportName === sport.name) {
+                        option.selected = true;
+                    }
                     sportSelect.appendChild(option);
                 });
-
             })
             .catch(error => console.error('스포츠 목록 불러오기 실패:', error));
     };
 
 
     /* 온보딩 제출 */
-    document.getElementById("onboardingForm").addEventListener("submit", function(event) {
+    document.getElementById("onboardingForm").addEventListener("submit", function (event) {
         event.preventDefault();
 
-        const sportId = document.getElementById("sportSelect").value;
+        const sportSelect = document.getElementById("sportSelect");
         const skillLevel = document.getElementById("skillLevel").value;
+        const isEditMode = /*[[${isEditMode}]]*/ false;
 
-        fetch('/api/onboarding', {
-            method: 'POST',
+        const sportId = document.getElementById("sportSelect").value;
+
+        // 서비스에서 운동명으로 받음
+        // dto에 포함
+        const requestBody = {
+            sportName: sportSelect.options[sportSelect.selectedIndex].textContent, // 선택된 이름 전송
+            skillLevel: skillLevel
+        };
+
+        // 이름은 같고 메서드 방식만 다름
+        // PUT 또는 POST로 나눠짐 컨트롤러에서
+        const url = isEditMode ? '/api/favorite-sport' : '/api/onboarding';
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                sportId: sportId,
-                skillLevel: skillLevel
-            })
+            body: JSON.stringify(requestBody)
         })
             .then(response => {
                 if (response.ok) {
+                    alert("정보 입력 완료!");
                     window.location.href = '/products';
                 } else {
                     alert("온보딩 실패");
@@ -174,6 +226,5 @@
             .catch(error => console.error('Error:', error));
     });
 </script>
-
 </body>
 </html>

@@ -496,7 +496,7 @@
                     <div class="mb-3">
                         <label for="initialMessage" class="form-label">메시지 입력</label>
                         <input type="text" class="form-control" id="initialMessage" rows="3"
-                                  placeholder="판매자에게 보낼 첫 메시지를 입력하세요." required></input>
+                               placeholder="판매자에게 보낼 첫 메시지를 입력하세요." required></input>
                     </div>
 
                 </form>
@@ -529,6 +529,8 @@
     const initialMessageInput = document.getElementById('initialMessage');
 
     console.log("현재 로그인한 사용자 정보:", currentUserId);
+    console.log("sellerId: ", sellerId);
+    console.log("productId: ", productId)
 
     // const csrfMeta = document.querySelector('meta[name="_csrf"]');
     // const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
