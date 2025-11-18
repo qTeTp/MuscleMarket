@@ -77,7 +77,7 @@ public class ProductService {
                 .location(product.getLocation())
                 .productImageUrls(imageUrls) // 이미지 URL 리스트 사용
                 .productImageIds(imageIds) // 이미지 ids
-                .status(String.valueOf(product.getStatus())) // 거래 상태는 아직 미구현 임시값 부여
+                .status(product.getStatus())
                 .views(product.getViews())
                 .likeCount(likeCount)
                 .createdAt(product.getCreatedAt())
@@ -119,6 +119,7 @@ public class ProductService {
                     .sportName(product.getSport().getName())
                     .views(product.getViews())
                     .likeCount(likeCount)
+                    .status(product.getStatus())
                     .thumbnailUrl(thumbnailUrl)
                     .createdAt(product.getCreatedAt())
                     .updatedAt(product.getUpdatedAt())

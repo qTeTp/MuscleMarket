@@ -60,6 +60,8 @@ public class ProductPageController {
         model.addAttribute("currentSportId", sportId);
         model.addAttribute("selectedSportName", selectedSportName);
 
+        // 찜꽁 리스트에서는 카테고리 드랍다운을 숨김 차별점을 주어야 함
+        model.addAttribute("isLikePage", false);
         return "productlist";
     }
 
