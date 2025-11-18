@@ -253,31 +253,31 @@
             // "이전 장" (◀◀)
             const prevGroupPage = (currentGroup - 1) * pageGroupSize;
             const prevGroupButton = createButton('◀◀', prevGroupPage, currentGroup === 0);
-            container.appendChild(prevGroupButton);
+            paginationContainer.appendChild(prevGroupButton);
                 
             // "이전" (개별)
             const prevPage = currentPage - 1;
             const prevButton = createButton('이전', prevPage, first);
-            container.appendChild(prevButton);
+            paginationContainer.appendChild(prevButton);
 
             // 페이지 번호 버튼
             for (let i = startPage; i <= endPage; i++) {
                 const pageIndex = i - 1;
                 const isActive = (pageIndex === currentPage);
                 const button = createButton(i, pageIndex, false, isActive ? 'active' : 'inactive');
-                container.appendChild(button);
+                paginationContainer.appendChild(button);
             }
 
             // "다음" (개별)
             const nextPage = currentPage + 1;
             const nextButton = createButton('다음', nextPage, last);
-            container.appendChild(nextButton);
+            paginationContainer.appendChild(nextButton);
 
             // "다음 장" (▶▶)
             const nextGroupPage = (currentGroup + 1) * pageGroupSize;
             const isLastGroup = endPage === totalPages;
             const nextGroupButton = createButton('▶▶', nextGroupPage, isLastGroup);
-            container.appendChild(nextGroupButton);
+            paginationContainer.appendChild(nextGroupButton);
         }
 
         // 스포츠 카테고리 불러오기

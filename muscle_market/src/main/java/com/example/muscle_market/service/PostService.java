@@ -69,6 +69,7 @@ public class PostService {
     }
 
     // 게시글 상세 조회
+    @Transactional(readOnly = true)
     public PostDetailDto getPostDetail(Long postId, Long curUserId) {
         Post post = postRepository.findByIdWithImages(postId)
             .orElseThrow(() -> new EntityNotFoundException("post not found"));
@@ -78,8 +79,8 @@ public class PostService {
         if (post.getAuthor() == null) throw new EntityNotFoundException("author not found");
         // 삭제된 글은 볼 수 없고, 숨김이면 본인만 볼 수 있어야 함
         validatePostAccess(post, curUserId);
-        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElseGet(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId).orElseGet(null);
+        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElse(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId).orElse(null);
         return PostDetailDto.fromEntity(post, prevPost, nextPost);
     }
 
@@ -123,8 +124,8 @@ public class PostService {
         
         // 저장 후 dto 리턴
         Post savedPost = postRepository.save(post);
-        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(post.getPostId()).orElseGet(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(post.getPostId()).orElseGet(null);
+        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(post.getPostId()).orElse(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(post.getPostId()).orElse(null);
         return PostDetailDto.fromEntity(savedPost, prevPost, nextPost);
     }
 
@@ -181,8 +182,8 @@ public class PostService {
             post.addImage(image);
         }
 
-        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElseGet(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId).orElseGet(null);
+        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElse(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId).orElse(null);
         return PostDetailDto.fromEntity(post, prevPost, nextPost);
     }   
 

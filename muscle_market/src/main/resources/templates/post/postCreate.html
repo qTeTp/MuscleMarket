@@ -337,17 +337,23 @@
                 // 유효성 검사
                 if (!titleValue.trim()) {
                     alert('제목을 입력해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '작성';
                     return;
                 }
             
                 if (!categoryValue) {
                     alert('카테고리를 선택해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '작성';
                     return;
                 }
 
                 // 일반 글에서는 본문 필수
                 if (!isBungae && !contentValue.trim()) {
                     alert('본문을 입력해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '작성';
                     return;
                 }
 
@@ -355,22 +361,32 @@
                     // 일반 게시글은 카테고리 설정 안해도 OK
                     if (!locationValue.trim()) {
                         alert('번개 장소를 입력해주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
                         return;
                     }
                     if (!maxParticipants) {
                         alert('최대 인원을 설정해주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
                         return;
                     }
                     if (!curParticipants) {
                         alert('현재 인원을 정해주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
                         return;
                     }
                     if (maxParticipants && curParticipants && (curParticipants > maxParticipants)) {
                         alert('현재 인원이 최대 인원보다 많아요. 최대 인원을 늘려주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
                         return;
                     }
                     if (!datetimeValue) {
                         alert('번개 날짜와 시간을 정해주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
                         return;
                     }
                 }
@@ -380,7 +396,7 @@
                     body = {
                         title: titleValue,
                         content: contentValue,
-                        sportId: categoryValue,
+                        sportId: Number(categoryValue),
                         isBungae: isBungae,
                         bungaeLocation: locationValue,
                         maxParticipants: maxParticipants,
@@ -392,7 +408,7 @@
                     body = {
                         title: titleValue,
                         content: contentValue,
-                        sportId: categoryValue,
+                        sportId: Number(categoryValue),
                         isBungae: isBungae,
                         bungaeLocation: null,
                         maxParticipants: null,
@@ -417,6 +433,8 @@
 
                 window.location.href = `/posts/${newPost.postId}`;
             } catch (error) {
+                submitButton.disabled = false;
+                submitButton.innerText = '작성';
                 console.error(error.message);
                 alert(error.message);
             }
