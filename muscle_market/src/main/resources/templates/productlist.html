@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>상품 목록</title>
@@ -264,11 +264,13 @@
         }
     </style>
     <link th:href="@{/css/header.css}" rel="stylesheet"/>
+    <!--    <meta name="_csrf" th:content="${_csrf.token}" />-->
+    <!--    <meta name="_csrf_header" th:content="${_csrf.headerName}" />-->
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
 
-<div class="category-filter-bar">
+<div th:if="${!isLikePage}" class="category-filter-bar">
     <div class="category-wrapper">
         <button id="categoryButton" class="category-button">
             <span id="selectedCategory"
@@ -303,8 +305,9 @@
                          th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">50,000원
                     </div>
                     <div class="product-info">
-                        <!--                        <span th:text="${product.location}">서울 강남구</span>-->
+                        <!-- <span th:text="${product.location}">서울 강남구</span>-->
                         <span th:text="${product.sportName}">헬스</span>
+                        <span th:text="${product.status.description}">판매중</span>
                     </div>
                     <div class="product-date" th:text="${#dates.format(product.createdAt, 'yyyy-MM-dd')}">2025-11-11
                     </div>
@@ -318,10 +321,13 @@
     </ul>
 
     <div class="pagination" th:if="${productPage.totalPages > 0}">
-      <span th:each="pageNum : ${#numbers.sequence(0, productPage.totalPages - 1)}">
-        <a th:href="@{${isLikePage != null and isLikePage} ?
-                        '/products/likes'(page=${pageNum}, sportId=${currentSportId}) :
-                        '/products'(page=${pageNum}, sportId=${currentSportId})}"
+    <span th:each="pageNum : ${#numbers.sequence(0, productPage.totalPages - 1)}">
+        <a th:href="@{
+               ${isLikePage != null and isLikePage} ?
+               '/products/likes' :
+               '/products'
+               (page=${pageNum}, sportId=${currentSportId})
+            }"
            th:class="${pageNum == currentPage ? 'active' : ''}"
            th:text="${pageNum + 1}">1
         </a>
