@@ -78,6 +78,9 @@
     <h2>회원가입</h2>
 
     <form th:action="@{/api/signup}" method="post" th:object="${userDto}">
+        <!-- CSRF 토큰 hidden input -->
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+
         <div class="form-group">
             <label for="username">아이디</label>
             <input id="username" class="control" type="text" th:field="*{username}" placeholder="아이디 입력" required>

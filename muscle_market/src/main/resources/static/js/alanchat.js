@@ -1,5 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('user-input').focus();
+    const userInput = document.getElementById('user-input');
+    userInput.focus();
+
+    // Enter 키 이벤트 - 한글 IME 처리 포함
+    userInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.isComposing) {
+            event.preventDefault();
+            sendChat();
+        }
+    });
 });
 
 /* -------------------- 채팅 전송 -------------------- */
@@ -18,6 +27,7 @@ function sendChat() {
     const loadingMessageId = 'loading-' + Date.now();
     appendLoadingMessage(loadingMessageId);
 
+    // GET 방식으로 전송 (CSRF 토큰 불필요)
     fetch(`/api/alan/chat?content=${encodeURIComponent(content)}`)
         .then(response => {
             removeLoadingMessage(loadingMessageId);
@@ -39,8 +49,20 @@ function sendChat() {
 function resetAlanState() {
     if (!confirm("대화를 초기화하시겠습니까?")) return;
 
-    fetch('/api/alan/reset', { method: 'DELETE' })
-        .then(res => res.text())
+    // DELETE 요청은 CSRF 토큰 필요
+    const token = document.querySelector('meta[name="_csrf"]').content;
+    const header = document.querySelector('meta[name="_csrf_header"]').content;
+
+    fetch('/api/alan/reset', {
+        method: 'DELETE',
+        headers: {
+            [header]: token
+        }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error('초기화 실패');
+            return res.text();
+        })
         .then(msg => {
             alert(msg);
 
@@ -52,6 +74,10 @@ function resetAlanState() {
 
             document.getElementById('product-list').innerHTML =
                 `<div class="no-recommendation">아직 추천 상품이 없습니다.</div>`;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(`초기화 실패: ${error.message}`);
         });
 }
 
@@ -68,9 +94,7 @@ function appendMessage(text, sender) {
 
     const contentDiv = document.createElement('div');
     contentDiv.classList.add('content');
-
-    const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    contentDiv.innerHTML = formatted;
+    contentDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
     messageDiv.appendChild(senderSpan);
     messageDiv.appendChild(contentDiv);
@@ -107,7 +131,6 @@ function updateRecommendationList(products) {
     products.forEach(product => {
         const card = document.createElement('div');
         card.classList.add('product-card');
-
 
         const firstImage = product.imageUrls?.[0] || '/img/no-image.png';
 

@@ -89,6 +89,8 @@
             background: #d4a72e;
         }
     </style>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 <div class="map-container">
@@ -107,6 +109,10 @@
 <script th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapApiKey} + '&libraries=services'"></script>
 
 <script>
+    window.addEventListener('DOMContentLoaded', () => {
+        checkKakaoReady();
+    });
+
     function checkKakaoReady() {
         if (typeof kakao !== 'undefined' && typeof kakao.maps !== 'undefined') {
             initMap();
@@ -116,23 +122,27 @@
     }
 
     function initMap() {
-        var mapContainer = document.getElementById('map');
-        var mapOption = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 5 };
-        var map = new kakao.maps.Map(mapContainer, mapOption);
+        const mapContainer = document.getElementById('map');
+        const mapOption = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 5 };
+        const map = new kakao.maps.Map(mapContainer, mapOption);
 
-        var userLocation = null;
-        var currentLocationMarker = null;
+        let userLocation = null;
+        let currentLocationMarker = null;
 
+        // CSRF 토큰 가져오기
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        // 현재 위치 가져오기
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
+            navigator.geolocation.getCurrentPosition(position => {
                 userLocation = new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude);
                 map.setCenter(userLocation);
 
-                // 빨간색 현재 위치 마커 이미지 설정
-                var imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png',
-                    imageSize = new kakao.maps.Size(24, 35),
-                    imageOption = {offset: new kakao.maps.Point(12, 35)};
-                var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+                const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+                const imageSize = new kakao.maps.Size(24, 35);
+                const imageOption = { offset: new kakao.maps.Point(12, 35) };
+                const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
 
                 currentLocationMarker = new kakao.maps.Marker({
                     map: map,
@@ -143,15 +153,15 @@
             });
         }
 
-        var ps = new kakao.maps.services.Places();
-        var markers = [];
-        var openInfoWindow = null;
+        const ps = new kakao.maps.services.Places();
+        let markers = [];
+        let openInfoWindow = null;
 
-        document.getElementById('searchBtn').addEventListener('click', function() {
-            var keyword = document.getElementById('keyword').value;
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const keyword = document.getElementById('keyword').value.trim();
             if (!keyword || !userLocation) return;
 
-            // 기존 마커 제거 및 인포윈도우 닫기
+            // 기존 마커 제거
             markers.forEach(m => m.setMap(null));
             markers = [];
             if (openInfoWindow) {
@@ -159,22 +169,23 @@
                 openInfoWindow = null;
             }
 
-            ps.keywordSearch(keyword, function(data, status) {
+            // Kakao Places API 검색
+            ps.keywordSearch(keyword, (data, status) => {
                 if (status === kakao.maps.services.Status.OK) {
-                    var bounds = new kakao.maps.LatLngBounds();
+                    const bounds = new kakao.maps.LatLngBounds();
 
-                    for (var i = 0; i < data.length; i++) {
-                        let place = data[i];
-                        let markerPosition = new kakao.maps.LatLng(place.y, place.x);
+                    for (let i = 0; i < data.length; i++) {
+                        const place = data[i];
+                        const markerPosition = new kakao.maps.LatLng(place.y, place.x);
 
-                        let marker = new kakao.maps.Marker({ map: map, position: markerPosition });
+                        const marker = new kakao.maps.Marker({ map: map, position: markerPosition });
 
-                        let infowindow = new kakao.maps.InfoWindow({
+                        const infowindow = new kakao.maps.InfoWindow({
                             content: `<div style="padding:5px;min-width:200px;">
-                                <strong>${place.place_name}</strong><br/>
-                                ${place.road_address_name || place.address_name}<br/>
-                                ${place.phone || '전화번호 없음'}
-                              </div>`
+                                    <strong>${place.place_name}</strong><br/>
+                                    ${place.road_address_name || place.address_name}<br/>
+                                    ${place.phone || '전화번호 없음'}
+                                  </div>`
                         });
 
                         kakao.maps.event.addListener(marker, 'click', function() {
@@ -188,11 +199,28 @@
                     }
 
                     map.setBounds(bounds);
+
+                    // 서버로 검색어 전송 (CSRF 적용)
+                    fetch('/api/map/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            [csrfHeader]: csrfToken
+                        },
+                        body: JSON.stringify({
+                            keyword: keyword,
+                            lat: userLocation.getLat(),
+                            lng: userLocation.getLng()
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => console.log('서버 검색 결과:', data))
+                        .catch(err => console.error('서버 검색 오류:', err));
                 }
             }, { location: userLocation });
         });
 
-        document.getElementById('currentLocationBtn').addEventListener('click', function() {
+        document.getElementById('currentLocationBtn').addEventListener('click', () => {
             if (userLocation) {
                 map.setCenter(userLocation);
             } else {
@@ -201,7 +229,6 @@
         });
     }
 
-    window.onload = checkKakaoReady;
 </script>
 </body>
 </html>

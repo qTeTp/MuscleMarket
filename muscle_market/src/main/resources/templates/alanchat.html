@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>앨런 챗봇</title>
-    <link rel="stylesheet" href="/css/alanchat.css"> </head>
+    <link rel="stylesheet" href="/css/alanchat.css">
+
+    <!-- CSRF 토큰 -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+</head>
 <body>
 
 <div class="chat-container">
@@ -18,7 +24,7 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="user-input" placeholder="질문을 입력하세요..." onkeyup="if(event.key === 'Enter') sendChat()">
+        <input type="text" id="user-input" placeholder="질문을 입력하세요...">
         <button onclick="sendChat()">전송</button>
         <button class="reset-button" onclick="resetAlanState()">초기화</button>
     </div>
