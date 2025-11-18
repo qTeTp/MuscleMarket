@@ -442,7 +442,7 @@
                         <div class="flex items-center gap-3 mt-1 text-sm font-medium" id="comment-actions-${comment.commentId}">
                             <button class="reply-btn text-gray-600 hover:underline">답글</button>
                                 
-                            ${isCommentOwner ? `
+                            ${isCommentAuthor ? `
                                 <button class="comment-edit-btn text-blue-600 hover:underline">수정</button>
                                 <button class="comment-delete-btn text-red-500 hover:underline">삭제</button>
                             ` : ''}
@@ -772,6 +772,22 @@
             }
         }
 
+        // 조회수 올리기
+        async function increaseViews() {
+            try {
+                const res = await fetch(`/api/posts/${currentPostId}/views`, {
+                    method: 'PUT',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) throw new Error("조회수 증가 실패");
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+
 
         // 현재 로그인한 유저 정보 가져오기
         async function fetchCurrentUserAndInit() {
@@ -807,14 +823,20 @@
             }
             currentPostId = postId;
 
-            // 2. 게시글 상세 내용 가져오기 + 다음&&이전 게시글도 링크 걸기 (없으면 (null)이면 ui 표시 안하기)
+            // 2. 조회수 올리기
+            increaseViews();
+
+            // 3. 게시글 상세 내용 가져오기 + 다음&&이전 게시글도 링크 걸기 (없으면 (null)이면 ui 표시 안하기)
             fetchPostDetail();
 
-            // 3. 댓글 이벤트 리스너 등록
+            // 4. 댓글 이벤트 리스너 등록
             setupCommentActions();
 
-            // 4. 댓글 작성 기능
+            // 5. 댓글 작성 기능
             setupCommentSubmission();
+
+            
+
         }
 
 

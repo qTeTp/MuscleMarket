@@ -56,8 +56,8 @@ public class PostDetailDto {
             .bungaeDatetime(post.getBungaeDatetime())
             .bungaeStatus(post.getBungaeStatus())
             .postImages(post.getPostImages().stream().map(PostImage::getImageUrl).toList())
-            .prevPost(new SimplifiedPostDto(prev))
-            .nextPost(new SimplifiedPostDto(next))
+            .prevPost(prev == null ? null : new SimplifiedPostDto(prev))
+            .nextPost(next == null ? null : new SimplifiedPostDto(next))
             .build();
     }
 }
