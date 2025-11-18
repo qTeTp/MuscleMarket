@@ -137,6 +137,9 @@
     </div>
 
     <form th:action="@{/api/login}" th:object="${loginDto}" method="post">
+        <!-- CSRF 토큰 hidden input -->
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
         <div th:if="${error}" class="error-message">
             <p th:text="${error}"></p>
         </div>
@@ -154,10 +157,7 @@
         <button type="submit">로그인</button>
     </form>
 
-    <!-- 구글 로그인 버튼 -->
-    <a href="/oauth2/authorization/google" class="google-btn">
-        구글 로그인
-    </a>
+    <a href="/oauth2/authorization/google" class="google-btn">구글 로그인</a>
 
     <div class="signup">
         아직 회원이 아니신가요? <a href="/signup">회원가입</a>

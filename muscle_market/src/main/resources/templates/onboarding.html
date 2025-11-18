@@ -97,6 +97,8 @@
             .control { padding: 12px 12px; }
         }
     </style>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 <div class="onboarding-container">
@@ -127,17 +129,23 @@
 </div>
 
 <script>
-
     /* 페이지 로드 시 스포츠 목록 불러오기 */
     window.onload = function() {
-        fetch('/api/sports')
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        fetch('/api/sports', {
+            headers: {
+                [csrfHeader]: csrfToken
+            }
+        })
             .then(response => response.json())
             .then(sports => {
                 const sportSelect = document.getElementById('sportSelect');
 
                 sports.forEach(sport => {
                     const option = document.createElement('option');
-                    option.value = sport.id;     // id 저장
+                    option.value = sport.id;       // id 저장
                     option.textContent = sport.name; // 운동명 표시
                     sportSelect.appendChild(option);
                 });
@@ -146,7 +154,6 @@
             .catch(error => console.error('스포츠 목록 불러오기 실패:', error));
     };
 
-
     /* 온보딩 제출 */
     document.getElementById("onboardingForm").addEventListener("submit", function(event) {
         event.preventDefault();
@@ -154,10 +161,14 @@
         const sportId = document.getElementById("sportSelect").value;
         const skillLevel = document.getElementById("skillLevel").value;
 
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
         fetch('/api/onboarding', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
             },
             body: JSON.stringify({
                 sportId: sportId,
@@ -173,6 +184,7 @@
             })
             .catch(error => console.error('Error:', error));
     });
+
 </script>
 
 </body>
