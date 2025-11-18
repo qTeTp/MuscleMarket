@@ -4,6 +4,7 @@ import com.example.muscle_market.domain.Sport;
 import com.example.muscle_market.domain.User;
 import com.example.muscle_market.domain.UserFavoriteSport;
 import com.example.muscle_market.dto.OnboardingDto;
+import com.example.muscle_market.dto.UserFavoriteSportDto;
 import com.example.muscle_market.repository.SportRepository;
 import com.example.muscle_market.repository.UserFavoriteSportRepository;
 import com.example.muscle_market.repository.UserRepository;
@@ -24,7 +25,7 @@ public class OnboardingService {
 
     // 온보딩 추가 코드
     @Transactional
-    public String completeOnboarding(OnboardingDto dto){
+    public String completeOnboarding(OnboardingDto dto) {
         // SecurityContext에서 username 추출
         String username = SecurityContextHolder
                 .getContext()
@@ -48,7 +49,7 @@ public class OnboardingService {
         // user_favorite_sports에 이미 존재하면 업데이트, 없으면 생성
         Optional<UserFavoriteSport> existinOpt = userFavoriteSportRepository.findByUser(user);
 
-        if(existinOpt.isPresent()){
+        if (existinOpt.isPresent()) {
             UserFavoriteSport existing = existinOpt.get();
             existing.setSport(sport);
             existing.setSkillLevel(dto.getSkillLevel());
@@ -71,7 +72,7 @@ public class OnboardingService {
 
     // 온보딩 수정 코드
     @Transactional
-    public String updateFavoriteSport(OnboardingDto dto){
+    public String updateFavoriteSport(OnboardingDto dto) {
         // SecurityContext에서 username 추출하기
         String username = SecurityContextHolder
                 .getContext()
@@ -106,6 +107,27 @@ public class OnboardingService {
         return "선호 운동 정보가 수정되었습니다.";
     }
 
+    @Transactional
+    public UserFavoriteSportDto getFavoriteSport() {
+        // username 추출
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
 
+        // User 조회
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("유저 정보를 찾을 수 없습니다."));
 
+        // UserFavoriteSport 정보 조회
+        UserFavoriteSport ufs = userFavoriteSportRepository
+                .findByUser(user)
+                .orElseThrow(() -> new RuntimeException("등록된 선호 운동 정보가 없습니다."));
+
+        // DTO로 변환하여 반환
+        return UserFavoriteSportDto.builder()
+                .sportName(ufs.getSport().getName())
+                .skillLevel(String.valueOf(ufs.getSkillLevel()))
+                .build();
+    }
 }
