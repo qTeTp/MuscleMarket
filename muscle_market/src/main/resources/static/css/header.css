@@ -5,7 +5,7 @@
 }
 
 .header-container {
-    background: rgba(20, 20, 20, 0.88);
+    background: rgba(48, 48, 48, 1); /*색깔 3개 + 투명도*/
     /*backdrop-filter: blur(6px);*/
     height: 70px;
     display: flex;
@@ -107,7 +107,7 @@
     color: black;
 }
 
-.community-btn{
+.community-btn {
     background-color: #a98100;
     color: black;
 }
