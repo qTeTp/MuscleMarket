@@ -3,6 +3,7 @@ package com.example.muscle_market.dto;
 import java.util.List;
 import java.util.Date;
 
+import com.example.muscle_market.enums.TransactionStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,7 +17,7 @@ public class ProductDetailDto {
     private String location;
     private List<String> productImageUrls; // 이미지 URL 리스트
     private List<Long> productImageIds; // 이미지 id 리스트
-    private String status;
+    private TransactionStatus status;
 
     private Date createdAt;
     private Date updatedAt;

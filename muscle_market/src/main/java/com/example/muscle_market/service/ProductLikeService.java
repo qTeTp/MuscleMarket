@@ -76,6 +76,7 @@ public class ProductLikeService {
                     .location(product.getLocation())
                     .sportName(product.getSport().getName())
                     .views(product.getViews())
+                    .status(product.getStatus())
                     .likeCount(likeCount)
                     .thumbnailUrl(thumbnailUrl)
                     .createdAt(product.getCreatedAt())

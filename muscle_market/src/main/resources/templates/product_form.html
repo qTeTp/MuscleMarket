@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="${isEditMode} ? '상품 수정' : '상품 등록'">상품 등록</title>
-    <!--    <meta name="_csrf" th:content="${_csrf.token}"/>-->
-    <!--    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link th:href="@{/css/header.css}" rel="stylesheet"/>
     <style>
         body {
@@ -207,6 +207,10 @@
     const previewContainer = document.getElementById('preview');
     const currentImagesContainer = document.getElementById('currentImages');
 
+    // csrf 토큰
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
     async function loadSports() {
         try {
             const res = await fetch('/api/sports');
@@ -301,7 +305,13 @@
         files.forEach(file => formData.append(imageKey, file));
 
         // 요청
-        const response = await fetch(url, {method: method, body: formData});
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                [csrfHeader]: csrfToken
+            },
+            body: formData
+        });
 
         // 등록|수정
         if (response.ok || response.status === 303) {
