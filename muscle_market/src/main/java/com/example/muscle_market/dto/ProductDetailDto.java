@@ -15,6 +15,7 @@ public class ProductDetailDto {
     private Long price;
     private String location;
     private List<String> productImageUrls; // 이미지 URL 리스트
+    private List<Long> productImageIds; // 이미지 id 리스트
     private String status;
 
     private Date createdAt;

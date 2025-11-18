@@ -182,4 +182,35 @@ public class ProductPageController {
 
         return "productlist";
     }
+
+    // 수정 페이지
+    @GetMapping("/edit/{productId}")
+    public String editProductForm(
+            @PathVariable Long productId,
+            Model model,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        // 권한 확인 로그인으로 가라
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        Long currentUserId = principal.getId();
+        // 기존 상품 조회 및 가져오기
+        ProductDetailDto dto = productService.getProductDetail(productId, currentUserId);
+
+        // 작성자와 현재 사용자 대조
+        if (!dto.getUser().getId().equals(currentUserId)) {
+            return "redirect:/products";
+        }
+
+        model.addAttribute("dto", dto);
+        model.addAttribute("sports", sportService.getAllSports());
+        model.addAttribute("currentUserId", currentUserId);
+
+        // 이걸 보냄으로써 편집 창이 띄워진다
+        model.addAttribute("isEditMode", true);
+        model.addAttribute("productId", productId);
+
+        return "product_form";
+    }
 }
