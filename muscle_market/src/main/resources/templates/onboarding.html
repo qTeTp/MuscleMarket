@@ -103,9 +103,12 @@
     <h2>기본정보 입력</h2>
 
     <form id="onboardingForm" th:object="${onboardingDto}">
+
         <div class="form-group">
-            <label for="sportName">선호 운동명</label>
-            <input type="text" id="sportName" class="control" th:field="*{sportName}" placeholder="운동명 입력" required>
+            <label for="sportSelect">선호 운동명</label>
+            <select id="sportSelect" class="control" required>
+                <option value="">선택</option>
+            </select>
         </div>
 
         <div class="form-group">
@@ -124,27 +127,45 @@
 </div>
 
 <script>
-    document.getElementById("onboardingForm").addEventListener("submit", function(event) {
-        event.preventDefault(); // 기본 폼 제출 막기
 
-        const sportName = document.getElementById("sportName").value;
+    /* 페이지 로드 시 스포츠 목록 불러오기 */
+    window.onload = function() {
+        fetch('/api/sports')
+            .then(response => response.json())
+            .then(sports => {
+                const sportSelect = document.getElementById('sportSelect');
+
+                sports.forEach(sport => {
+                    const option = document.createElement('option');
+                    option.value = sport.id;     // id 저장
+                    option.textContent = sport.name; // 운동명 표시
+                    sportSelect.appendChild(option);
+                });
+
+            })
+            .catch(error => console.error('스포츠 목록 불러오기 실패:', error));
+    };
+
+
+    /* 온보딩 제출 */
+    document.getElementById("onboardingForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const sportId = document.getElementById("sportSelect").value;
         const skillLevel = document.getElementById("skillLevel").value;
 
-        // 서버로 POST 요청
         fetch('/api/onboarding', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-                // 토큰은 쿠키(HttpOnly)로 자동 전달되므로 Authorization 헤더는 필요 없음
             },
             body: JSON.stringify({
-                sportName: sportName,
+                sportId: sportId,
                 skillLevel: skillLevel
             })
         })
             .then(response => {
                 if (response.ok) {
-                    // 온보딩 완료 후 홈 또는 다른 페이지로 이동
                     window.location.href = '/products';
                 } else {
                     alert("온보딩 실패");
