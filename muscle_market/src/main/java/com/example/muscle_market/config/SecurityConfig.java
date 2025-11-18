@@ -53,9 +53,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 정적 컨텐츠들 접근 허용
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/products/**").permitAll()
-                        .requestMatchers("/products").permitAll()
-                        .requestMatchers("/", "/login", "/api/signup","/api/login").permitAll()
+//                        .requestMatchers(HttpMethod.PATCH, "/api/products/**").permitAll()
+//                        .requestMatchers("/products").permitAll()
+                        .requestMatchers("/", "/login","/signup","/api/signup","/api/login").permitAll()
                         // 인증 없어도 들어가게
 //                        .requestMatchers("/api/**", "/api/products",
 //                                "/api/products/**", "/api/users/{userId}/likes", "/api/products/{productId}/like",
