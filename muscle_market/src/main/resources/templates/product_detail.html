@@ -695,6 +695,61 @@
         modal.show();
     }
 
+    // 채팅 생성 함수
+    async function createChat(event) {
+        event.preventDefault();
+        const initialMessage = document.getElementById('initialMessage').value.trim();
+
+        // 전송 버튼 활성화와 공존
+        if (initialMessage.length === 0) {
+            alert("최소 한 글자 이상의 메시지를 입력해야 합니다.");
+            return;
+        }
+
+        // 전송
+        try {
+            const participantIds = [];
+            participantIds.push(sellerId);
+            const body = {
+                participantIds: participantIds,
+                initialMessage: escapeHtml(initialMessage),
+                chatTitle: null,
+                productId = productId
+            };
+
+            const chatResponse = await fetch('/api/chats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // TODO: 주석 해제 하기
+                    // [header]: token
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!chatResponse.ok) throw new Error('채팅방 생성 실패');
+
+            // 모달 닫기
+            chatStartModal.hide();
+
+            // 이동?
+            window.location.href = '/chats';
+        } catch (error) {
+            console.error(error.message);
+        }
+    }
+
+    // XSS 공격 방지
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     let selectedStatus = null;
 
     // 상태 버튼 클릭 시
@@ -744,21 +799,7 @@
 
 
     // 전송버튼
-    sendInitialChatBtn.addEventListener('click', function () {
-        const initialMessage = document.getElementById('initialMessage').value.trim();
-
-        // 전송 버튼 활성화와 공존
-        if (initialMessage.length === 0) {
-            alert("최소 한 글자 이상의 메시지를 입력해야 합니다.");
-            return;
-        }
-
-        // 일단 alert 실행
-        alert('채팅 api 연결');
-
-        // 모달 닫기
-        chatStartModal.hide();
-    });
+    sendInitialChatBtn.addEventListener('click', createChat);
 </script>
 </body>
 </html>
