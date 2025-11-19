@@ -14,6 +14,46 @@ spring:
       hibernate:
         format_sql: true
 
+# google OAuth (소셜 로그인) 설정
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - email
+              - profile
+
+# Kakao Map API 설정
+kakao:
+  map:
+    api-key: ${KAKAO_MAP_API_KEY}
+
+
 server:
-  port: 5000
-  forward-headers-strategy: framework
+  port: 8080
+
+# JWT 토큰 설정
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}   # 값 없으면 기본 1일
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 값 없으면 기본 7일
+
+# 앨런 API 설정
+alan:
+  client-id: ${ALAN_CLIENT_ID}
+  api-url: ${ALAN_API_URL}
+  reset-url: ${ALAN_RESET_URL}
+
+# S3 설정
+cloud:
+  aws:
+    s3:
+      bucket: ${PROD_APP_S3_BUCKET}
+    region: #S3 지역
+      static: ${PROD_APP_S3_REGION}
+    stack:
+      auto: false
