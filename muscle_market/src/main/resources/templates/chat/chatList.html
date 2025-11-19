@@ -673,6 +673,7 @@
             initializeApp();
         } catch (error) {
             console.error(error.message);
+            alert(error.message);
             // 로그인 페이지로 강제 이동
             window.location.href = "/login";
         }
@@ -717,11 +718,11 @@
                 const chatId = chatItem.dataset.chatId;
                 const chatName = chatItem.dataset.chatName;
                 const productInfo = {
-                    productId: chatListItem.dataset.productId,
-                    productTitle: chatListItem.dataset.productTitle,
-                    productPrice: chatListItem.dataset.productPrice,
-                    productStatus: chatListItem.dataset.productStatus,
-                    productThumbnail: chatListItem.dataset.productThumbnail
+                    productId: chatItem.dataset.productId,
+                    productTitle: chatItem.dataset.productTitle,
+                    productPrice: chatItem.dataset.productPrice,
+                    productStatus: chatItem.dataset.productStatus,
+                    productThumbnail: chatItem.dataset.productThumbnail
                 }
                 selectChatRoom(chatId, chatName, productInfo);
             }

@@ -161,7 +161,6 @@
                 // 이미지 세팅
                 existingImages = postData.postImages || [];
                 renderThumbnails();
-                setupImageUploadListeners();
             } catch (error) {
                 console.error(error.message);
                 window.location.href = `/posts/${postId}`;
@@ -305,17 +304,23 @@
                 // 유효성 검사
                 if (!titleValue.trim()) {
                     alert('제목을 입력해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '수정';
                     return;
                 }
             
                 if (!categoryValue) {
                     alert('카테고리를 선택해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '수정';
                     return;
                 }
 
                 // 일반 글에서는 본문 필수
                 if (!contentValue.trim()) {
                     alert('본문을 입력해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '수정';
                     return;
                 }
 
@@ -347,6 +352,8 @@
 
                 window.location.href = `/posts/${updatedPost.postId}`;
             } catch (error) {
+                submitButton.disabled = false;
+                submitButton.innerText = '수정';
                 console.error(error.message);
                 alert(error.message);
             }
