@@ -28,7 +28,7 @@ public class PostDetailDto {
     private Integer maxParticipants;
     private Integer curParticipants;
     private String bungaeDatetime;
-    private String bungaeStatus;
+    private BungaeStatus bungaeStatus;
     private List<String> postImages;
     private SimplifiedPostDto prevPost;
     private SimplifiedPostDto nextPost;
@@ -42,6 +42,7 @@ public class PostDetailDto {
             .sportName(post.getSport().getName())
             .createdAt(post.getCreatedAt())
             .views(post.getViews())
+            .postStatus(post.getPostStatus())
             .postAuthor(SimplifiedUserDto.builder()
                 .userId(post.getAuthor().getId())
                 .username(post.getAuthor().getUsername())
@@ -54,7 +55,7 @@ public class PostDetailDto {
             .maxParticipants(post.getMaxParticipants())
             .curParticipants(post.getCurParticipants())
             .bungaeDatetime(post.getBungaeDatetime())
-            .bungaeStatus(post.getBungaeStatus().name())
+            .bungaeStatus(post.getBungaeStatus())
             .postImages(post.getPostImages().stream().map(PostImage::getImageUrl).toList())
             .prevPost(prev == null ? null : new SimplifiedPostDto(prev))
             .nextPost(next == null ? null : new SimplifiedPostDto(next))

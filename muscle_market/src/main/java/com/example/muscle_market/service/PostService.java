@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.lang.Exception;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
@@ -83,8 +84,9 @@ public class PostService {
         if (post.getAuthor() == null) throw new EntityNotFoundException("author not found");
         // 삭제된 글은 볼 수 없고, 숨김이면 본인만 볼 수 있어야 함
         validatePostAccess(post, curUserId);
-        Post prevPost = postRepository.findFirstByPostIdLessThanAndPostStatusOrderByPostIdDesc(postId, PostStatus.ACTIVE).orElse(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanAndPostStatusOrderByPostIdAsc(postId, PostStatus.ACTIVE).orElse(null);
+        Pageable limitOne = PageRequest.of(0, 1);
+        Post prevPost = postRepository.findPrevPost(postId, curUserId, limitOne).stream().findFirst().orElse(null);
+        Post nextPost = postRepository.findNextPost(postId, curUserId, limitOne).stream().findFirst().orElse(null);
         return PostDetailDto.fromEntity(post, prevPost, nextPost);
     }
 
@@ -128,8 +130,9 @@ public class PostService {
         
         // 저장 후 dto 리턴
         Post savedPost = postRepository.save(post);
-        Post prevPost = postRepository.findFirstByPostIdLessThanAndPostStatusOrderByPostIdDesc(post.getPostId(), PostStatus.ACTIVE).orElse(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanAndPostStatusOrderByPostIdAsc(post.getPostId(), PostStatus.ACTIVE).orElse(null);
+        Pageable limitOne = PageRequest.of(0, 1);
+        Post prevPost = postRepository.findPrevPost(post.getPostId(), authorId, limitOne).stream().findFirst().orElse(null);
+        Post nextPost = postRepository.findNextPost(post.getPostId(), authorId, limitOne).stream().findFirst().orElse(null);
         return PostDetailDto.fromEntity(savedPost, prevPost, nextPost);
     }
 
@@ -197,8 +200,9 @@ public class PostService {
             }
         }
 
-        Post prevPost = postRepository.findFirstByPostIdLessThanAndPostStatusOrderByPostIdDesc(postId, PostStatus.ACTIVE).orElse(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanAndPostStatusOrderByPostIdAsc(postId, PostStatus.ACTIVE).orElse(null);
+        Pageable limitOne = PageRequest.of(0, 1);
+        Post prevPost = postRepository.findPrevPost(postId, curUserId, limitOne).stream().findFirst().orElse(null);
+        Post nextPost = postRepository.findNextPost(postId, curUserId, limitOne).stream().findFirst().orElse(null);
         return PostDetailDto.fromEntity(post, prevPost, nextPost);
     }   
 

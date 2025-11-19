@@ -334,7 +334,7 @@
                 
                 if (res.ok) {
                     alert('게시글이 삭제되었습니다.');
-                    window.loaction.href = '/posts';
+                    window.location.href = '/posts';
                     return;
                 }
 
@@ -469,7 +469,7 @@
                 commentEl.className = `flex gap-3 ${isReply ? 'ml-10' : ''}`;
                 commentEl.setAttribute('data-comment-id', comment.commentId);
 
-                const contentClass = commnet.isDeleted ? 'text-gray-400 italic' : 'text-gray-800';
+                const contentClass = comment.isDeleted ? 'text-gray-400 italic' : 'text-gray-800';
 
                 let actionButtonsHtml = '';
                 if (!comment.isDeleted) {
