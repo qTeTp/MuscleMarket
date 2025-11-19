@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>온보딩</title>
+    <style>
+        /* 전체 기본 설정 */
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+
+        body {
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
+            background: #111;
+            background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+        .onboarding-container {
+            width: 480px;
+            max-width: 100%;
+            background: rgba(20, 20, 20, 0.88);
+            padding: 40px 36px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        h2 {
+            color: #fff;
+            margin: 0 0 24px 0;
+            font-size: 22px;
+            letter-spacing: 0.5px;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            color: #eaeaea;
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .control {
+            width: 100%;
+            display: block;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            border: 1px solid #555;
+            background: #222;
+            color: #fff;
+            text-align: left;
+        }
+        .control:focus {
+            outline: none;
+            border-color: #F5C542;
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.25);
+            background: #1f1f1f;
+        }
+        .control.button {
+            background: linear-gradient(180deg, #F5C542, #d4a72e);
+            color: #111;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            margin-top: 12px;
+            font-weight: 700;
+        }
+        .control.button:hover {
+            filter: brightness(0.95);
+            box-shadow: 0 8px 18px rgba(213, 167, 46, 0.28);
+        }
+        select.control {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        @media (max-width: 500px) {
+            .onboarding-container {
+                padding: 28px 20px;
+            }
+
+            .control {
+                padding: 12px 12px;
+            }
+        }
+    </style>
+    <!-- CSRF 토큰과 헤더명 -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+</head>
+<body>
+<div class="onboarding-container">
+    <!-- 온보딩 수정 페이지에서는 다르게 보임   -->
+    <h2 th:text="${isEditMode} ? '선호 운동 수정' : '기본정보 입력'">기본정보 입력</h2>
+
+    <form id="onboardingForm" th:object="${onboardingDto}">
+        <div class="form-group">
+            <label for="sportSelect">선호 운동명</label>
+            <select id="sportSelect" class="control" required>
+                <option value="">선택</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="skillLevel">실력</label>
+            <select id="skillLevel" class="control" name="skillLevel" th:field="*{skillLevel}" required>
+                <option value="">선택</option>
+                <option value="BEGINNER">BEGINNER</option>
+                <option value="LOW">LOW</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HIGH">HIGH</option>
+            </select>
+        </div>
+
+        <button type="submit" class="control button">완료</button>
+    </form>
+</div>
+
+<script th:inline="javascript">
+    /* 페이지 로드 시 스포츠 목록 불러오기 */
+    window.onload = function () {
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const onboardingData = /*[[${onboardingDto}]]*/ {};
+        const isEditMode = /*[[${isEditMode}]]*/ false;
+
+        const existingSportName = onboardingData.sportName;
+
+        fetch('/api/sports', {
+            headers: { [csrfHeader]: csrfToken }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('스포츠 목록 불러오기 실패');
+                return response.json();
+            })
+            .then(sports => {
+                const sportSelect = document.getElementById('sportSelect');
+
+                // 기존의 placeholder option을 제거
+                sportSelect.innerHTML = '<option value="">선택</option>';
+
+                sports.forEach(sport => {
+                    const option = document.createElement('option');
+
+                    // 밸류는 스포츠명으로 유지
+                    option.value = sport.name;
+                    option.textContent = sport.name;
+
+                    // 수정 모드에서는 받아온 온보딩 데이터에서 들어감
+                    if (isEditMode && existingSportName === sport.name) {
+                        option.selected = true;
+                    }
+                    sportSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('스포츠 목록 불러오기 실패:', error));
+    };
+
+
+    /* 온보딩 제출 */
+    document.getElementById("onboardingForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const sportSelect = document.getElementById("sportSelect");
+        const skillLevel = document.getElementById("skillLevel").value;
+        const isEditMode = /*[[${isEditMode}]]*/ false;
+
+        const sportId = document.getElementById("sportSelect").value;
+
+        // 서비스에서 운동명으로 받음
+        // dto에 포함
+        const requestBody = {
+            sportName: sportSelect.options[sportSelect.selectedIndex].textContent, // 선택된 이름 전송
+            skillLevel: skillLevel
+        };
+
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        // 이름은 같고 메서드 방식만 다름
+        // PUT 또는 POST로 나눠짐 컨트롤러에서
+        const url = isEditMode ? '/api/favorite-sport' : '/api/onboarding';
+        const method = isEditMode ? 'PUT' : 'POST';
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert("정보 입력 완료!");
+                    window.location.href = '/products';
+                } else {
+                    alert("온보딩 실패");
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    });
+</script>
+</body>
+</html>

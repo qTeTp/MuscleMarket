@@ -1,0 +1,44 @@
+<header class="header-container">
+    <!-- 왼쪽 -->
+    <div class="logo" onclick="window.location.href='/products'">
+        <img src="/images/logo.png" alt="Muscle Market Logo">
+    </div>
+
+    <!-- 가운데 -->
+    <div class="header-center"></div>
+
+    <div class="header-right">
+        <div class="search-container" id="searchContainer">
+            <input type="text" class="search-input" id="searchInput" placeholder="검색">
+            <button class="action-btn search-icon" id="searchButton">
+                <img src="/images/search.png" alt="search icon">
+            </button>
+        </div>
+
+        <!-- 오른쪽 -->
+        <div class="header-btn-group">
+            <button class="header-action-btn community-btn" onclick="location.href='/posts'">커뮤니티</button>
+            <button class="header-action-btn chat-btn">채팅하기</button>
+            <button class="header-action-btn logout-btn">로그아웃</button>
+            <div class="header-profile-img" id="profileBtn">
+                <div class="user-menu-dropdown" id="userDropdownMenu">
+                    <ul id="userMenuLinks">
+                        <li class="user-menu-item user-menu-auth-required">로그인이 필요합니다.</li>
+
+                        <li class="user-menu-item user-menu-authenticated" onclick="location.href='/products/my'">
+                            <i class="fas fa-box-open fa-fw me-2"></i> 판매 게시물
+                        </li>
+
+                        <li class="user-menu-item user-menu-authenticated" onclick="location.href='/products/likes'">
+                            <i class="fas fa-heart fa-fw me-2"></i> 찜한 게시물
+                        </li>
+
+                        <li class="user-menu-item user-menu-authenticated" onclick="location.href='/edit_onboarding'">
+                            <i class="fas fa-shopping-bag fa-fw me-2"></i> 온보딩 수정
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

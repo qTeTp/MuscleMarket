@@ -1,0 +1,93 @@
+# gemini 제공 코드라 고치긴 해야함
+name: Deploy to EC2 via SCP
+
+on:
+  push:
+    branches: [ "main" ] # main 브랜치에 푸시될 때 실행
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. 코드 체크아웃
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. Java 설정 (Spring Boot 빌드용)
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # 3. Node.js 설정 (난독화용)
+    # - name: Set up Node.js
+    #   uses: actions/setup-node@v4
+    #   with:
+    #     node-version: '18'
+
+    # 4. JS 난독화 실행 (빌드 전에 수행해야 함!)
+    # static/js 폴더 내의 모든 js 파일을 난독화하여 덮어씁니다.
+    # - name: Obfuscate JavaScript
+    #   run: |
+    #     echo "Installing javascript-obfuscator..."
+    #     npm install -g javascript-obfuscator
+        
+    #     echo "Obfuscating JS files..."
+    #     # src/main/resources/static/js 폴더를 타겟으로 지정
+    #     # --output 옵션을 동일 경로로 주면 원본을 덮어씁니다.
+    #     javascript-obfuscator ./src/main/resources/static/js --output ./src/main/resources/static/js --compact true --self-defending true
+        
+    #     echo "JS Obfuscation Done."
+
+    # 5. Spring Boot 빌드 (테스트 제외)
+    - name: Build with Gradle
+      run: |
+        chmod +x gradlew
+        ./gradlew build -x test
+
+    # 6. SCP로 파일 전송 (Jar + 스크립트)
+    # appleboy/scp-action을 사용하여 EC2로 파일 복사
+    - name: Transfer Files to EC2
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }} 
+        key: ${{ secrets.EC2_KEY }}       # .pem 키 내용
+        port: 22
+        # 전송할 파일들 (빌드된 jar와 스크립트)
+        source: "build/libs/*.jar,scripts/deploy.sh"
+        # EC2 내 도착 경로
+        target: "/home/${{ secrets.EC2_USER }}/muscle-market"
+        # 경로 구조 제거 (파일만 딱 떨어지게)
+        # strip_components: 2 
+
+    # 7. SSH로 접속하여 배포 스크립트 실행
+    - name: Execute Deploy Script
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        script: |
+          # 전송된 파일들이 있는 곳으로 이동
+          cd /home/${{ secrets.EC2_USER }}/muscle-market
+          
+          # 2. 파일 위치 정리 (SCP로 넘어온 파일들을 한곳으로 모음)
+          # build/libs 안에 있는 jar를 밖으로 꺼냄
+          if [ -f "build/libs/"*.jar ]; then
+              mv build/libs/*.jar muscle-market.jar
+              rm -rf build # 빈 폴더 정리
+          fi
+          
+          # scripts 폴더 안에 있는 deploy.sh를 밖으로 꺼냄 (선택사항, 편의상)
+          if [ -f "scripts/deploy.sh" ]; then
+              mv scripts/deploy.sh ./deploy.sh
+              rm -rf scripts
+          fi
+          
+          # 스크립트 실행 권한 부여 및 실행
+          chmod +x deploy.sh
+          ./deploy.sh

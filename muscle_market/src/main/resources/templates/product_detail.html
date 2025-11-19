@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${dto.title}">상품 상세</title>
+
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link th:href="@{/css/header.css}" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 초기화 및 기본 스타일 */
+        body {
+            background-color: #f5f5f5; /* 중고나라 배경색 */
+            padding-top: 60px;
+            font-family: 'Noto Sans KR', '맑은 고딕', sans-serif; /* 중고나라 폰트 유사 */
+            color: #333;
+        }
+
+        .container-custom {
+            max-width: 1060px; /* 중고나라 메인 컨테이너 너비 */
+            margin: 20px auto;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* 은은한 그림자 */
+            border-radius: 8px; /* 둥근 모서리 */
+            overflow: hidden; /* 자식 요소 둥근 모서리 유지 */
+        }
+
+        .section-padding {
+            padding: 25px;
+        }
+
+        /* 섹션 기본 패딩 */
+
+        /* 상단 영역 (이미지 + 기본 정보) */
+        .top-section {
+            display: flex;
+            gap: 30px;
+            border-bottom: 1px solid #f0f0f0; /* 섹션 구분선 */
+        }
+
+        .product-media {
+            flex: 1; /* 이미지 영역 */
+            max-width: 50%; /* 50% 너비 */
+            position: relative;
+            background-color: #f9f9f9; /* 이미지 배경색 */
+            padding: 25px; /* 이미지 내부 패딩 */
+        }
+
+        .product-info-sidebar {
+            flex: 1; /* 정보 영역 */
+            max-width: 50%; /* 50% 너비 */
+            padding: 25px 25px 0 0; /* 패딩 조정 */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 이미지 캐러셀 스타일 */
+        .carousel-item img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: contain; /* 이미지 전체 보이도록 contain */
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        .image-counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            z-index: 10;
+        }
+
+        .carousel-control-prev, .carousel-control-next {
+            opacity: 0 !important;
+            transition: opacity 0.2s;
+            background-color: rgba(0, 0, 0, 0); /* 배경 제거 */
+        }
+
+        .carousel-control-prev:hover, .carousel-control-next:hover {
+            opacity: 0.4 !important;
+            background-color: rgba(0, 0, 0, 0);
+        }
+
+        .carousel-control-prev-icon, .carousel-control-next-icon {
+            background-color: #888; /* 화살표 색상 */
+            border-radius: 50%;
+            padding: 12px;
+        }
+
+        /* 상품 제목 및 가격 */
+        .product-header-meta {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .product-header-meta span {
+            margin-right: 10px;
+        }
+
+        .product-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .delivery-details div {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        /* 상품 상태 / 결제 혜택 */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .info-table th, .info-table td {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+
+        .info-table th {
+            text-align: left;
+            width: 100px;
+            font-weight: 500;
+            color: #777;
+        }
+
+        .info-table td {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .info-table tr:last-child th, .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 액션 버튼 그룹 (찜, 채팅, 구매) */
+        .action-buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px; /* 충분한 여백 */
+        }
+
+        .action-buttons-group button {
+            flex: 1;
+            padding: 12px 0;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        #like-button {
+            background-color: #fff;
+            color: #ff4757;
+            border: 1px solid #ff4757;
+        }
+
+        #like-button:hover {
+            background-color: #ffe0e3;
+        }
+
+        #chat-button {
+            background-color: #F5C542; /* 중고나라 채팅하기 색상 */
+            color: #fff;
+            border: none;
+        }
+
+        #chat-button:hover {
+            background-color: #d4a72e;
+        }
+
+        /* 내 상품 관리 버튼 그룹 (위로 올리기, 카페 등록, 상품 수정, 상태 변경, 상품 삭제) */
+        .owner-actions-group {
+            display: flex;
+            flex-wrap: wrap; /* 버튼이 많으면 줄바꿈 */
+            gap: 10px;
+            margin-top: 25px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 20px;
+        }
+
+        .owner-actions-group button {
+            flex: 1 1 calc(33.333% - 10px); /* 한 줄에 3개씩 */
+            min-width: 100px;
+            background-color: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: #555;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .owner-actions-group button:hover {
+            background-color: #e5e5e5;
+        }
+
+        .owner-actions-group button i {
+            font-size: 1.2em;
+            color: #888;
+        }
+
+
+        /* 하단 영역 (상품 정보, 가게 정보) */
+        .bottom-section {
+            display: flex;
+            gap: 30px;
+            padding: 25px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .item-detail-info {
+            flex: 7;
+        }
+
+        /* 상품 정보 영역 */
+        .seller-detail-info {
+            flex: 3;
+        }
+
+        /* 가게 정보 영역 */
+
+        /* 상품 정보 섹션 */
+        .detail-section-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333; /* 중고나라 스타일 */
+            margin-bottom: 20px;
+        }
+
+        .product-description-text {
+            line-height: 1.7;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            color: #444;
+        }
+
+        /* 가게 정보 섹션 */
+        .seller-info-box {
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #fcfcfc;
+        }
+
+        .seller-info-box h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 15px;
+        }
+
+        .seller-profile-detail {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .seller-profile-img {
+            width: 50px;
+            height: 50px;
+            background-color: #ddd;
+            border-radius: 50%;
+        }
+
+        .seller-nickname {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* 반응형 */
+        @media (max-width: 992px) {
+            .top-section, .bottom-section {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .product-media, .product-info-sidebar {
+                max-width: 100%;
+                padding: 15px;
+            }
+
+            .section-padding {
+                padding: 15px;
+            }
+        }
+
+        /*    상태 변경 모달*/
+        .status-btn {
+            width: 100%; /* 세로 배치이므로 너비를 100%로 */
+            padding: 10px 15px;
+            margin-bottom: 8px; /* 버튼 사이 간격 */
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: #333;
+            background-color: #f8f8f8;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .status-btn.disabled-status {
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .status-btn.active-select {
+            background-color: #F5C542;
+            color: white;
+        }
+
+        #confirmStatusBtn {
+            background-color: #F5C542;
+            border-color: #F5C542;
+            color: #fff;
+        }
+
+        #sendInitialChatBtn {
+            background-color: #F5C542;
+            border-color: #F5C542;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="page-content">
+    <div class="container-custom">
+        <div class="top-section">
+            <div class="product-media">
+                <div id="imageCarousel" class="carousel slide" data-bs-interval="false">
+                    <div class="carousel-inner">
+                        <div th:if="${dto.productImageUrls.isEmpty()}" class="carousel-item active">
+                            <img th:src="@{/images/default_image.jpg}" alt="기본 이미지">
+                        </div>
+                        <div th:each="url, iterStat : ${dto.productImageUrls}"
+                             th:class="${iterStat.first} ? 'carousel-item active' : 'carousel-item'">
+                            <img th:src="${url}" alt="상품 이미지">
+                        </div>
+                    </div>
+                    <span class="image-counter" th:if="${dto.productImageUrls.size() > 0}">
+                        <span id="current-slide">1</span> / <span th:text="${dto.productImageUrls.size()}">1</span>
+                    </span>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel"
+                            data-bs-slide="prev" th:if="${dto.productImageUrls.size() > 1}">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel"
+                            data-bs-slide="next" th:if="${dto.productImageUrls.size() > 1}">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-info-sidebar">
+                <p class="product-header-meta">
+                    <span th:text="|${#temporals.format(dto.createdAt, 'yyyy-MM-dd')} · 조회 ${dto.views}|">2022-04-27 · 조회 1</span>
+                    <br>
+                    <span>종목:</span><span th:text="${dto.sportName}">헬스</span>
+                    <br>
+                    <span>거래 지역:</span><span th:text="${dto.location}">서울 강남구</span>
+                </p>
+
+                <h1 class="product-title" th:text="${dto.title}">상품 제목</h1>
+                <div class="product-price" th:text="|${#numbers.formatDecimal(dto.price, 0, 'COMMA', 0, 'POINT')}원|">
+                    100,000원
+                </div>
+
+
+                <table class="info-table">
+                    <tr>
+                        <th>상품 상태</th>
+                        <td th:text="${dto.status.description}">새상품</td>
+                    </tr>
+
+                </table>
+
+                <div th:if="${#authorization.expression('isAuthenticated()') and (dto.user.id == #authentication.principal.id)}"
+                     class="owner-actions-group">
+
+                    <button th:onclick="|location.href='@{/products/edit/{id}(id=${dto.id})}'|">
+                        <i class="fas fa-edit"></i><span>상품 수정</span></button>
+                    <button onclick="changeStatusModal()">
+                        <i class="fas fa-sync-alt">
+                        </i><span>상태 변경</span></button>
+                    <button th:onclick="'deleteProduct(' + ${dto.id} + ')'">
+                        <i class="fas fa-trash-alt"></i><span>상품 삭제</span>
+                    </button>
+                </div>
+
+                <div th:unless="${#authorization.expression('isAuthenticated()') and (dto.user.id == #authentication.principal.id)}"
+                     class="action-buttons-group">
+                    <button id="like-button" class="btn-outline-warning" style="flex:1" th:data-product-id="${dto.id}">
+                        <i class="fa-heart" th:classappend="${dto.isLiked} ? 'fas' : 'far'"
+                           style="margin-right: 8px;"></i>
+                        찜 <span id="likeCountDisplay" th:text="${dto.likeCount}">0</span>
+                    </button>
+                    <button id="chat-button"
+                            th:disabled="${dto.status.name() == 'RESERVED' or dto.status.name() == 'SOLD'}"
+                            th:class="${dto.status.name() == 'RESERVED' or dto.status.name() == 'SOLD'} ? 'btn-secondary' : ''"
+                            style="flex:1">
+                        <i class="fas fa-comment-dots" style="margin-right: 8px;"></i>
+                        채팅하기
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="bottom-section">
+            <div class="item-detail-info section-padding">
+                <h3 class="detail-section-header">상품 정보</h3>
+                <div class="product-description-text">
+                    <p th:text="${dto.description}">상품 상세 내용이 여기에 들어갑니다.</p>
+                </div>
+            </div>
+
+            <div class="seller-detail-info section-padding">
+                <div class="seller-info-box">
+                    <h3 class="detail-section-header">판매자 정보</h3>
+                    <div class="seller-profile-detail">
+                        <!-- 판매자 이미지 넣기-->
+                        <div class="seller-profile-img"></div>
+                        <span class="seller-nickname" th:text="${dto.user.nickname}">판매자</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!--상태 변경 모달-->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">거래 상태 변경</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="status-options" class="d-flex flex-column gap-2">
+                    <button class="btn btn-outline-secondary status-btn" data-value="SELLING">판매중</button>
+                    <button class="btn btn-outline-secondary status-btn" data-value="RESERVED">예약중</button>
+                    <button class="btn btn-outline-secondary status-btn" data-value="SOLD">판매완료</button>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="confirmStatusBtn" type="button" class="btn btn-primary" disabled>확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--채팅 시작 모달-->
+<div class="modal fade" id="chatStartModal" tabindex="-1" aria-labelledby="chatStartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="chatStartModalLabel">판매자에게 채팅 시작</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="chatStartForm">
+                    <div class="mb-3">
+                        <label for="initialMessage" class="form-label">메시지 입력</label>
+                        <input type="text" class="form-control" id="initialMessage" rows="3"
+                               placeholder="판매자에게 보낼 첫 메시지를 입력하세요." required></input>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="sendInitialChatBtn">전송</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous">
+</script>
+<script th:src="@{/js/header.js}" defer></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // dto의 정보 받아옴
+    const productId = [[${dto.id}]];
+    const sellerId = [[${dto.user.id}]]
+    const currentUserId = [[${#authorization.expression('isAuthenticated()') ? #authentication.principal.id : null}]];
+    const imageCount = [[${dto.productImageUrls.size()}]];
+
+    // 채팅에 필요한 요소 참조
+    const chatStartModalElement = document.getElementById('chatStartModal');
+    const chatStartModal = new bootstrap.Modal(chatStartModalElement);
+    const sendInitialChatBtn = document.getElementById('sendInitialChatBtn');
+    const initialMessageInput = document.getElementById('initialMessage');
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+    console.log("현재 로그인한 사용자 정보:", currentUserId);
+    console.log("sellerId: ", sellerId);
+    console.log("productId: ", productId)
+
+    document.getElementById("statusBtn")?.addEventListener("click", changeStatusModal);
+    document.getElementById("deleteBtn")?.addEventListener("click", () => deleteProduct(productId));
+
+    // 이미지 카운터
+    document.addEventListener('DOMContentLoaded', function () {
+        const carouselElement = document.getElementById('imageCarousel');
+        const currentSlideSpan = document.getElementById('current-slide');
+
+        if (carouselElement && imageCount > 0) {
+            carouselElement.addEventListener('slide.bs.carousel', function (event) {
+                const nextIndex = event.to + 1;
+                currentSlideSpan.textContent = nextIndex;
+            });
+        }
+    });
+
+    // 메시지 전송 모달 초기 설정
+    function updateSendButtonState() {
+        if (initialMessageInput) {
+            // 메시지 내용이 비어있거나 공백만 있으면 true
+            const isDisabled = initialMessageInput.value.trim().length === 0;
+            sendInitialChatBtn.disabled = isDisabled;
+        }
+    }
+
+    // 입력 이벤트 리스너 상태 보고
+    // 전송 버튼 활성화/비활성화
+    if (initialMessageInput && sendInitialChatBtn) {
+        // 입력 내용이 바뀔 때마다 버튼 상태를 갱신
+        initialMessageInput.addEventListener('input', updateSendButtonState);
+    }
+
+    // 게시물 삭제 (논리적 삭제)
+    function deleteProduct(productId) {
+        if (confirm('정말로 삭제하시겠습니까?')) {
+            fetch('/api/products/' + productId, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                    // 스프링 시큐리티 사용 시 CSRF 토큰 필요
+                    // 'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content'),
+                    // 'X-CSRF-HEADER': document.querySelector('meta[name="_csrf_header"]').getAttribute('content')
+                }
+            })
+                .then(response => {
+                    if (response.status === 204) { // 204 No Content
+                        alert('게시물이 성공적으로 삭제되었습니다.');
+                        window.location.href = '/products'; // 목록 페이지로 이동
+                    } else {
+                        alert('삭제 실패: ' + response.status + ' - ' + response.statusText);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+
+    // 찜
+    document.getElementById('like-button')?.addEventListener('click', async () => {
+        const likeButton = document.getElementById('like-button');
+        const likeIcon = likeButton.querySelector('i');
+        const likeCountDisplay = document.getElementById('likeCountDisplay');
+        let currentCount = parseInt(likeCountDisplay.textContent);
+
+        if (currentUserId == null) {
+            alert('로그인이 필요한 서비스입니다.');
+            return;
+        }
+
+        try {
+            // post 요청
+            const response = await fetch(`/api/products/${productId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                }
+            });
+
+            // 찜 여부
+            if (response.ok) {
+                const isLiked = await response.json(); // true 또는 false 반환
+
+                if (isLiked) {
+                    // 찜 추가 성공
+                    likeIcon.classList.remove('far');
+                    likeIcon.classList.add('fas');
+                    likeCountDisplay.textContent = currentCount + 1;
+                } else {
+                    // 찜 취소 성공
+                    likeIcon.classList.remove('fas');
+                    likeIcon.classList.add('far');
+                    likeCountDisplay.textContent = currentCount - 1;
+                }
+            } else {
+                alert('찜하기 처리 실패');
+            }
+        } catch (error) {
+            console.error('Like Toggle Error:', error);
+        }
+    });
+
+    // 거래 상태 변경 api 호출
+    function changeProductStatus(newStatusString) {
+        if (!currentUserId) {
+            alert('로그인이 필요한 서비스입니다.');
+            return;
+        }
+
+        // 수정 api
+        fetch(`/api/products/${productId}`, {
+            method: 'PATCH',
+            credentials: "include",
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({
+                status: newStatusString
+            })
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert(`${newStatusString}로 변경되었습니다.`);
+                    window.location.reload();
+                } else {
+                    // Service에서 던진 권한/유효성 예외 처리
+                    alert('상태 변경 실패: ' + response.status + ' - 권한이 없거나 잘못된 상태입니다.');
+                }
+            })
+            .catch(error => console.error('Status Change Error:', error));
+    }
+
+    // 상태 변경 모달
+    function changeStatusModal() {
+        const modal = new bootstrap.Modal(document.getElementById('statusModal'));
+
+        // 현재 상태
+        const currentStatus = [[${dto.status}]];
+
+        // 버튼들 초기화
+        const statusButtons = document.querySelectorAll(".status-btn");
+        statusButtons.forEach(btn => {
+            const value = btn.getAttribute("data-value");
+
+            // 현재 상태 버튼 비활성화
+            if (value === currentStatus) {
+                btn.classList.add("disabled-status");
+            } else {
+                btn.classList.remove("disabled-status");
+            }
+
+            // 선택 효과 초기화
+            btn.classList.remove("active-select");
+        });
+
+        // 확인 버튼 비활성화
+        document.getElementById("confirmStatusBtn").disabled = true;
+
+        modal.show();
+    }
+
+    // 채팅 생성 함수
+    async function createChat(event) {
+        event.preventDefault();
+        const initialMessage = document.getElementById('initialMessage').value.trim();
+
+        // 전송 버튼 활성화와 공존
+        if (initialMessage.length === 0) {
+            alert("최소 한 글자 이상의 메시지를 입력해야 합니다.");
+            return;
+        }
+
+        // 전송
+        try {
+            const participantIds = [];
+            participantIds.push(sellerId);
+            const body = {
+                participantIds: participantIds,
+                initialMessage: escapeHtml(initialMessage),
+                chatTitle: null,
+                productId: productId
+            };
+
+            const chatResponse = await fetch('/api/chats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!chatResponse.ok) throw new Error('채팅방 생성 실패');
+
+            // 모달 닫기
+            chatStartModal.hide();
+
+            // 이동?
+            window.location.href = '/chats';
+        } catch (error) {
+            console.error(error.message);
+        }
+    }
+
+    // XSS 공격 방지
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    let selectedStatus = null;
+
+    // 상태 버튼 클릭 시
+    document.addEventListener("click", function (e) {
+        if (!e.target.classList.contains("status-btn")) return;
+
+        const btn = e.target;
+
+        if (btn.classList.contains("disabled-status")) return;
+
+        // 다른 버튼 active 제거
+        document.querySelectorAll(".status-btn").forEach(b => b.classList.remove("active-select"));
+
+        btn.classList.add("active-select");
+        selectedStatus = btn.getAttribute("data-value");
+
+        document.getElementById("confirmStatusBtn").disabled = false;
+    });
+
+    // 확인 버튼 클릭
+    document.getElementById("confirmStatusBtn").addEventListener("click", function () {
+        if (!selectedStatus) return;
+
+        changeProductStatus(selectedStatus);
+    });
+
+
+    // 채팅
+    document.getElementById('chat-button')?.addEventListener('click', async () => {
+        // 로그인 예외 처리
+        if (!currentUserId) {
+            alert('로그인이 필요한 서비스입니다.');
+            return;
+        }
+        if (sellerId == currentUserId) {
+            alert('자신의 상품과는 채팅할 수 없습니다.');
+            return;
+        }
+
+        // 버튼 상태 및 메시지 입력창 초기화
+        initialMessageInput.value = '';
+        updateSendButtonState();
+
+        // 모달 보여주기
+        chatStartModal.show();
+    });
+
+    // 전송버튼
+    sendInitialChatBtn.addEventListener('click', createChat);
+    window.changeStatusModal = changeStatusModal;
+    window.deleteProduct = deleteProduct;
+</script>
+</body>
+</html>

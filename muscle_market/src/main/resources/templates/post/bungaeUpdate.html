@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>게시판 템플릿</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter 폰트 사용 (Figma와 유사한 깔끔한 폰트) */
+        body {
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
+            background-color: #f8f9fa; /* 피그마 배경과 유사한 색상 */
+        }
+        /* 피그마의 회색 버튼 스타일 */
+        .btn-secondary {
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
+            color: #495057;
+        }
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        /* 피그마의 흰색 버튼 스타일 */
+        .btn-outline {
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+        .btn-outline:hover {
+            background-color: #f8f9fa;
+        }
+        /* 피그마의 기본 파란색 버튼 (예시) */
+        .btn-primary {
+            background-color: #3b82f6; /* 예시 파란색 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <main id="board-edit-bungae" class="w-full max-w-4xl mx-auto px-4 py-10">
+        <h1 class="text-3xl font-bold mb-8">게시글 수정</h1>
+
+        <div class="space-y-6">
+            <!-- 제목 -->
+            <div class="flex items-start gap-4">
+                <input id="post-title" type="text" placeholder="제목을 작성해주세요" class="flex-grow border border-gray-300 rounded-md p-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="post-category" class="border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-[50px]">
+                    <option value="">-- 운동 선택 --</option>
+                    <!-- JS로 동적 생성됨 -->
+                </select>
+            </div>
+
+            <!-- 번개 모집 추가 필드 -->
+            <div id="meetup-fields-container" class="space-y-6 border-t border-b border-gray-200 py-6">
+                <!-- 상태 선택 드롭다운 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
+                    <select id="meetup-status" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- value는 Java EnumType.String과 일치해야 함 -->
+                        <option value="OPENED">모집중</option>
+                        <option value="CLOSED">모집마감</option>
+                    </select>
+                </div>
+                <!-- 위치 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">위치</label>
+                    <input id="meetup-location" type="text" placeholder="위치를 입력해주세요" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- 인원 및 날짜 -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">현재 인원</label>
+                        <input id="meetup-current" type="number" placeholder="현재 인원 수" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">최대 인원</label>
+                        <input id="meetup-max" type="number" placeholder="최대 인원 수" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">날짜 및 시간</label>
+                        <input id="meetup-datetime" type="datetime-local" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 본문 -->
+            <div>
+                <textarea id="post-content-area" class="w-full border border-gray-300 rounded-md p-3 h-96 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="추가 설명을 작성해주세요 (ex: 준비물, 참가비 등)"></textarea>
+            </div>
+            
+            <!-- 이미지 업로드 UI -->
+            <div class="border-t border-b border-gray-200 py-6">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm font-medium text-gray-700">이미지 첨부</span>
+                    <button id="image-upload-btn" type="button" class="btn-outline px-4 py-2 rounded-md font-medium text-sm">
+                        이미지 추가
+                    </button>
+                    <input type="file" id="image-file-input" multiple accept="image/*" class="hidden">
+                </div>
+                <!-- 썸네일 컨테이너 -->
+                <div id="image-thumbnail-container" class="flex flex-wrap gap-4">
+                    <!-- JS로 동적 생성됨 -->
+                </div>
+            </div>
+
+            <!-- 버튼 영역 -->
+            <div class="flex justify-end gap-2 pt-4">
+                <button id="post-cancel" class="btn-secondary px-6 py-3 rounded-md font-medium">취소</button>
+                <button id="post-submit" class="btn-primary px-6 py-3 rounded-md font-medium">수정</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 현재 로그인한 유저
+        let currentUser = null;
+        
+        // CSRF Token
+        const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
+        const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
+
+        // 게시글 id
+        let currentPostId = null;
+
+        // 이미지 배열
+        let existingImages = [];
+        let newImages = [];
+
+        // 요소 불러오기
+        const contentTextarea = document.getElementById('post-content-area');
+        const postSportFilterContainer = document.getElementById('post-category');
+        const title = document.getElementById('post-title');
+        const submitButton = document.getElementById('post-submit');
+        const cancelButton = document.getElementById('post-cancel');
+        const thumbnailContainer = document.getElementById('image-thumbnail-container');
+        const bungaeLocation = document.getElementById('meetup-location');
+        const bungaeCurParticipants = document.getElementById('meetup-current');
+        const bungaeMaxParticipants = document.getElementById('meetup-max');
+        const bungaeDatetime = document.getElementById('meetup-datetime');
+        const bungaeStatus = document.getElementById('meetup-status');
+
+        // 스포츠 카테고리 불러오기
+        async function fetchSports() {
+            try {
+                const res = await fetch('/api/sports', {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('스포츠 리스트 불러오기 실패');
+                }
+
+                sports = await res.json();
+                sports.forEach((sport) => {
+                    const option = document.createElement('option');
+                    option.value = sport.id;
+                    option.textContent = sport.name;
+                    postSportFilterContainer.appendChild(option);
+                });
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+
+        // 현재 게시글 정보 가져와서 필드 채우기
+        async function fetchPostData(postId) {
+            try {   
+                await fetchSports();
+                const res = await fetch(`/api/posts/${postId}`, {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) throw new Error('게시글 정보를 불러오는 데 실패했습니다.');
+
+                const postData = await res.json();
+                // 게시글 데이터 가져왔는데 작성자가 다르다면 상세 페이지로 리다이렉트 해야함
+                if (currentUser.userId !== postData.postAuthor.userId) throw new Error('게시글 작성자가 아닙니다.');
+                // 값 채우기
+                title.value = postData.title;
+                postSportFilterContainer.value = postData.sportId;
+                contentTextarea.value = postData.content;
+                bungaeLocation.value = postData.bungaeLocation;
+                bungaeMaxParticipants.value = postData.maxParticipants;
+                bungaeCurParticipants.value = postData.curParticipants;
+                bungaeDatetime.value = postData.bungaeDatetime;
+                bungaeStatus.value = postData.bungaeStatus;
+
+                // 이미지 세팅
+                existingImages = postData.postImages || [];
+                renderThumbnails();
+                setupImageUploadListeners();
+            } catch (error) {
+                console.error(error.message);
+                window.location.href = `/posts/${postId}`;
+            }
+        }
+
+        // 취소 버튼 세팅 함수
+        function setupCancel() {
+            if (cancelButton) {
+                cancelButton.addEventListener('click', () => {
+                    if (contentTextarea.value.trim().length > 0) {
+                        if (!confirm('작성을 취소하시겠습니까? (작성한 내용이 사라집니다)')) {
+                            return;
+                        }
+                    }
+
+                    window.location.href = `/posts/${currentPostId}`;
+                });
+            }
+        }
+
+        // 이미지 버튼 이벤트 리스너
+        function setupImageUploadListeners() {
+            const uploadBtn = document.getElementById('image-upload-btn');
+            const fileInput = document.getElementById('image-file-input');
+            
+            if (!uploadBtn || !fileInput || !thumbnailContainer) return;
+
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (event) => {
+                const files = event.target.files;
+                if (!files) return;
+
+                for (const file of files) newImages.push(file);
+
+                renderThumbnails();
+                event.target.value = null;
+            });
+
+            thumbnailContainer.addEventListener('click', (event) => {
+                if (event.target.classList.contains('thumbnail-remove-btn')) {
+                    const type = event.target.dataset.type;
+
+                    if (type === 'existing') {
+                        const urlToRemove = target.dataset.url;
+                        existingImages = existingImages.filter(url => url !== urlToRemove);
+                    } else if (type === 'new') {
+                        const indexToRemove = parseInt(target.dataset.index);
+                        newImages.splice(indexToRemove, 1);
+                    }
+
+                    renderThumbnails();
+                }
+            });
+        }
+
+        // 업로드한 이미지 썸네일 렌더링 함수
+        function renderThumbnails() {
+            thumbnailContainer.innerHTML = '';
+
+            // 기존 이미지
+            existingImages.forEach((url) => {
+                const thumbnailDiv = document.createElement('div');
+                thumbnailDiv.className = 'thumbnail-item';
+                thumbnailDiv.innerHTML = `
+                    <img src="${url}" alt="Existing Image" class="thumbnail-img">
+                    <button type="button" class="thumbnail-remove-btn" data-type="existing" data-url="${url}">x</button>
+                `;
+                thumbnailContainer.appendChild(thumbnailDiv);
+            })
+
+            // 새 이미지
+            newImages.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const thumbnailDiv = document.createElement('div');
+                    thumbnailDiv.className = 'thumbnail-item';
+                    // 새 이미지는 약간 반투명하게 처리해서 구분?
+                    thumbnailDiv.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}" class="thumbnail-img opacity-75">
+                        <button type="button" class="thumbnail-remove-btn" data-index="${index}">x</button>
+                    `;
+                    container.appendChild(thumbnailDiv);
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 이미지 S3로 업로드하는 함수
+        async function uploadFilesToS3(files) {
+            const uploadPromises = files.map(async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const url = '/api/files/upload';
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!res.ok) throw new Error(`'${file.name}' 업로드 실패`);
+                    const result = await res.text();
+                    const fileUrl = result.split(" ").pop();
+                    if (!fileUrl || !fileUrl.startsWith('http')) throw new Error("서버가 유효한 URL을 반환하지 않았습니다.");
+                    return fileUrl;
+                } catch (error) {
+                    console.error(error.message);
+                    throw error;
+                }
+            });
+        }
+
+        // 제출 버튼 이벤트 리스너
+        async function updatePost() {
+            // 중복 클릭 방지
+            submitButton.disabled = true;
+            submitButton.innerText = '수정 중...';
+
+            try {
+                const titleValue = escapeHtml(title.value);
+                const categoryValue = postSportFilterContainer.value;
+                const contentValue = escapeHtml(contentTextarea.value);
+                const locationValue = escapeHtml(bungaeLocation.value);
+                const maxParticipants = bungaeMaxParticipants.value;
+                const curParticipants = bungaeCurParticipants.value;
+                const datetimeValue = bungaeDatetime.value;
+
+                let newlyUploadedImages = [];
+                if (newImages.length > 0) {
+                    newlyUploadedImages = await uploadFilesToS3(newImages);
+                }
+                const images = [...existingImages, ...newlyUploadedImages];
+
+                // 유효성 검사
+                if (!titleValue.trim()) {
+                    alert('제목을 입력해주세요.');
+                    return;
+                }
+            
+                if (!categoryValue) {
+                    alert('카테고리를 선택해주세요.');
+                    return;
+                }
+
+                if (!locationValue.trim()) {
+                    alert('번개 장소를 입력해주세요.');
+                    return;
+                }
+                if (!maxParticipants) {
+                    alert('최대 인원을 설정해주세요.');
+                    return;
+                }
+                if (!curParticipants) {
+                    alert('현재 인원을 정해주세요.');
+                    return;
+                }
+                if (maxParticipants && curParticipants && (curParticipants > maxParticipants)) {
+                    alert('현재 인원이 최대 인원보다 많아요. 최대 인원을 늘려주세요.');
+                    return;
+                }
+                if (!datetimeValue) {
+                    alert('번개 날짜와 시간을 정해주세요.');
+                    return;
+                }
+
+                const body = {
+                    title: titleValue,
+                    content: contentValue,
+                    sportId: Number(categoryValue),
+                    isBungae: true,
+                    bungaeLocation: locationValue,
+                    maxParticipants: maxParticipants,
+                    curParticipants: curParticipants,
+                    bungaeDatetime: datetimeValue,
+                    bungaeStatus: bungaeStatus.value,
+                    postImages: images
+                };
+
+                const res = await fetch(`/api/posts/${currentPostId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) throw new Error('게시글 수정에 실패했습니다.');
+
+                const updatedPost = await res.json();
+
+                window.location.href = `/posts/${updatedPost.postId}`;
+            } catch (error) {
+                console.error(error.message);
+                alert(error.message);
+            }
+        }
+
+        // 현재 로그인한 유저 정보 가져오기
+        async function fetchCurrentUserAndInit() {
+            try {
+                const res = await fetch('/api/users/me', {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('인증 실패. 로그인이 필요합니다.');
+                }
+
+                currentUser = await res.json();
+                initializeApp();
+            } catch (error) {
+                console.error(error.message);
+                // 로그인 페이지로 강제 이동
+                window.location.href = "/login";
+            }
+        } 
+
+        // 페이지 로드 될 때 실행되는 함수
+        function initializeApp() {
+            // 먼저 게시글 id부터 저장
+            const pathParts = window.location.pathname.split('/');
+            currentPostId = pathParts[pathParts.length - 2];
+
+            // 1. 스포츠 카테고리 가져오기 <- 순서가 중요하니까 fetchPostData 안에서 호출?
+            // fetchSports();
+            // 2. 게시글 데이터 가져오기
+            fetchPostData(currentPostId);
+            // 3. 수정 버튼 이벤트 리스너 추가
+            if (submitButton) submitButton.addEventListener('click', updatePost);
+            // 4. 취소 버튼 이벤트 리스너 추가
+            setupCancel();
+            // 5. 이미지 업로드 버튼 세팅
+            setupImageUploadListeners();
+        }
+
+
+        // XSS 공격 방지
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. 로그인 유저 정보 가져오고 다른 데이터 fetch
+            fetchCurrentUserAndInit();
+        });
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@ package com.example.muscle_market.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -21,9 +21,15 @@ public class ProductImage {
     @JoinColumn(name = "product_post_idx")
     private Product product;
 
-    @Column(name = "image_url")
-    private String imageUrl;
-
     @Column(name = "created_at")
-    private Date createdAt;
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private String s3Key;  // S3에서의 파일 키
+
+    @Column(nullable = false)
+    private String s3Url;  // S3 파일 URL
+
+    @Column(nullable = false)
+    private String originalFilename; // 파일명
 }

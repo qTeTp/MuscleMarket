@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>게시글 상세</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter 폰트 사용 (Figma와 유사한 깔끔한 폰트) */
+        body {
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
+            background-color: #f8f9fa; /* 피그마 배경과 유사한 색상 */
+        }
+        /* 피그마의 회색 버튼 스타일 */
+        .btn-secondary {
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
+            color: #495057;
+        }
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        /* 피그마의 흰색 버튼 스타일 */
+        .btn-outline {
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+        .btn-outline:hover {
+            background-color: #f8f9fa;
+        }
+        /* 피그마의 기본 파란색 버튼 (예시) */
+        .btn-primary {
+            background-color: #3b82f6; /* 예시 파란색 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        /* 페이지네이션 관련 스타일링 */
+        .pagination-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 2.25rem; height: 2.25rem; padding: 0 0.75rem;
+            border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500;
+            user-select: none; transition: background-color 0.2s;
+        }
+        .pagination-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+        .pagination-btn.active {
+            background-color: #3b82f6; color: white; border-color: #3b82f6;
+        }
+        .pagination-btn.inactive {
+            background-color: #ffffff; border: 1px solid #ced4da; color: #495057;
+        }
+        .pagination-btn.inactive:hover:not([disabled]) { background-color: #f8f9fa; }
+
+        /* 다음 게시글 && 이전 게시글 */
+        .prev-next-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+        .prev-next-link:hover {
+            background-color: #f9fafb;
+        }
+        .prev-next-link .label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .prev-next-link .title {
+            font-size: 0.875rem;
+            color: #1f2937;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+        }
+        .prev-next-link.disabled {
+            color: #9ca3af;
+            background-color: #f9fafb;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <main id="board-detail" class="w-full max-w-4xl mx-auto px-4 py-10">
+        
+        <!-- 게시글 본문 (데이터 바인딩 필요) -->
+        <div class="border-b-2 border-gray-800 pb-6">
+            <h1 id="detail-title" class="text-3xl font-bold mb-4">...</h1>
+            
+            <!-- 작성자 정보 및 수정/삭제 -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200"></div> <!-- 프로필 사진 -->
+                    <div>
+                        <div id="detail-author" class="font-semibold text-gray-800">...</div>
+                        <div id="detail-meta" class="text-sm text-gray-500">
+                            <!-- JS에 의해 채워짐 -->
+                        </div>
+                    </div>
+                </div>
+                <!-- [수정] JS가 버튼 또는 '목록으로' 링크를 동적으로 생성 -->
+                <div id="detail-actions" class="text-sm text-gray-500 space-x-3">
+                    <!-- JS에 의해 채워짐 (예: 수정, 삭제 버튼) -->
+                    <a href="board-list.html" class="hover:underline">목록으로</a>
+                </div>
+            </div>
+
+            <!-- ★[요청] 번개글 정보 (본문 위) -->
+            <div id="detail-meetup-info" class="hidden mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
+                <div class="flex items-center">
+                    <span class="font-semibold w-20">상태:</span>
+                    <span id="detail-meetup-status" class="font-medium text-blue-600">...</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="font-semibold w-20">위치:</span>
+                    <span id="detail-meetup-location" class="text-gray-700">...</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="font-semibold w-20">날짜/시간:</span>
+                    <span id="detail-meetup-datetime" class="text-gray-700">...</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="font-semibold w-20">인원:</span>
+                    <span id="detail-meetup-capacity" class="text-gray-700">...</span>
+                </div>
+            </div>
+
+            <!-- 게시글 내용 -->
+            <div id="detail-content" class="text-gray-800 leading-relaxed min-h-[200px]">
+                ...
+            </div>
+
+            <div id="detail-image-list" class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+
+            </div>
+        </div>
+
+        <!-- 이전 글 / 다음 글 컨테이너 -->
+        <div id="prev-next-container" class="mt-8 space-y-2">
+            <!-- JS에 의해 채워짐 -->
+        </div>
+
+
+        <!-- 댓글 영역 -->
+        <div class="mt-8">
+            <!-- 댓글 개수 -->
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="comment-count" class="text-xl font-bold">댓글 0개</h2>
+                <div class="flex gap-2">
+                    <a href="board-new-post.html" class="btn-outline px-4 py-2 rounded-md font-medium text-sm">게시글 작성</a>
+                </div>
+            </div>
+            
+            <!-- 댓글 목록 컨테이너 -->
+            <div id="comment-list-container" class="space-y-6">
+                <!-- JS에 의해 동적으로 채워짐 -->
+            </div>
+            
+            <!-- ★[요청] 댓글 페이지네이션 UI 컨테이너 -->
+            <div id="comment-pagination-container" class="flex justify-center items-center gap-2 mt-8">
+                <!-- JS에 의해 동적으로 채워짐 -->
+            </div>
+
+            <!-- 루트 댓글 작성 폼 -->
+            <div id="root-comment-form" class="mt-8 p-4 bg-gray-100 rounded-lg">
+                <textarea id="root-comment-textarea" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="댓글을 남겨보세요"></textarea>
+                <div class="flex justify-end mt-2">
+                    <button id="root-comment-submit-btn" class="btn-primary px-5 py-2 rounded-md font-medium text-sm">등록</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // 현재 로그인한 유저
+        let currentUser = null;
+        
+        // CSRF Token
+        const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
+        const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
+
+        // 각종 변수
+        const commentsPerPage = 20;
+        const pageGroupSize = 5;
+        let currentPostId = null;
+        let currentCommentPage = 0;
+        
+        // 요소 가져오기
+        const wholePage = document.getElementById('board-detail');
+        const postTitle = document.getElementById('detail-title');
+        const postAuthor = document.getElementById('detail-author');
+        const postMetadata = document.getElementById('detail-meta');
+        const postContent = document.getElementById('detail-content');
+        const bungaeInfo = document.getElementById('detail-meetup-info');
+        const bungaeStatus = document.getElementById('detail-meetup-status');
+        const bungaeLocation = document.getElementById('detail-meetup-location');
+        const bungaeDatetime = document.getElementById('detail-meetup-datetime');
+        const bungaeParticipant = document.getElementById('detail-meetup-capacity');
+        const commentListContainer = document.getElementById('comment-list-container');
+
+        // 게시글 데이터 로딩
+        async function fetchPostDetail() {
+            try {
+                const res = await fetch(`/api/posts/${currentPostId}`, {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+                if (!res.ok) throw new Error('게시글 로딩 실패');
+                const postData = await res.json();
+
+                // 게시글 내용 렌더링
+                postTitle.innerText = escapeHtml(postData.title);
+                postAuthor.innerText = escapeHtml(postData.postAuthor.nickname);
+                postMetadata.innerHTML = `
+                    <span>${postData.createdAt}</span> <span class="mx-1">|</span>
+                    <span>조회 ${postData.views}</span> <span class="mx-1">|</span>
+                    <span class="text-blue-600 font-medium">${postData.sportName}</span>
+                `;
+                postContent.innerHTML = escapeHtml(postData.content);
+
+                // 만약 번개 게시글이라면...
+                if (postData.isBungae) {
+                    bungaeStatus.innerText = postData.bungaeStatus;
+                    bungaeLocation.innerText = escapeHtml(postData.bungaeLocation);
+                    bungaeDatetime.innerText = postData.bungaeDatetime;
+                    bungaeParticipant.innerText = `${postData.curParticipants} / ${postData.maxParticipants}명`;
+                    bungaeInfo.classList.remove('hidden');
+                } else {
+                    bungaeInfo.classList.add('hidden');
+                }
+
+                // 게시글 수정/삭제 버튼 렌더링
+                renderPostButton(postData);
+                // 이전/다음글 렌더링
+                renderPrevNextPost(postData);
+                // 이미지 렌더링
+                renderPostImages(postData.postImages);
+
+                // 댓글 첫 페이지 로드
+                currentCommentPage = 0;
+                await fetchComments(currentPostId, 0);
+            } catch (error) {
+                console.error(error.message);
+                wholePage.innerHTML = `<p class="text-red-500 text-center py-10">${error.message}</p>`;
+            }
+        }
+
+        // 게시글 버튼들 설정
+        function renderPostButton(postData) {
+            const container = document.getElementById('detail-actions');
+            if (!container) return;
+
+            const isAuthor = currentUser && postData.postAuthor.userId === currentUser.userId;
+            let html = '';
+            if (isAuthor) {
+                html = `
+                    <a href="/posts/${postData.id}/edit" class="text-blue-600 hover:underline font-medium">수정</a>
+                    <button id="post-delete-btn" class="text-red-500 hover:underline font-medium">삭제</button>
+                `;
+            }
+            html += `<a href="/posts" class="text-gray-600 hover:underline">목록으로</a>`;
+
+            container.innerHTML = html;
+
+            const deleteBtn = document.getElementById('post-delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', handleDeletePost);
+            }
+        }
+
+        // 게시글 삭제 핸들러
+        async function handleDeletePost() {
+            if (!confirm("게시글을 정말 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.")) return;
+
+            try {
+                const res = await fetch(`/api/posts/${currentPostId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+                if (!res.ok) throw new Error('삭제에 실패했습니다.');
+            } catch (error) {
+                console.error(error.message);
+                alert('삭제 중 에러가 발생했습니다.');
+            }
+        }
+
+        // 이전 글, 다음 글 렌더링
+        function renderPrevNextPost(postData) {
+            const container = document.getElementById('prev-next-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            // 다음 글
+            if (postData.nextPost) {
+                const nextLink = document.createElement('a');
+                nextLink.href = `/posts/${postData.nextPost.postId}`;
+                nextLink.className = 'prev-next-link';
+                nextLink.innerHTML = `
+                    <div>
+                        <span class="label text-blue-600">▲ 다음 글</span>
+                        <span class="title">${postData.nextPost.title}</span>
+                    </div>
+                    <span class="text-gray-400">&gt;</span>
+                `;
+                container.appendChild(nextLink);
+            } else {
+                container.innerHTML += `<div class="prev-next-link disabled"><span class="label">▲ 다음 글이 없습니다.</span></div>`;
+            }
+
+            // 이전 글
+            if (postData.prevPost) {
+                const prevLink = document.createElement('a');
+                prevLink.href = `/posts/${postData.prevPost.postId}`;
+                prevLink.className = 'prev-next-link';
+                prevLink.innerHTML = `
+                    <div>
+                        <span class="label text-blue-600">▼ 이전 글</span>
+                        <span class="title">${postData.prevPost.title}</span>
+                    </div>
+                    <span class="text-gray-400">&gt;</span>
+                `;
+                container.appendChild(prevLink);
+            } else {
+                container.innerHTML += `<div class="prev-next-link disabled"><span class="label">▼ 이전 글이 없습니다.</span></div>`;
+            }
+        }
+
+        // 게시글 이미지 렌더링
+        function renderPostImages(images) {
+            const container = document.getElementById('detail-image-list');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (images && images.length > 0) {
+                images.forEach(imageUrl => {
+                    // 이미지를 감싸는 링크 (새 탭에서 열기)
+                    const linkEl = document.createElement('a');
+                    linkEl.href = imageUrl;
+                    linkEl.target = "_blank";
+                    linkEl.rel = "noopener noreferrer"; // 보안 속성
+
+                    // 이미지 태그
+                    const imgEl = document.createElement('img');
+                    imgEl.src = imageUrl;
+                    imgEl.alt = "게시글 이미지";
+                    // h-48 (고정 높이) + object-cover (비율 유지)로 갤러리 모양을 만듭니다.
+                    imgEl.className = "w-full h-48 object-cover rounded-lg border border-gray-200 shadow-sm transition-transform duration-200 hover:scale-105";
+                        
+                    linkEl.appendChild(imgEl);
+                    container.appendChild(linkEl);
+                });
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        // 댓글 불러오기 및 로직
+        async function fetchComments(postId, page) {
+            currentCommentPage = page;
+            const params = new URLSearchParams({ page: page, size: commentsPerPage, sort: 'commentId,asc' });
+
+            try {
+                const res = await fetch(`/api/posts/${postId}/comments?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+                if (!res.ok) throw new Error('댓글을 불러오는 데 실패했습니다.');
+                const pageData = await res.json();
+
+                // 댓글 ui 렌더링
+                renderComments(pageData);
+
+                // 댓글 페이지네이션 ui 적용
+                createPagination(
+                    pageData,
+                    (pageIndex) => fetchComments(postId, pageIndex)
+                );
+            } catch (error) {
+                console.error(error.message);
+                commentListContainer.innerHTML = `<p class="text-red-500 text-center py-5">${error.message}</p>`;
+            }
+        }
+
+        // 댓글 ui 렌더링
+        function renderComments(pageData) {
+            const countEl = document.getElementById('comment-count');
+            if (!commentListContainer || !countEl) return;
+
+            const comments = pageData.content;
+            countEl.innerText = `댓글 ${pageData.totalElements}개`;
+            commentListContainer.innerHTML = '';
+
+            if (comments.length === 0) {
+                commentListContainer.innerHTML = '<p class="text-center text-gray-500 py-5">작성된 댓글이 없습니다.</p>';
+                return;
+            }
+
+            comments.forEach(comment => {
+                const isReply = comment.parentId !== null;
+                const commentEl = document.createElement('div');
+                commentEl.className = `flex gap-3 ${isReply ? 'ml-10' : ''}`;
+                commentEl.setAttribute('data-comment-id', comment.commentId);
+
+                const isCommentAuthor = currentUser && comment.author.userId === currentUser.userId;
+                const targetAuthorTag = comment.targetAuthor
+                    ? `<span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2 py-0.5 rounded">@${comment.targetAuthor.nickname}</span>`
+                    : '';
+
+                commentEl.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0"></div>
+                    <div class="flex-grow">
+                        <div class="font-semibold">${comment.author.nickname}</div>
+                        <div class="text-sm text-gray-500 mb-1">${comment.createdAt}</div>
+                            
+                        <p class="text-gray-800" id="comment-content-${comment.commentId}" data-original-content="${escapeHtml(comment.content)}">
+                            ${targetAuthorTag}
+                            ${comment.content}
+                        </p>
+                            
+                        <div id="comment-edit-form-container-${comment.commentId}" class="mt-2 hidden"></div>
+
+                        <div class="flex items-center gap-3 mt-1 text-sm font-medium" id="comment-actions-${comment.commentId}">
+                            <button class="reply-btn text-gray-600 hover:underline">답글</button>
+                                
+                            ${isCommentAuthor ? `
+                                <button class="comment-edit-btn text-blue-600 hover:underline">수정</button>
+                                <button class="comment-delete-btn text-red-500 hover:underline">삭제</button>
+                            ` : ''}
+                        </div>
+                            
+                        <div id="reply-form-container-${comment.commentId}" class="reply-form-container mt-4"></div>
+                    </div>
+                `;
+                commentListContainer.appendChild(commentEl);
+            });
+        }
+
+        // 페이지네이션 설정
+        function createPagination(pageData, onPageClick) {
+            const container = document.getElementById('comment-pagination-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            const { totalPages, first, last } = pageData;
+            const currentPage = pageData.pageable.pageNumber;
+
+            if (totalPages === 0) return;
+
+            const currentGroup = Math.floor(currentPage / pageGroupSize);
+            const startPage = currentGroup * pageGroupSize + 1;
+            const endPage = Math.min(startPage + pageGroupSize - 1, totalPages);
+
+            const createButton = (text, pageIndex, isDiabled = false, classes = 'inactive') => {
+                const button = document.createElement('button');
+                button.innerText = text;
+                button.className = `pagination-btn ${classes}`;
+                button.disabled = isDiabled;
+                button.addEventListener('click', () => onPageClick(pageIndex));
+                return button;
+            }
+
+            // 이전 장
+            const prevGroupPage = (currentGroup - 1) * pageGroupSize;
+            const prevGroupButton = createButton('◀◀', prevGroupPage, currentGroup === 0);
+            container.appendChild(prevGroupButton);
+
+            // 이전
+            const prevPage = currentPage - 1;
+            const prevButton = createButton('이전', prevPage, first);
+            container.appendChild(prevButton);
+
+            // 페이지 번호 버튼
+            for (let i = startPage; i <= endPage; i++) {
+                const pageIndex = i - 1;
+                const isActive = (pageIndex === currentPage);
+                const button = createButton(i, pageIndex, false, isActive ? 'active' : 'inactive');
+                container.appendChild(button);
+            }
+
+            // 다음
+            const nextPage = currentPage + 1;
+            const nextButton = createButton('다음', nextPage, last);
+            container.appendChild(nextButton);
+
+            // 다음 장
+            const nextGroupPage = (currentGroup + 1) * pageGroupSize;
+            const isLastGroup = endPage === totalPages;
+            const nextGroupButton = createButton('▶▶', nextGroupPage, isLastGroup);
+            container.appendChild(nextGroupButton);
+        }
+
+        // 댓글 이벤트 리스너 
+        function setupCommentActions() {
+            if (commentListContainer) {
+                commentListContainer.addEventListener('click', handleCommentActions);
+            }
+        }
+
+        // 댓글 이벤트 위임
+        async function handleCommentActions(e) {
+            const target = e.target;
+            const commentEl = target.closest('[data-comment-id]');
+            if (!commentEl) return;
+
+            const commentId = commentEl.dataset.commentId;
+
+            // 답글 버튼 클릭
+            if (target.classList.contains('reply-btn')) {
+                toggleReplyForm(commentId);
+            }
+
+            // 답글 폼 닫기 버튼
+            if (target.classList.contains('reply-close-btn')) {
+                target.closest('.reply-form-container').innerHTML = '';
+            }
+
+            // 답글 폼 등록
+            if (target.classList.contains('reply-submit-btn')) {
+                const parentId = target.dataset.parentId;
+                const textarea = target.closest('.reply-form').querySelector('textarea');
+                const content = textarea.value;
+
+                if (!content.trim()) {
+                    alert('답글 내용을 입력하세요.'); 
+                    return;
+                }
+
+                const success = await postComment(content, parseInt(parentId));
+
+                if (success) {
+                    target.closest('.reply-form-container').innerHTML = '';
+                    fetchComments(currentPostId, currentCommentPage);
+                }
+            }
+
+            // 댓글 수정 버튼 클릭
+            if (target.classList.contains('comment-edit-btn')) {
+                toggleEditForm(commentEl);
+            }
+
+            // 댓글 수정 취소 버튼 클릭
+            if (target.classList.contains('comment-edit-cancel-btn')) {
+                closeEditForm(commentEl);
+            }
+
+            // 댓글 수정 등록 버튼 클릭
+            if (target.classList.contains('comment-edit-submit-btn')) {
+                submitCommentEdit(commentEl);
+            }
+
+            // 댓글 삭제 버튼 클릭
+            if (target.classList.contains('comment-delete-btn')) {
+                if (!confirm("댓글을 정말로 삭제하시겠습니까?")) return;
+
+                const commentEl = target.closest('[data-comment-id]');
+                const commentId = commentEl.dataset.commentId;
+                try {
+                    const res = await fetch(`/api/posts/${currentPostId}/comments/${commentId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        }
+                    });
+                    if (!res.ok) throw new Error("댓글 삭제 실패");
+                    fetchComments(currentPostId, currentCommentPage);
+                } catch (error) {
+                    console.error(error.message);
+                    alert("댓글 삭제 중 오류가 발생했습니다.");
+                }
+            }
+        }
+
+        // 댓글 등록 리스너 설정
+        function setupCommentSubmission() {
+            const rootCommentSubmitBtn = document.getElementById('root-comment-submit-btn');
+            if (rootCommentSubmitBtn) {
+                rootCommentSubmitBtn.addEventListener('click', submitRootComment);
+            }
+        }
+
+        // 루트 댓글 등록
+        async function submitRootComment() {
+            const textarea = document.getElementById('root-comment-textarea');
+            const content = textarea.value;
+
+            if (!content.trim()) {
+                alert('댓글 내용을 입력하세요.');
+                return;
+            }
+
+            if (!currentUser) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+
+            try {
+                const success = await postComment(content, null);
+
+                if (success) {
+                    textarea.value = '';
+                    fetchComments(currentPostId, 0);
+                }
+
+            } catch (error) {
+                console.error(error.message);
+                alert('댓글 등록 중 오류가 발생했습니다.')
+            }
+        } 
+
+        // 답글 폼 토글 함수
+        function toggleReplyForm(parentId) {
+            const container = document.getElementById(`reply-form-container-${parentId}`);
+            if (!container) return;
+
+            if (container.innerHTML !== '') {
+                container.innerHTML = '';
+                return;
+            }
+
+            document.querySelectorAll('.reply-form-container').forEach(c => c.innerHTML = '');
+
+            container.innerHTML = `
+                <div class="reply-form p-4 bg-gray-100 rounded-lg">
+                    <textarea class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="답글을 남겨보세요"></textarea>
+                    <div class="flex justify-end gap-2 mt-2">
+                        <button class="reply-close-btn btn-secondary px-5 py-2 rounded-md font-medium text-sm">취소</button>
+                        <button class="reply-submit-btn btn-primary px-5 py-2 rounded-md font-medium text-sm" data-parent-id="${parentId}">등록</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 댓글 수정 폼 토글 함수
+        function toggleEditForm(commentEl) {
+            const commentId = commentEl.dataset.commentId;
+
+            // DOM 요소 찾기
+            const contentP = document.getElementById(`comment-content-${commentId}`);
+            const actionsDiv = document.getElementById(`comment-actions-${commentId}`);
+            const editFormContainer = document.getElementById(`comment-edit-form-container-${commentId}`);
+
+            if (!contentP || !actionsDiv || !editFormContainer) return;
+
+            // 원본 내용 가져오기
+            const originalContent = contentP.dataset.originalContent;
+
+            editFormContainer.innerHTML = `
+                <div class="comment-edit-form p-4 bg-gray-100 rounded-lg">
+                    <textarea class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3">${originalContent}</textarea>
+                    <div class="flex justify-end gap-2 mt-2">
+                        <button class="comment-edit-cancel-btn btn-secondary px-5 py-2 rounded-md font-medium text-sm">취소</button>
+                        <button class="comment-edit-submit-btn btn-primary px-5 py-2 rounded-md font-medium text-sm">등록</button>
+                    </div>
+                </div>
+            `;
+
+            // 기존 텍스트와 버튼 숨기고 폼 보여주기
+            contentP.classList.add('hidden');
+            actionsDiv.classList.add('hidden');
+            editFormContainer.classList.add('hidden');
+        }
+
+        // 댓글 수정 취소 함수
+        function closeEditForm(commentEl) {
+            const commentId = commentEl.dataset.commentId;
+                
+            // 대상 DOM 요소 찾기
+            const contentP = document.getElementById(`comment-content-${commentId}`);
+            const actionsDiv = document.getElementById(`comment-actions-${commentId}`);
+            const editFormContainer = document.getElementById(`comment-edit-form-container-${commentId}`);
+
+            if (!contentP || !actionsDiv || !editFormContainer) return;
+                
+            // 폼 숨기고, 원래 텍스트/버튼 다시 보여주기
+            editFormContainer.classList.add('hidden');
+            editFormContainer.innerHTML = ''; // 폼 내용 비우기
+            contentP.classList.remove('hidden');
+            actionsDiv.classList.remove('hidden');
+        }
+
+        // 댓글 수정 등록
+        async function submitCommentEdit(commentEl) {
+            const commentId = commentEl.dataset.commentId;
+            const editFormContainer = document.getElementById(`comment-edit-form-container-${commentId}`);
+            const textarea = editFormContainer.querySelector('textarea');
+            const newContent = textarea.value;
+
+            if (!newContent.trim()) {
+                alert('수정할 내용을 입력하세요.'); return;
+            }
+
+            // API 호출
+            const success = await updateComment(commentId, newContent);
+
+            if (success) {
+                fetchComments(currentPostId, currentCommentPage);
+            }
+        }
+
+        // 댓글 등록 함수 (api 호출)
+        async function postComment(content, parentId) {
+            const body = {
+                parentCommentId: parentId,
+                content: escapeHtml(content)
+            };
+
+            try {
+                const res = await fetch(`/api/posts/${currentPostId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) {
+                    throw new Error('댓글 등록에 실패했습니다.');
+                }
+
+                return true;
+            } catch (error) {
+                console.error(error.message);
+                return false;
+            }
+        }
+
+        // 댓글 수정 함수 (api 호출)
+        async function updateComment(commentId, newContent) {
+            const body = { content: escapeHtml(content) };
+
+            try {
+                const res = await fetch(`/api/posts/${currentPostId}/comments/${commentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) {
+                    throw new Error('댓글 수정에 실패했습니다.');
+                }
+
+                return true;
+            } catch (error) {
+                console.error(error.message);
+                alert(error.message);
+                return false;
+            }
+        }
+
+        // 조회수 올리기
+        async function increaseViews() {
+            try {
+                const res = await fetch(`/api/posts/${currentPostId}/views`, {
+                    method: 'PUT',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) throw new Error("조회수 증가 실패");
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+
+
+        // 현재 로그인한 유저 정보 가져오기
+        async function fetchCurrentUserAndInit() {
+            try {
+                const res = await fetch('/api/users/me', {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('인증 실패. 로그인이 필요합니다.');
+                }
+
+                currentUser = await res.json();
+                initializeApp();
+            } catch (error) {
+                console.error(error.message);
+                // 로그인 페이지로 강제 이동
+                window.location.href = "/login";
+            }
+        } 
+
+        // 페이지 로드 될 때 실행되는 함수
+        function initializeApp() {
+            // 현재 게시글 id 가져오기
+            const pathParts = window.location.pathname.split("/");
+            const postId = pathParts[pathParts.length - 1];
+            if (!postId || isNaN(postId)) { // postId가 숫자가 아니거나 없는 경우
+                wholePage.innerHTML = '<p class="text-center text-red-500 py-10">게시글 ID가 없습니다.</p>';
+                return;
+            }
+            currentPostId = postId;
+
+            // 2. 조회수 올리기
+            increaseViews();
+
+            // 3. 게시글 상세 내용 가져오기 + 다음&&이전 게시글도 링크 걸기 (없으면 (null)이면 ui 표시 안하기)
+            fetchPostDetail();
+
+            // 4. 댓글 이벤트 리스너 등록
+            setupCommentActions();
+
+            // 5. 댓글 작성 기능
+            setupCommentSubmission();
+
+            
+
+        }
+
+
+        // XSS 공격 방지
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. 로그인 유저 정보 가져오고 다른 데이터 fetch
+            fetchCurrentUserAndInit();
+        });
+    </script>
+</body>
+</html>

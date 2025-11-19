@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>주변 시설 지도</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
+            background: #111;
+            background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .map-container {
+            width: 800px;
+            height: 600px;
+            background: rgba(20, 20, 20, 0.88);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #map {
+            flex: 1;
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 1px solid #555;
+            position: relative;
+        }
+
+        .search-box {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 14px;
+            border-radius: 8px 0 0 8px;
+            border: 1px solid #555;
+            background: #222;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .search-box button {
+            padding: 14px 20px;
+            border-radius: 0 8px 8px 0;
+            border: none;
+            background: #F5C542;
+            color: #111;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .search-box button:hover {
+            background: #d4a72e;
+        }
+
+        #currentLocationBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            background: #F5C542;
+            font-weight: 700;
+            cursor: pointer;
+            color: #111;
+        }
+
+        #currentLocationBtn:hover {
+            background: #d4a72e;
+        }
+    </style>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+</head>
+<body>
+<div class="map-container">
+    <h2 style="color: #F5C542; margin-bottom: 12px;">주변 시설 검색</h2>
+
+    <div class="search-box">
+        <input type="text" id="keyword" placeholder="검색할 장소 입력 해주세요.">
+        <button id="searchBtn">검색</button>
+    </div>
+
+    <div id="map">
+        <button id="currentLocationBtn">현재 위치</button>
+    </div>
+</div>
+
+<script th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapApiKey} + '&libraries=services'"></script>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        checkKakaoReady();
+    });
+
+    function checkKakaoReady() {
+        if (typeof kakao !== 'undefined' && typeof kakao.maps !== 'undefined') {
+            initMap();
+        } else {
+            setTimeout(checkKakaoReady, 100);
+        }
+    }
+
+    function initMap() {
+        const mapContainer = document.getElementById('map');
+        const mapOption = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 5 };
+        const map = new kakao.maps.Map(mapContainer, mapOption);
+
+        let userLocation = null;
+        let currentLocationMarker = null;
+
+        // CSRF 토큰 가져오기
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        // 현재 위치 가져오기
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                userLocation = new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                map.setCenter(userLocation);
+
+                const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+                const imageSize = new kakao.maps.Size(24, 35);
+                const imageOption = { offset: new kakao.maps.Point(12, 35) };
+                const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+
+                currentLocationMarker = new kakao.maps.Marker({
+                    map: map,
+                    position: userLocation,
+                    title: '현재 위치',
+                    image: markerImage
+                });
+            });
+        }
+
+        const ps = new kakao.maps.services.Places();
+        let markers = [];
+        let openInfoWindow = null;
+
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const keyword = document.getElementById('keyword').value.trim();
+            if (!keyword || !userLocation) return;
+
+            // 기존 마커 제거
+            markers.forEach(m => m.setMap(null));
+            markers = [];
+            if (openInfoWindow) {
+                openInfoWindow.close();
+                openInfoWindow = null;
+            }
+
+            // Kakao Places API 검색
+            ps.keywordSearch(keyword, (data, status) => {
+                if (status === kakao.maps.services.Status.OK) {
+                    const bounds = new kakao.maps.LatLngBounds();
+
+                    for (let i = 0; i < data.length; i++) {
+                        const place = data[i];
+                        const markerPosition = new kakao.maps.LatLng(place.y, place.x);
+
+                        const marker = new kakao.maps.Marker({ map: map, position: markerPosition });
+
+                        const infowindow = new kakao.maps.InfoWindow({
+                            content: `<div style="padding:5px;min-width:200px;">
+                                    <strong>${place.place_name}</strong><br/>
+                                    ${place.road_address_name || place.address_name}<br/>
+                                    ${place.phone || '전화번호 없음'}
+                                  </div>`
+                        });
+
+                        kakao.maps.event.addListener(marker, 'click', function() {
+                            if (openInfoWindow) openInfoWindow.close();
+                            infowindow.open(map, marker);
+                            openInfoWindow = infowindow;
+                        });
+
+                        markers.push(marker);
+                        bounds.extend(markerPosition);
+                    }
+
+                    map.setBounds(bounds);
+
+                    // 서버로 검색어 전송 (CSRF 적용)
+                    fetch('/api/map/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            [csrfHeader]: csrfToken
+                        },
+                        body: JSON.stringify({
+                            keyword: keyword,
+                            lat: userLocation.getLat(),
+                            lng: userLocation.getLng()
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => console.log('서버 검색 결과:', data))
+                        .catch(err => console.error('서버 검색 오류:', err));
+                }
+            }, { location: userLocation });
+        });
+
+        document.getElementById('currentLocationBtn').addEventListener('click', () => {
+            if (userLocation) {
+                map.setCenter(userLocation);
+            } else {
+                alert("현재 위치를 가져올 수 없습니다.");
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

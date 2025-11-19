@@ -1,8 +1,10 @@
 package com.example.muscle_market.dto;
 
+import com.example.muscle_market.enums.TransactionStatus;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -10,11 +12,17 @@ import java.util.Date;
 public class ProductListDto {
     private Long id;
     private String title;
-    private Float price;
+
+    private String description;
+    private Long price;
+    private String sportName;
     private String location;
+
     private Long views;
+
     private Long likeCount; // Service에서 계산
     private String thumbnailUrl; // 썸네일 이미지 URL (id가 가장 낮은 이미지)
-    private String sportName;
-    private Date createdAt;
+    private TransactionStatus status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

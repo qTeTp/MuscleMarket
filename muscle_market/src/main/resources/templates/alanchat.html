@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>앨런 챗봇</title>
+    <link rel="stylesheet" href="/css/alanchat.css">
+
+    <!-- CSRF 토큰 -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+</head>
+<body>
+
+<div class="chat-container">
+    <h1>앨런 챗봇 상담</h1>
+
+    <div class="chat-box" id="chat-box">
+        <div class="message alan-message">
+            <span class="sender">앨런</span>
+            <div class="content">무엇을 도와드릴까요? 스포츠 용품 추천을 요청해보세요!</div>
+        </div>
+
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="질문을 입력하세요...">
+        <button onclick="sendChat()">전송</button>
+        <button class="reset-button" onclick="resetAlanState()">초기화</button>
+    </div>
+</div>
+
+<div class="recommendation-container">
+    <h2>🔥 앨런의 추천 상품</h2>
+    <div class="product-list" id="product-list">
+        <div class="no-recommendation">아직 추천 상품이 없습니다.</div>
+    </div>
+</div>
+
+<script src="/js/alanchat.js"></script>
+
+</body>
+</html>

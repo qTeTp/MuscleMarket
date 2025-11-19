@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>게시글 작성</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter 폰트 사용 (Figma와 유사한 깔끔한 폰트) */
+        body {
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
+            background-color: #f8f9fa; /* 피그마 배경과 유사한 색상 */
+        }
+        /* 피그마의 회색 버튼 스타일 */
+        .btn-secondary {
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
+            color: #495057;
+        }
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        /* 피그마의 흰색 버튼 스타일 */
+        .btn-outline {
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+        .btn-outline:hover {
+            background-color: #f8f9fa;
+        }
+        /* 피그마의 기본 파란색 버튼 (예시) */
+        .btn-primary {
+            background-color: #3b82f6; /* 예시 파란색 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        /* 이미지 썸네일 스타일 */
+        .thumbnail-item {
+            position: relative; width: 100px; height: 100px; border: 1px solid #e5e7eb;
+            border-radius: 0.375rem; /* 6px */ overflow: hidden; background-color: #f9fafb;
+        }
+        .thumbnail-img { width: 100%; height: 100%; object-fit: cover; }
+        .thumbnail-remove-btn {
+            position: absolute; top: 2px; right: 2px; width: 20px; height: 20px;
+            border-radius: 9999px; background-color: rgba(0, 0, 0, 0.5); color: white;
+            font-size: 12px; font-weight: bold; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; border: none; line-height: 1;
+        }
+        .thumbnail-remove-btn:hover { background-color: rgba(239, 68, 68, 0.8); /* red-500 */ }
+    </style>
+    <!-- Inter 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-white">
+    <main id="board-new-post" class="w-full max-w-4xl mx-auto px-4 py-10">
+<!-- ... (h1 부터) ... -->
+        <h1 class="text-3xl font-bold mb-8">게시글 작성</h1>
+<!-- ... (div.space-y-6 부터) ... -->
+        <div class="space-y-6">
+<!-- ... (제목, 카테고리, 체크박스, 번개 필드, textarea, 버튼 영역 HTML은 모두 동일) ... -->
+            <div class="flex items-start gap-4">
+                <input id="new-post-title" type="text" placeholder="제목을 작성해주세요" class="flex-grow border border-gray-300 rounded-md p-3 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="new-post-category" class="border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-[50px]">
+                    <option value="">-- 운동 선택 --</option>
+                    <!-- JS에 의해 채워짐 -->
+                </select>
+            </div>
+            <div class="flex items-center justify-end">
+                <input id="is-meetup-checkbox" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <label for="is-meetup-checkbox" class="ml-2 block text-sm font-medium text-gray-900">번개 게시글</label>
+            </div>
+            <div id="meetup-fields-container" class="space-y-6 hidden border-t border-b border-gray-200 py-6">
+                <!-- 위치 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">위치</label>
+                    <input id="new-meetup-location" type="text" placeholder="위치를 입력해주세요" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <!-- 인원 및 날짜 -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">현재 인원</label>
+                        <input id="new-meetup-current" type="number" placeholder="현재 인원 수" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">최대 인원</label>
+                        <input id="new-meetup-max" type="number" placeholder="최대 인원 수" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">날짜 및 시간</label>
+                        <input id="new-meetup-datetime" type="datetime-local" value="2025-10-31T20:00" class="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <textarea id="post-content-area" class="w-full border border-gray-300 rounded-md p-3 h-96 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="본문을 작성해주세요"></textarea>
+            </div>
+            <!-- 이미지 업로드 UI -->
+            <div class="border-t border-b border-gray-200 py-6">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm font-medium text-gray-700">이미지 첨부</span>
+                    <!-- [수정] 버튼에 ID 추가 -->
+                    <button id="image-upload-btn" type="button" class="btn-outline px-4 py-2 rounded-md font-medium text-sm">
+                        이미지 업로드
+                    </button>
+                    <!-- 숨겨진 파일 인풋 -->
+                    <input type="file" id="image-file-input" multiple accept="image/*" class="hidden">
+                </div>
+                <!-- 썸네일 컨테이너 -->
+                <div id="image-thumbnail-container" class="flex flex-wrap gap-4">
+                    <!-- JS로 동적 생성됨 -->
+                </div>
+            </div>
+
+            <!-- 버튼 영역 -->
+            <div class="flex justify-end gap-2 pt-4">
+                <button id="new-post-cancel" class="btn-secondary px-6 py-3 rounded-md font-medium">취소</button>
+                <button id="new-post-submit" class="btn-primary px-6 py-3 rounded-md font-medium">작성</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 현재 로그인한 유저
+        let currentUser = null;
+        
+        // CSRF Token
+        const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
+        const csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute('content');
+
+        // 이미지 배열
+        let uploadedImages = [];
+
+        // 요소 가져오기
+        const checkbox = document.getElementById('is-meetup-checkbox');
+        const meetupFields = document.getElementById('meetup-fields-container');
+        const contentTextarea = document.getElementById('post-content-area');
+        const postSportFilterContainer = document.getElementById('new-post-category');
+        const cancelButton = document.getElementById('new-post-cancel');
+        const submitButton = document.getElementById('new-post-submit');
+        const title = document.getElementById('new-post-title');
+        const bungaeLocation = document.getElementById('new-meetup-location');
+        const bungaeCurParticipants = document.getElementById('new-meetup-current');
+        const bungaeMaxParticipants = document.getElementById('new-meetup-max');
+        const bungaeDatetime = document.getElementById('new-meetup-datetime');
+
+
+        // 스포츠 카테고리 불러오기
+        async function fetchSports() {
+            try {
+                const res = await fetch('/api/sports', {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('스포츠 리스트 불러오기 실패');
+                }
+
+                sports = await res.json();
+                sports.forEach((sport) => {
+                    const option = document.createElement('option');
+                    option.value = sport.id;
+                    option.textContent = sport.name;
+                    postSportFilterContainer.appendChild(option);
+                });
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+
+        // 체크박스 상태에 따라 필드 표시/숨김 및 플레이스홀더 변경
+        function toggleBungae() {
+            if (checkbox.checked) {
+                meetupFields.classList.remove('hidden');
+                // 번개글일 때 본문 플레이스홀더 변경 (선택 사항)
+                contentTextarea.placeholder = "추가 설명을 작성해주세요 (ex: 준비물, 참가비 등)";
+            } else {
+                meetupFields.classList.add('hidden');
+                // 일반글일 때
+                contentTextarea.placeholder = "본문을 작성해주세요";
+            }
+        }
+
+        // 현재 로그인한 유저 정보 가져오기
+        async function fetchCurrentUserAndInit() {
+            try {
+                const res = await fetch('/api/users/me', {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('인증 실패. 로그인이 필요합니다.');
+                }
+
+                currentUser = await res.json();
+                initializeApp();
+            } catch (error) {
+                console.error(error.message);
+                // 로그인 페이지로 강제 이동
+                window.location.href = "/login";
+            }
+        } 
+
+        // 취소 버튼 세팅 함수
+        function setupCancel() {
+            if (cancelButton) {
+                cancelButton.addEventListener('click', () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const returnUrl = urlParams.get('returnUrl');
+                    if (contentTextarea.value.trim().length > 0) {
+                        if (!confirm('작성을 취소하시겠습니까? (작성한 내용이 사라집니다)')) {
+                            return;
+                        }
+                    }
+
+                    // uri 복원이 잘 됐으면 원래 상태로, 그렇지 않으면 리스트 1번 페이지로
+                    if (returnUrl) {
+                        window.location.href = decodeURIComponent(returnUrl);
+                    } else {
+                        window.location.href = '/posts';
+                    }
+                });
+            }
+        }
+
+        // 이미지 버튼 이벤트 리스너
+        function setupImageUploadListeners() {
+            const uploadBtn = document.getElementById('image-upload-btn');
+            const fileInput = document.getElementById('image-file-input');
+            const thumbnailContainer = document.getElementById('image-thumbnail-container');
+
+            if (!uploadBtn || !fileInput || !thumbnailContainer) return;
+
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (event) => {
+                const files = event.target.files;
+                if (!files) return;
+
+                for (const file of files) uploadedImages.push(file);
+
+                renderThumbnails();
+                event.target.value = null;
+            });
+
+            thumbnailContainer.addEventListener('click', (event) => {
+                if (event.target.classList.contains('thumbnail-remove-btn')) {
+                    const indexToRemove = parseInt(event.target.dataset.index);
+                    uploadedImages.splice(indexToRemove, 1);
+                    renderThumbnails();
+                }
+            });
+        }
+
+        // 업로드한 이미지 썸네일 렌더링 함수
+        function renderThumbnails() {
+            const container = document.getElementById('image-thumbnail-container');
+            container.innerHTML = '';
+
+            uploadedImages.forEach((file, index) => {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    const thumbnailDiv = document.createElement('div');
+                    thumbnailDiv.className = 'thumbnail-item';
+                    thumbnailDiv.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}" class="thumbnail-img">
+                        <button type="button" class="thumbnail-remove-btn" data-index="${index}">x</button>
+                    `;
+                    container.appendChild(thumbnailDiv);
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 이미지 S3로 업로드하는 함수
+        async function uploadFilesToS3(files) {
+            const uploadPromises = files.map(async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const url = '/api/files/upload';
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!res.ok) throw new Error(`'${file.name}' 업로드 실패`);
+                    const result = await res.text();
+                    const fileUrl = result.split(" ").pop();
+                    if (!fileUrl || !fileUrl.startsWith('http')) throw new Error("서버가 유효한 URL을 반환하지 않았습니다.");
+                    return fileUrl;
+                } catch (error) {
+                    console.error(error.message);
+                    throw error;
+                }
+            });
+        }
+
+        // 제출 버튼 이벤트 리스너
+        async function submitNewPost() {
+            // 중복 클릭 방지
+            submitButton.disabled = true;
+            submitButton.innerText = '등록 중...';
+
+            try {
+                const titleValue = escapeHtml(title.value);
+                const categoryValue = postSportFilterContainer.value;
+                const contentValue = escapeHtml(contentTextarea.value);
+                const isBungae = checkbox.checked;
+                const locationValue = escapeHtml(bungaeLocation.value);
+                const maxParticipants = bungaeMaxParticipants.value;
+                const curParticipants = bungaeCurParticipants.value;
+                const datetimeValue = bungaeDatetime.value;
+                let images = [];
+                if (uploadedImages.length > 0) {
+                    images = await uploadFilesToS3(uploadedImages);
+                }
+
+                // 유효성 검사
+                if (!titleValue.trim()) {
+                    alert('제목을 입력해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '작성';
+                    return;
+                }
+            
+                if (!categoryValue) {
+                    alert('카테고리를 선택해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '작성';
+                    return;
+                }
+
+                // 일반 글에서는 본문 필수
+                if (!isBungae && !contentValue.trim()) {
+                    alert('본문을 입력해주세요.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = '작성';
+                    return;
+                }
+
+                if (isBungae) {
+                    // 일반 게시글은 카테고리 설정 안해도 OK
+                    if (!locationValue.trim()) {
+                        alert('번개 장소를 입력해주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
+                        return;
+                    }
+                    if (!maxParticipants) {
+                        alert('최대 인원을 설정해주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
+                        return;
+                    }
+                    if (!curParticipants) {
+                        alert('현재 인원을 정해주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
+                        return;
+                    }
+                    if (maxParticipants && curParticipants && (curParticipants > maxParticipants)) {
+                        alert('현재 인원이 최대 인원보다 많아요. 최대 인원을 늘려주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
+                        return;
+                    }
+                    if (!datetimeValue) {
+                        alert('번개 날짜와 시간을 정해주세요.');
+                        submitButton.disabled = false;
+                        submitButton.innerText = '작성';
+                        return;
+                    }
+                }
+
+                let body;
+                if (isBungae) {
+                    body = {
+                        title: titleValue,
+                        content: contentValue,
+                        sportId: Number(categoryValue),
+                        isBungae: isBungae,
+                        bungaeLocation: locationValue,
+                        maxParticipants: maxParticipants,
+                        curParticipants: curParticipants,
+                        bungaeDatetime: datetimeValue,
+                        postImages: images
+                    }
+                } else {
+                    body = {
+                        title: titleValue,
+                        content: contentValue,
+                        sportId: Number(categoryValue),
+                        isBungae: isBungae,
+                        bungaeLocation: null,
+                        maxParticipants: null,
+                        curParticipants: null,
+                        bungaeDatetime: null,
+                        postImages: images
+                    }
+                }
+
+                const res = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) throw new Error('게시글 등록에 실패했습니다.');
+
+                const newPost = await res.json();
+
+                window.location.href = `/posts/${newPost.postId}`;
+            } catch (error) {
+                submitButton.disabled = false;
+                submitButton.innerText = '작성';
+                console.error(error.message);
+                alert(error.message);
+            }
+        }   
+
+        // 페이지 로드 될 때 실행되는 함수
+        function initializeApp() {
+            // 1. 스포츠 카테고리 가져오기
+            fetchSports();
+            // 2. 작성 버튼 이벤트 리스너 추가
+            if (submitButton) submitButton.addEventListener('click', submitNewPost);
+            // 3. 취소 버튼 이벤트 리스너 추가
+            setupCancel();
+            // 4. 체크박스에 'change' 이벤트 리스너 추가
+            checkbox.addEventListener('change', toggleBungae);
+            // 5. 이미지 업로드 버튼 세팅
+            setupImageUploadListeners();
+        }
+
+
+        // XSS 공격 방지
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. 로그인 유저 정보 가져오기
+            fetchCurrentUserAndInit();
+        });
+
+    </script>
+</body>
+</html>

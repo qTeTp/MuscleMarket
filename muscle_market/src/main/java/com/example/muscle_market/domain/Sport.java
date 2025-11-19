@@ -15,6 +15,6 @@ public class Sport {
     @Column(name="sport_idx")
     private Long id;
 
-    @Column(name = "sport_name", length = 20, nullable = false)
+    @Column(name = "sport_name", unique = true ,length = 20, nullable = false)
     private String name;
 }

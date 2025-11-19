@@ -1,20 +1,22 @@
 package com.example.muscle_market.domain;
 
+import com.example.muscle_market.enums.TransactionStatus;
+import com.example.muscle_market.dto.ProductUpdateDto;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
 @Table(name = "products")
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Column(name="product_post_idx")
+    @Column(name = "product_post_idx")
     private Long id;
 
     @Column(length = 100, nullable = false)
@@ -24,16 +26,16 @@ public class Product {
     private String description;
 
     @Column
-    private Float price;
+    private Long price;
 
     @Column
     private String location;
 
     @Column(name = "created_at")
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column
     private Long views;
@@ -46,7 +48,52 @@ public class Product {
     @JoinColumn(name = "sport_idx")
     private Sport sport;
 
+    // 거래 상태 추가
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionStatus status;
+
+    // 이미지 관계
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<ProductImage> images = new ArrayList<>();
+
+    // 조회수 증가
     public void setViews() {
         this.views++;
+    }
+
+    // 물품 업데이트
+    public void updateProduct(ProductUpdateDto request, Sport sport) {
+        this.title = request.getTitle();
+        this.description = request.getDescription();
+        this.price = request.getPrice();
+        this.location = request.getLocation();
+        this.sport = sport;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 상품 상태 변경
+    // 판매 중, 예약 중, 판매 완료, 물품 삭제
+    public void updateStatus(TransactionStatus newStatus) {
+        this.status = newStatus;
+        // 예약 중, 판매 완료, 물품 삭제는 채팅 금지 로직 추가
+    }
+
+    // default값 설정
+    @Builder
+    public Product(Long id, String title, String description, Long price,
+                   String location, LocalDateTime createdAt, LocalDateTime updatedAt,
+                   Long views, User user, Sport sport, TransactionStatus status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.location = location;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.views = views;
+        this.user = user;
+        this.sport = sport;
+        this.status = (status != null) ? status : TransactionStatus.SELLING; // 기본값 판매중
     }
 }
