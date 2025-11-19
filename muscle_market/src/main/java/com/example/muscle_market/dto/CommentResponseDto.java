@@ -16,8 +16,8 @@ public class CommentResponseDto {
     private LocalDateTime createdAt;
     private SimplifiedUserDto author;
     private SimplifiedUserDto targetAuthor;
-    private boolean isDeleted;
-    private boolean isReply;
+    private Boolean isDeleted;
+    private Boolean isReply;
     private Long parentId;
 
     public static CommentResponseDto fromEntity(Comment comment) {
