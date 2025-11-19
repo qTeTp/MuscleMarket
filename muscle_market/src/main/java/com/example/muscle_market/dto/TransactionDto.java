@@ -3,6 +3,7 @@ package com.example.muscle_market.dto;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 // 구매 조회, 판매 조회 모두 사용
@@ -12,7 +13,7 @@ public class TransactionDto {
     private Long id;
     private String status; // 거래 상태
     private String location;
-    private Date completedAt; // 거래 날짜
+    private LocalDateTime completedAt; // 거래 날짜
 
     private Long buyerId; // 구매자 id
     private String buyerName;

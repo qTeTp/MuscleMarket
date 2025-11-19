@@ -27,7 +27,7 @@ public class Transaction {
     private String location; // 실제 거래를 완료한 거래 장소
 
     @Column(name = "transaction_date")
-    private Date date;
+    private LocalDateTime date;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_idx", nullable = false)

@@ -7,6 +7,7 @@ import com.example.muscle_market.domain.User;
 import com.example.muscle_market.dto.*;
 import com.example.muscle_market.enums.TransactionStatus;
 import com.example.muscle_market.repository.*;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,8 @@ public class ProductService {
     private final UserRepository userRepository;
     private final SportRepository sportRepository;
     private final ProductImageService productImageService;
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     // 제품 상세 정보 조회
     @Transactional // 조회수 증가 때문에 트랜잭션을 ReadOnly = false로 설정
@@ -146,8 +149,8 @@ public class ProductService {
                 .location(request.getLocation())
                 .sport(sport)
                 .user(author) // author_idx 컬럼에 매핑
-                .createdAt(new Date())
-                .updatedAt(new Date())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .views(0L)
                 .build();
 
