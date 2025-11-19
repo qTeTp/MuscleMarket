@@ -10,6 +10,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -54,20 +55,25 @@ public class AuthController {
         userService.logout();
 
         // accessToken, refreshToken 쿠키 제거
-        Cookie accessCookie = new Cookie("accessToken", null);
-        accessCookie.setMaxAge(0);
-        accessCookie.setPath("/");
-        accessCookie.setHttpOnly(true);
-        accessCookie.setSecure(true);
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .sameSite("Strict") // 반드시 같은 사이트에서만 전송
+                .maxAge(0)
+                .build();
 
-        Cookie refreshCookie = new Cookie("refreshToken", null);
-        refreshCookie.setMaxAge(0);
-        refreshCookie.setPath("/");
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .sameSite("Strict")
+                .maxAge(0)
+                .build();
 
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
+        response.addHeader("Set-Cookie", accessCookie.toString());
+        response.addHeader("Set-Cookie", refreshCookie.toString());
+
 
         return ResponseEntity.ok("로그아웃 완료");
     }
