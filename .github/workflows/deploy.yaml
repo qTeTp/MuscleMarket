@@ -48,6 +48,20 @@ jobs:
         chmod +x gradlew
         ./gradlew build -x test
 
+    # [추가] 5.5. 배포 전 EC2 기존 파일 정리 (꼬임 방지)
+    - name: Clean EC2 Directory
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        script: |
+          # 폴더가 없으면 만들고, 있으면 내부 파일만 싹 지움
+          mkdir -p /home/${{ secrets.EC2_USER }}/muscle-market
+          rm -rf /home/${{ secrets.EC2_USER }}/muscle-market/*
+          echo "Cleaned up deployment directory."
+
     # 6. SCP로 파일 전송 (Jar + 스크립트)
     # appleboy/scp-action을 사용하여 EC2로 파일 복사
     - name: Transfer Files to EC2
