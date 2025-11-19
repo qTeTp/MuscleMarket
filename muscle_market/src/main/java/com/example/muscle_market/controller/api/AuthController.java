@@ -58,17 +58,17 @@ public class AuthController {
         // accessToken, refreshToken 쿠키 제거
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
-                //.secure(true)
                 .path("/")
-                //.sameSite("Strict") // 반드시 같은 사이트에서만 전송
+                .secure(true)
+                .sameSite("Strict") // 반드시 같은 사이트에서만 전송
                 .maxAge(0)
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                //.secure(true)
                 .path("/")
-                //.sameSite("Strict")
+                .secure(true)
+                .sameSite("Strict")
                 .maxAge(0)
                 .build();
 
