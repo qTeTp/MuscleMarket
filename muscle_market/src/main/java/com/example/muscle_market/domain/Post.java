@@ -24,7 +24,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Entity
-@SQLDelete(sql = "UPDATE posts SET status = 'DELETED' WHERE post_id = ?")
+@SQLDelete(sql = "UPDATE posts SET post_status = 'DELETED' WHERE post_id = ?")
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

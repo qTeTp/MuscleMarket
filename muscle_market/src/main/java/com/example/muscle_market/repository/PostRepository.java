@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.muscle_market.domain.Post;
+import com.example.muscle_market.enums.PostStatus;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificationExecutor<Post> {
@@ -23,8 +24,8 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
     void increaseView(@Param("postId") Long postId);
 
     // 이전 게시글 탐색
-    Optional<Post> findFirstByPostIdLessThanOrderByPostIdDesc(Long postId);
+    Optional<Post> findFirstByPostIdLessThanAndPostStatusOrderByPostIdDesc(Long postId, PostStatus postStatus);
 
     // 다음 게시글 탐색
-    Optional<Post> findFirstByPostIdGreaterThanOrderByPostIdAsc(Long postId);
+    Optional<Post> findFirstByPostIdGreaterThanAndPostStatusOrderByPostIdAsc(Long postId, PostStatus postStatus);
 }
