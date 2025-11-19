@@ -64,6 +64,34 @@ jobs:
         # 경로 구조 제거 (파일만 딱 떨어지게)
         # strip_components: 2 
 
+    # # 7. SSH로 접속하여 배포 스크립트 실행
+    # - name: Execute Deploy Script
+    #   uses: appleboy/ssh-action@v1.0.3
+    #   with:
+    #     host: ${{ secrets.EC2_HOST }}
+    #     username: ${{ secrets.EC2_USER }}
+    #     key: ${{ secrets.EC2_KEY }}
+    #     port: 22
+    #     script: |
+    #       # 전송된 파일들이 있는 곳으로 이동
+    #       cd /home/${{ secrets.EC2_USER }}/muscle-market
+          
+    #       # 2. 파일 위치 정리 (SCP로 넘어온 파일들을 한곳으로 모음)
+    #       # build/libs 안에 있는 jar를 밖으로 꺼냄
+    #       if [ -f "muscle_market/build/libs/"*.jar ]; then
+    #           mv muscle_market/build/libs/*.jar muscle-market.jar
+    #           rm -rf build # 빈 폴더 정리
+    #       fi
+          
+    #       # scripts 폴더 안에 있는 deploy.sh를 밖으로 꺼냄 (선택사항, 편의상)
+    #       if [ -f "muscle_market/scripts/deploy.sh" ]; then
+    #           mv muscle_market/scripts/deploy.sh ./deploy.sh
+    #           rm -rf muscle_market
+    #       fi
+          
+    #       # 스크립트 실행 권한 부여 및 실행
+    #       chmod +x deploy.sh
+    #       ./deploy.sh
     # 7. SSH로 접속하여 배포 스크립트 실행
     - name: Execute Deploy Script
       uses: appleboy/ssh-action@v1.0.3
@@ -73,22 +101,38 @@ jobs:
         key: ${{ secrets.EC2_KEY }}
         port: 22
         script: |
-          # 전송된 파일들이 있는 곳으로 이동
-          cd /home/${{ secrets.EC2_USER }}/muscle-market
+          # 1. EC2 내부의 작업 폴더로 이동 (환경변수 활용)
+          TARGET_DIR="/home/${{ secrets.EC2_USER }}/muscle-market"
+          cd $TARGET_DIR
           
-          # 2. 파일 위치 정리 (SCP로 넘어온 파일들을 한곳으로 모음)
-          # build/libs 안에 있는 jar를 밖으로 꺼냄
-          if [ -f "muscle_market/build/libs/"*.jar ]; then
-              mv muscle_market/build/libs/*.jar muscle-market.jar
-              rm -rf build # 빈 폴더 정리
+          echo "Current Directory: $(pwd)"
+          echo "Files before cleanup:"
+          ls -R
+          
+          # 2. [핵심] SCP로 전송된 파일(muscle_market/build/libs/...) 찾아서 꺼내기
+          # (Gradle 빌드 파일명 패턴에 맞춰서 찾습니다)
+          FOUND_JAR=$(find . -name "*.jar" | head -n 1)
+          
+          if [ -n "$FOUND_JAR" ]; then
+              echo "Found JAR file: $FOUND_JAR"
+              # 찾은 파일을 현재 위치로 가져오면서 이름을 고정합니다.
+              mv "$FOUND_JAR" ./muscle-market.jar
+              echo "Moved JAR to current directory."
+          else
+              echo "ERROR: JAR file not found!"
+              exit 1
           fi
           
-          # scripts 폴더 안에 있는 deploy.sh를 밖으로 꺼냄 (선택사항, 편의상)
-          if [ -f "muscle_market/scripts/deploy.sh" ]; then
-              mv muscle_market/scripts/deploy.sh ./deploy.sh
-              rm -rf muscle_market
-          fi
+          # 3. 스크립트 파일도 찾아서 꺼내기
+          FOUND_SCRIPT=$(find . -name "deploy.sh" | head -n 1)
           
-          # 스크립트 실행 권한 부여 및 실행
-          chmod +x deploy.sh
+          if [ -n "$FOUND_SCRIPT" ]; then
+              mv "$FOUND_SCRIPT" ./deploy.sh
+              chmod +x ./deploy.sh
+          fi
+
+          # 4. 껍데기 폴더 정리 (선택사항)
+          # rm -rf muscle_market  <-- 혹시 모르니 일단 주석 처리하고 나중에 켜세요
+
+          # 5. 스크립트 실행
           ./deploy.sh
