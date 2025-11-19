@@ -138,7 +138,7 @@
             </div>
 
             <!-- 게시글 내용 -->
-            <div id="detail-content" class="text-gray-800 leading-relaxed min-h-[200px]">
+            <div id="detail-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap min-h-[200px]">
                 ...
             </div>
 
@@ -465,10 +465,26 @@
             comments.forEach(comment => {
                 const isReply = comment.parentId !== null;
                 const commentEl = document.createElement('div');
+
                 commentEl.className = `flex gap-3 ${isReply ? 'ml-10' : ''}`;
                 commentEl.setAttribute('data-comment-id', comment.commentId);
 
-                const isCommentAuthor = currentUser && comment.author.userId === currentUser.userId;
+                const contentClass = commnet.isDeleted ? 'text-gray-400 italic' : 'text-gray-800';
+
+                let actionButtonsHtml = '';
+                if (!comment.isDeleted) {
+                    const isCommentAuthor = currentUser && comment.author.userId === currentUser.userId;
+                    actionButtonsHtml = `
+                        <div class="flex items-center gap-3 mt-1 text-sm font-medium" id="comment-actions-${comment.commentId}">
+                            <button class="reply-btn text-gray-600 hover:underline">답글</button>
+                            ${isCommentAuthor ? `
+                                <button class="comment-edit-btn text-blue-600 hover:underline">수정</button>
+                                <button class="comment-delete-btn text-red-500 hover:underline">삭제</button>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
                 const targetAuthorTag = comment.targetAuthor
                     ? `<span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2 py-0.5 rounded">@${comment.targetAuthor.nickname}</span>`
                     : '';
@@ -479,21 +495,14 @@
                         <div class="font-semibold">${comment.author.nickname}</div>
                         <div class="text-sm text-gray-500 mb-1">${formatDate(comment.createdAt)}</div>
                             
-                        <p class="text-gray-800" id="comment-content-${comment.commentId}" data-original-content="${escapeHtml(comment.content)}">
+                        <p class="${contentClass} whitespace-pre-wrap" id="comment-content-${comment.commentId}" data-original-content="${escapeHtml(comment.content)}">
                             ${targetAuthorTag}
-                            ${comment.content}
+                            ${escapeHtml(comment.content)}
                         </p>
                             
                         <div id="comment-edit-form-container-${comment.commentId}" class="mt-2 hidden"></div>
 
-                        <div class="flex items-center gap-3 mt-1 text-sm font-medium" id="comment-actions-${comment.commentId}">
-                            <button class="reply-btn text-gray-600 hover:underline">답글</button>
-                                
-                            ${isCommentAuthor ? `
-                                <button class="comment-edit-btn text-blue-600 hover:underline">수정</button>
-                                <button class="comment-delete-btn text-red-500 hover:underline">삭제</button>
-                            ` : ''}
-                        </div>
+                        ${actionButtonsHtml}
                             
                         <div id="reply-form-container-${comment.commentId}" class="reply-form-container mt-4"></div>
                     </div>
@@ -795,7 +804,7 @@
 
         // 댓글 수정 함수 (api 호출)
         async function updateComment(commentId, newContent) {
-            const body = { content: escapeHtml(content) };
+            const body = { content: escapeHtml(newContent) };
 
             try {
                 const res = await fetch(`/api/posts/${currentPostId}/comments/${commentId}`, {
