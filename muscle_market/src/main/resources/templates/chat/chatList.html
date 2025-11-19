@@ -263,7 +263,7 @@
 <script th:src="@{/chat/socket-connector.js}"></script>
 <script>
     // 현재 로그인한 유저 (API 호출로 데이터 받아오기)
-    const currentUser = null;
+    let currentUser = null;
 
     // CSRF Token
     const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute('content');
