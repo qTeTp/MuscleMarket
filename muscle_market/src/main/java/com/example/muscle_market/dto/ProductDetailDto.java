@@ -1,5 +1,6 @@
 package com.example.muscle_market.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Date;
 
@@ -19,8 +20,8 @@ public class ProductDetailDto {
     private List<Long> productImageIds; // 이미지 id 리스트
     private TransactionStatus status;
 
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private Long views;
 
     // dto에서 작정자 정보 추출

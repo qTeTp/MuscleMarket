@@ -389,7 +389,7 @@
 
             <div class="product-info-sidebar">
                 <p class="product-header-meta">
-                    <span th:text="|${dto.createdAt} · 조회 ${dto.views} · 채팅 0|">13분 전 · 조회 1 · 채팅 0 · 찜 0</span>
+                    <span th:text="|${#temporals.format(dto.createdAt, 'yyyy-MM-dd')} · 조회 ${dto.views}|">2022-04-27 · 조회 1</span>
                     <br>
                     <span>종목:</span><span th:text="${dto.sportName}">헬스</span>
                     <br>
