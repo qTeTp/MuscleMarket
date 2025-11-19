@@ -83,8 +83,8 @@ public class PostService {
         if (post.getAuthor() == null) throw new EntityNotFoundException("author not found");
         // 삭제된 글은 볼 수 없고, 숨김이면 본인만 볼 수 있어야 함
         validatePostAccess(post, curUserId);
-        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElse(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId).orElse(null);
+        Post prevPost = postRepository.findFirstByPostIdLessThanAndPostStatusOrderByPostIdDesc(postId, PostStatus.ACTIVE).orElse(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanAndPostStatusOrderByPostIdAsc(postId, PostStatus.ACTIVE).orElse(null);
         return PostDetailDto.fromEntity(post, prevPost, nextPost);
     }
 
@@ -128,8 +128,8 @@ public class PostService {
         
         // 저장 후 dto 리턴
         Post savedPost = postRepository.save(post);
-        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(post.getPostId()).orElse(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(post.getPostId()).orElse(null);
+        Post prevPost = postRepository.findFirstByPostIdLessThanAndPostStatusOrderByPostIdDesc(post.getPostId(), PostStatus.ACTIVE).orElse(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanAndPostStatusOrderByPostIdAsc(post.getPostId(), PostStatus.ACTIVE).orElse(null);
         return PostDetailDto.fromEntity(savedPost, prevPost, nextPost);
     }
 
@@ -191,14 +191,14 @@ public class PostService {
             .collect(Collectors.toSet());
         
         for (String newUrl : request.getPostImages()) {
-            if (!currentImages.contains(newUrl)) {
+            if (!currentUrls.contains(newUrl)) {
                 PostImage newImage = PostImage.builder().imageUrl(newUrl).build();
                 post.addImage(newImage);
             }
         }
 
-        Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElse(null);
-        Post nextPost = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId).orElse(null);
+        Post prevPost = postRepository.findFirstByPostIdLessThanAndPostStatusOrderByPostIdDesc(postId, PostStatus.ACTIVE).orElse(null);
+        Post nextPost = postRepository.findFirstByPostIdGreaterThanAndPostStatusOrderByPostIdAsc(postId, PostStatus.ACTIVE).orElse(null);
         return PostDetailDto.fromEntity(post, prevPost, nextPost);
     }   
 
