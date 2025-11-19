@@ -1,7 +1,9 @@
 package com.example.muscle_market.repository;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,8 +26,16 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
     void increaseView(@Param("postId") Long postId);
 
     // 이전 게시글 탐색
-    Optional<Post> findFirstByPostIdLessThanAndPostStatusOrderByPostIdDesc(Long postId, PostStatus postStatus);
+    @Query("SELECT p FROM Post p " +
+           "WHERE p.postId < :postId " +
+           "AND (p.postStatus = 'ACTIVE' OR (p.postStatus = 'HIDDEN' AND p.author.id = :userId)) " +
+           "ORDER BY p.postId DESC")
+    List<Post> findPrevPost(@Param("postId") Long postId, @Param("userId") Long userId, Pageable pageable);
 
     // 다음 게시글 탐색
-    Optional<Post> findFirstByPostIdGreaterThanAndPostStatusOrderByPostIdAsc(Long postId, PostStatus postStatus);
+    @Query("SELECT p FROM Post p " +
+           "WHERE p.postId > :postId " +
+           "AND (p.postStatus = 'ACTIVE' OR (p.postStatus = 'HIDDEN' AND p.author.id = :userId)) " +
+           "ORDER BY p.postId ASC")
+    List<Post> findNextPost(@Param("postId") Long postId, @Param("userId") Long userId, Pageable pageable);
 }

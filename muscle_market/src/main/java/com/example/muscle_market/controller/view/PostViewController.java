@@ -36,7 +36,7 @@ public class PostViewController {
     // 게시글 수정
     @GetMapping("/{postId}/edit")
     public String getPostUpdateView(@PathVariable Long postId) {
-        if (postService.isBungae(postId)) return "/post/bungaeUpdate";
+        if (postService.isBungae(postId)) return "post/bungaeUpdate";
         else return "post/postUpdate";
     }   
 

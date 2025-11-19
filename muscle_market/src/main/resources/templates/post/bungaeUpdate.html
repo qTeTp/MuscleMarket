@@ -230,7 +230,9 @@
             
             if (!uploadBtn || !fileInput || !thumbnailContainer) return;
 
-            uploadBtn.addEventListener('click', () => {
+            uploadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 fileInput.click();
             });
 
@@ -245,8 +247,9 @@
             });
 
             thumbnailContainer.addEventListener('click', (event) => {
-                if (event.target.classList.contains('thumbnail-remove-btn')) {
-                    const type = event.target.dataset.type;
+                const target = event.target;
+                if (target.classList.contains('thumbnail-remove-btn')) {
+                    const type = target.dataset.type;
 
                     if (type === 'existing') {
                         const urlToRemove = target.dataset.url;
@@ -285,9 +288,9 @@
                     // 새 이미지는 약간 반투명하게 처리해서 구분?
                     thumbnailDiv.innerHTML = `
                         <img src="${e.target.result}" alt="${file.name}" class="thumbnail-img opacity-75">
-                        <button type="button" class="thumbnail-remove-btn" data-index="${index}">x</button>
+                        <button type="button" class="thumbnail-remove-btn" data-type="new" data-index="${index}">x</button>
                     `;
-                    container.appendChild(thumbnailDiv);
+                    thumbnailContainer.appendChild(thumbnailDiv);
                 };
 
                 reader.readAsDataURL(file);
@@ -304,6 +307,9 @@
                     const url = '/api/files/upload';
                     const res = await fetch(url, {
                         method: 'POST',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        },
                         body: formData
                     });
 
@@ -317,6 +323,7 @@
                     throw error;
                 }
             });
+            return await Promise.all(uploadPromises);
         }
 
         // 제출 버튼 이벤트 리스너
