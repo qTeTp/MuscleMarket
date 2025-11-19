@@ -30,32 +30,46 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
         
         // STOMP 'CONNECT' 커맨드일 때만 인증처리
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            // 클라이언트가 보낸 'Authorization' 헤더 찾기
+            String token = null;
+
             String authHeader = accessor.getFirstNativeHeader("Authorization");
-
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-
-                // JWT 검증
-                if (jwtUtil.validateToken(token)) {
-                    // JwtUtil로 유저 이름 추출
-                    String username = jwtUtil.extractUsername(token);
-                    
-                    CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-                    // 인증 정보를 STOMP 세션의 'USER'로 등록
-                    accessor.setUser(authToken);
-
-                    log.info("STOMP User connected: {}", userDetails.getUsername());
-                } else {
-                    log.warn("STOMP: Invalid JWT token received");
-                }
+                token = authHeader.substring(7);
             } else {
-                log.warn("STOMP: Missing Authorization header");
+                String cookieHeader = accessor.getFirstNativeHeader("cookie");
+                if (cookieHeader != null) {
+                    token = extractTokenFromCookieString(cookieHeader);
+                }
+            }
+
+            if (token != null && jwtUtil.validateToken(token)) {
+                String username = jwtUtil.extractUsername(token);
+
+                CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
+                
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                accessor.setUser(authToken);
+
+                log.info("STOMP User Connected: {}", username);
+            } else {
+                log.warn("STOMP: Token is missing or invalid");
             }
         }
 
         return message;
+    }
+
+    private String extractTokenFromCookieString(String cookieHeader) {
+        if (cookieHeader == null) return null;
+
+        String[] cookies = cookieHeader.split(";");
+        for (String cookie : cookies) {
+            String[] parts = cookie.trim().split("=");
+            if (parts.length == 2 && "accessToken".equals(parts[0])) {
+                return parts[1];
+            }
+        }
+        return null;
     }
 }

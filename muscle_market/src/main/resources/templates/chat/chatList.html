@@ -45,7 +45,14 @@
             display: flex;
             flex-direction: column;
             height: 100vh; /* 뷰포트 전체 높이 사용 */
+            overflow: hidden;
         }
+
+        /* 헤더를 감싸는 래퍼 스타일 */
+        .chat-page-header-wrapper { flex-shrink: 0; width: 100%; position: relative; z-index: 50; }
+
+        /* header.css가 position: fixed를 쓰고 있다면 그걸 덮어씁니다 */
+        .chat-page-header-wrapper > * { position: relative !important; top: auto !important; left: auto !important; width: 100% !important; }
 
         /* 전체 레이아웃 */
         .chat-layout { flex-grow: 1; display: flex; width: 100%; height: 100%; overflow: hidden; position: relative; }
@@ -185,8 +192,10 @@
     <link th:href="@{/css/header.css}" rel="stylesheet"/>
 </head>
 <body>
-<div class="page-wrapper">
-    <div th:replace="~{fragments/header :: header}"></div>
+<div class="page-wrapper">    
+    <div class="chat-page-header-wrapper">
+        <div th:replace="~{fragments/header :: header}"></div>
+    </div>
     <div class="chat-layout" id="chat-layout">
         <!-- 왼쪽: 채팅 리스트 패널 -->
         <aside class="chat-list-panel">
