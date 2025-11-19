@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -185,7 +185,7 @@
 </head>
 <body>
 <div class="page-wrapper">
-    <div th:replace="fragments/navbar :: navbar"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
     <div class="chat-layout" id="chat-layout">
         <!-- 왼쪽: 채팅 리스트 패널 -->
         <aside class="chat-list-panel">

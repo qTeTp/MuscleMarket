@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -91,6 +91,7 @@
     </style>
 </head>
 <body class="bg-white">
+    <div th:replace="~{fragments/header :: header}"></div>
     <main id="board-detail" class="w-full max-w-4xl mx-auto px-4 py-10">
         
         <!-- 게시글 본문 (데이터 바인딩 필요) -->
@@ -157,7 +158,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 id="comment-count" class="text-xl font-bold">댓글 0개</h2>
                 <div class="flex gap-2">
-                    <a href="board-new-post.html" class="btn-outline px-4 py-2 rounded-md font-medium text-sm">게시글 작성</a>
+                    <a href="/posts/new" class="btn-outline px-4 py-2 rounded-md font-medium text-sm">게시글 작성</a>
                 </div>
             </div>
             
@@ -225,7 +226,7 @@
                 postTitle.innerText = escapeHtml(postData.title);
                 postAuthor.innerText = escapeHtml(postData.postAuthor.nickname);
                 postMetadata.innerHTML = `
-                    <span>${postData.createdAt}</span> <span class="mx-1">|</span>
+                    <span>${formatDate(postData.createdAt)}</span> <span class="mx-1">|</span>
                     <span>조회 ${postData.views}</span> <span class="mx-1">|</span>
                     <span class="text-blue-600 font-medium">${postData.sportName}</span>
                 `;
@@ -264,20 +265,56 @@
             if (!container) return;
 
             const isAuthor = currentUser && postData.postAuthor.userId === currentUser.userId;
+            const isHidden = postData.postStatus === "HIDDEN";
+
             let html = '';
             if (isAuthor) {
+                const hiddenBtnText = isHidden ? "숨김 해제" : "숨김";
                 html = `
-                    <a href="/posts/${postData.id}/edit" class="text-blue-600 hover:underline font-medium">수정</a>
+                    <a href="/posts/${postData.postId}/edit" class="text-blue-600 hover:underline font-medium mr-3">수정</a>
+                    <button id="post-hide-btn" class="text-gray-500 hover:underline font-medium mr-3" data-hidden="${isHidden}">${hideBtnText}</button>
                     <button id="post-delete-btn" class="text-red-500 hover:underline font-medium">삭제</button>
                 `;
             }
-            html += `<a href="/posts" class="text-gray-600 hover:underline">목록으로</a>`;
+            html += `<a href="/posts" class="text-gray-600 hover:underline ml-3">목록으로</a>`;
 
             container.innerHTML = html;
 
             const deleteBtn = document.getElementById('post-delete-btn');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', handleDeletePost);
+            }
+
+            const hideBtn = document.getElementById('post-hide-btn');
+            if (hideBtn) {
+                hideBtn.addEventListener('click', async () => {
+                    const currentHiddenStatus = hideBtn.dataset.hidden === 'true';
+                    const actionName = currentHiddenStatus ? "숨김 해제" : "숨김";
+                    const endpoint = currentHiddenStatus ? 'unhide' : 'hide';
+
+                    if (!confirm(`게시글을 ${actionName} 처리 하시겠습니까?`)) return;
+
+                    try {
+                        const res = await fetch(`/api/posts/${postData.postId}/${endpoint}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                [csrfHeader]: csrfToken
+                            }
+                        });
+
+                        if (res.ok) {
+                            alert(`게시글이 ${actionName} 처리 되었습니다.`);
+                            window.location.reload();
+                        } else {
+                            const errorMsg = await res.text();
+                            throw new Error(errorMsg || `${actionName} 처리에 실패했습니다.`);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        alert(error.message);
+                    }
+                }); 
             }
         }
 
@@ -286,13 +323,22 @@
             if (!confirm("게시글을 정말 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.")) return;
 
             try {
+                console.log(currentPostId);
                 const res = await fetch(`/api/posts/${currentPostId}`, {
                     method: 'DELETE',
                     headers: {
                         [csrfHeader]: csrfToken
                     }
                 });
-                if (!res.ok) throw new Error('삭제에 실패했습니다.');
+                
+                if (res.ok) {
+                    alert('게시글이 삭제되었습니다.');
+                    window.loaction.href = '/posts';
+                    return;
+                }
+
+                const errorMsg = await res.text();
+                throw new Error(`삭제 실패 ${res.status} : ${errorMsg}`);
             } catch (error) {
                 console.error(error.message);
                 alert('삭제 중 에러가 발생했습니다.');
@@ -430,7 +476,7 @@
                     <div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0"></div>
                     <div class="flex-grow">
                         <div class="font-semibold">${comment.author.nickname}</div>
-                        <div class="text-sm text-gray-500 mb-1">${comment.createdAt}</div>
+                        <div class="text-sm text-gray-500 mb-1">${formatDate(comment.createdAt)}</div>
                             
                         <p class="text-gray-800" id="comment-content-${comment.commentId}" data-original-content="${escapeHtml(comment.content)}">
                             ${targetAuthorTag}
@@ -678,7 +724,7 @@
             // 기존 텍스트와 버튼 숨기고 폼 보여주기
             contentP.classList.add('hidden');
             actionsDiv.classList.add('hidden');
-            editFormContainer.classList.add('hidden');
+            editFormContainer.classList.remove('hidden');
         }
 
         // 댓글 수정 취소 함수
@@ -834,11 +880,7 @@
 
             // 5. 댓글 작성 기능
             setupCommentSubmission();
-
-            
-
         }
-
 
         // XSS 공격 방지
         function escapeHtml(text) {
@@ -849,6 +891,21 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        // 날짜 포맷팅 함수
+        function formatDate(dateString) {
+            if (!dateString) return '';
+    
+            const date = new Date(dateString);
+    
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const minute = String(date.getMinutes()).padStart(2, '0');
+    
+            return `${year}년 ${month}월 ${day}일 ${hour}시 ${minute}분`;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
