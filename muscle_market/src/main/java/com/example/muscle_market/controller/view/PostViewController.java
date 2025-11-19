@@ -18,26 +18,26 @@ public class PostViewController {
     // 전체 게시글
     @GetMapping
     public String getPostList() {
-        return "/post/postList";
+        return "post/postList";
     }
 
     // 게시글 상세
     @GetMapping("/{postId}")
     public String getPostDetail(@PathVariable Long postId) {
-        return "/post/postDetail";
+        return "post/postDetail";
     }
 
     // 게시글 생성
     @GetMapping("/new")
     public String getPostCreateView() {
-        return "/post/postCreate";
+        return "post/postCreate";
     }
 
     // 게시글 수정
     @GetMapping("/{postId}/edit")
     public String getPostUpdateView(@PathVariable Long postId) {
         if (postService.isBungae(postId)) return "/post/bungaeUpdate";
-        else return "/post/postUpdate";
+        else return "post/postUpdate";
     }   
 
 }
