@@ -58,13 +58,13 @@ public class AuthController {
         accessCookie.setMaxAge(0);
         accessCookie.setPath("/");
         accessCookie.setHttpOnly(true);
-//        accessCookie.setSecure(true);
+        accessCookie.setSecure(true);
 
         Cookie refreshCookie = new Cookie("refreshToken", null);
         refreshCookie.setMaxAge(0);
         refreshCookie.setPath("/");
         refreshCookie.setHttpOnly(true);
-//        refreshCookie.setSecure(true);
+        refreshCookie.setSecure(true);
 
         response.addCookie(accessCookie);
         response.addCookie(refreshCookie);

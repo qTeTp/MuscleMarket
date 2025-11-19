@@ -107,16 +107,16 @@ public class UserService {
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
                 .httpOnly(true)
                 .path("/")
-//                .secure(true) // HTTPS 연결에서만 전송
-//                .sameSite("Strict")   // 다른 사이트에서 요청시 쿠키 자동전송 방지
+                .secure(true) // HTTPS 연결에서만 전송
+                .sameSite("Strict")   // 다른 사이트에서 요청시 쿠키 자동전송 방지
                 .maxAge(60*30)  // 15분
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .path("/")
-//                .secure(true) // HTTPS 연결에서만 전송
-//                .sameSite("Strict")   // 다른 사이트에서 요칭시 쿠키 자동전송 방지
+                .secure(true) // HTTPS 연결에서만 전송
+                .sameSite("Strict")   // 다른 사이트에서 요칭시 쿠키 자동전송 방지
                 .maxAge(60 * 60 * 24 * 7)   // 7일
                 .build();
 
