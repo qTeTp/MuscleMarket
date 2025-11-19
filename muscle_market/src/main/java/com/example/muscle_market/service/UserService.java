@@ -120,8 +120,8 @@ public class UserService {
                 .maxAge(60 * 60 * 24 * 7)   // 7일
                 .build();
 
-        response.addHeader("set-Cookie", accessCookie.toString());
-        response.addHeader("set-Cookie", refreshCookie.toString());
+        response.addHeader("Set-Cookie", accessCookie.toString());
+        response.addHeader("Set-Cookie", refreshCookie.toString());
     }
 
 
@@ -172,16 +172,19 @@ public class UserService {
     public void logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null) {
-            System.out.println("securityContextHolder에 인증정보없음");
-        } else {
-            System.out.println("SecurityContextHolder에 있는 username : " + authentication.getName());
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            System.out.println("인증 정보 없음 - 로그아웃 스킵");
+            return;
         }
 
-        String username = (authentication != null) ? authentication.getName() : null;
+        System.out.println("SecurityContextHolder에 있는 username : " + authentication.getName());
+
+        String username = authentication.getName();
 
         if (username != null) {
             userRepository.findByUsername(username).ifPresent(user -> {
+                System.out.println("DB에서 RefreshToken 삭제: " + username);
                 user.setRefreshToken(null);
                 userRepository.save(user);
             });
