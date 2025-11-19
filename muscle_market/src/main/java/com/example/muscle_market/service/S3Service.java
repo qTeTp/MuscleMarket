@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
@@ -20,21 +22,31 @@ public class S3Service {
     private final String bucketName;
     private final String region;
 
-    public S3Service(@Value("${cloud.aws.credentials.access-key}") String accessKey,
-                     @Value("${cloud.aws.credentials.secret-key}") String secretKey,
+    // value 부분에 : 를 붙여서 값이 없어도 빈 값을 갖도록 설정
+    public S3Service(@Value("${cloud.aws.credentials.access-key:}") String accessKey,
+                     @Value("${cloud.aws.credentials.secret-key:}") String secretKey,
                      @Value("${cloud.aws.region.static}") String region,
                      @Value("${cloud.aws.s3.bucket}") String bucketName) {
 
         this.bucketName = bucketName;
         this.region = region;
 
-        // 인증 정보를 담은 credentials 객체 생성
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+        AwsCredentialsProvider credentialsProvider;
+
+        
+        if (accessKey != null && !accessKey.isBlank() && secretKey != null && !secretKey.isBlank()) {
+            // local에서 쓸 credential
+            AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+            credentialsProvider = StaticCredentialsProvider.create(credentials);
+        } else {
+            // prod에서 쓸 credential
+            credentialsProvider = DefaultCredentialsProvider.create();
+        }
 
         // AWS S3와 통신할 클라이언트 객체 생성
         this.s3Client = S3Client.builder()
                 .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                .credentialsProvider(credentialsProvider)
                 .build();
     }
 
