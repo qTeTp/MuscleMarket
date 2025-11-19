@@ -495,10 +495,7 @@
                         <div class="font-semibold">${comment.author.nickname}</div>
                         <div class="text-sm text-gray-500 mb-1">${formatDate(comment.createdAt)}</div>
                             
-                        <p class="${contentClass} whitespace-pre-wrap" id="comment-content-${comment.commentId}" data-original-content="${escapeHtml(comment.content)}">
-                            ${targetAuthorTag}
-                            ${escapeHtml(comment.content)}
-                        </p>
+                        <p class="${contentClass} whitespace-pre-wrap" id="comment-content-${comment.commentId}" data-original-content="${escapeHtml(comment.content)}">${targetAuthorTag}${escapeHtml(comment.content)}</p>
                             
                         <div id="comment-edit-form-container-${comment.commentId}" class="mt-2 hidden"></div>
 
