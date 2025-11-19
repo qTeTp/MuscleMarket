@@ -299,6 +299,9 @@
                     const url = '/api/files/upload';
                     const res = await fetch(url, {
                         method: 'POST',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        },
                         body: formData
                     });
 
