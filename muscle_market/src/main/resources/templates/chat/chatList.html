@@ -260,7 +260,7 @@
 </div>
 
 <!-- socket 관련 함수 불러오기 -->
-<script th:src="@{/chat/socket-connector.js}"></script>
+<script th:src="@{/js/socket-connector.js}"></script>
 <script>
     // 현재 로그인한 유저 (API 호출로 데이터 받아오기)
     let currentUser = null;
@@ -682,7 +682,6 @@
     // 페이지 로드 될 때 실행되는 함수
     function initializeApp() {
         if (currentUser) {
-            console.log(currentUser);
             const csrfInfo = {
                 [csrfHeader]: csrfToken
             };
