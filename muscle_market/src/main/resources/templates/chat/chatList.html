@@ -683,7 +683,10 @@
     function initializeApp() {
         if (currentUser) {
             // console.log(currentUser);
-            SocketManager.init(currentUser);
+            const csrfInfo = {
+                [csrfHeader]: csrfToken
+            };
+            SocketManager.init(currentUser, csrfInfo);
         }
 
         // --- 윈도우 리사이즈 이벤트 처리 ---
