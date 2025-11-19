@@ -304,7 +304,7 @@
 
                     if (!res.ok) throw new Error(`'${file.name}' 업로드 실패`);
                     const result = await res.text();
-                    const fileUrl = result.split(" ").pop();
+                    const fileUrl = result.trim().split(" ").pop();
                     if (!fileUrl || !fileUrl.startsWith('http')) throw new Error("서버가 유효한 URL을 반환하지 않았습니다.");
                     return fileUrl;
                 } catch (error) {
@@ -312,6 +312,7 @@
                     throw error;
                 }
             });
+            return await Promise.all(uploadPromises);
         }
 
         // 제출 버튼 이벤트 리스너

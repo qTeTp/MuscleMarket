@@ -1,9 +1,12 @@
 package com.example.muscle_market.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.lang.Exception;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +40,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final SportRepository sportRepository;
+    private final S3Service s3Service;
 
     // 작성자-로그인유저 검증
     private void validateUser(Long authorId, Long userId) {
@@ -161,25 +165,36 @@ public class PostService {
             post.updatePost(request.getTitle(), request.getContent(), sport);
         }
         
-        // 게시글 사진 수정
-        List<PostImage> replacedImages = new ArrayList<>();
-        Map<String, PostImage> originalImageUrls = post.getPostImages().stream()
-            .collect(Collectors.toMap(PostImage::getImageUrl, image -> image));
+        // 기존 DB에 있던 이미지 목록
+        List<PostImage> currentImages = post.getPostImages();
+        Set<String> newImageUrls = new HashSet<>(request.getPostImages());
+
+        // 삭제 대상 찾기
+        List<PostImage> imagesToDelete = currentImages.stream()
+            .filter(img -> !newImageUrls.contains(img.getImageUrl()))
+            .collect(Collectors.toList());
         
-        // 기존 이미지가 있으면 그대로 사용하고 없으면 새로 생성
-        for (String imgUrl : request.getPostImages()) {
-            if (originalImageUrls.containsKey(imgUrl)) {
-                replacedImages.add(originalImageUrls.get(imgUrl));
-            } else {
-                PostImage postImage = PostImage.builder().imageUrl(imgUrl).build();
-                replacedImages.add(postImage);
+        // S3에서 실제 파일 삭제
+        for (PostImage img : imagesToDelete) {
+            String fileName = extractFileName(img.getImageUrl());
+            if (fileName != null) {
+                s3Service.deleteFile(fileName);
             }
         }
+
+        // DB 업데이트
+        // 삭제될 이미지는 리스트에서 제거 (orphanRemoval = true 때문에 DB에서 삭제됨)
+        currentImages.removeAll(imagesToDelete);
+        // 새 이미지만 추가
+        Set<String> currentUrls = currentImages.stream()
+            .map(PostImage::getImageUrl)
+            .collect(Collectors.toSet());
         
-        // 삭제 대상으로 예약하고, 새 이미지들로 교체 (기존 이미지면 삭제 대상에서 알아서 제외된다고 함)
-        post.getPostImages().clear();
-        for (PostImage image : replacedImages) {
-            post.addImage(image);
+        for (String newUrl : request.getPostImages()) {
+            if (!currentImages.contains(newUrl)) {
+                PostImage newImage = PostImage.builder().imageUrl(newUrl).build();
+                post.addImage(newImage);
+            }
         }
 
         Post prevPost = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId).orElse(null);
@@ -235,6 +250,14 @@ public class PostService {
         
         // 게시글 접근 권한 확인
         validatePostAccess(post, curUserId);
+
+        // 게시글에 있는 이미지 삭제
+        for (PostImage img : post.getPostImages()) {
+            String fileName = extractFileName(img.getImageUrl());
+            if (fileName != null) {
+                s3Service.deleteFile(fileName);
+            }
+        }
         
         postRepository.delete(post);
     }
@@ -245,5 +268,14 @@ public class PostService {
             .orElseThrow(() -> new EntityNotFoundException("Post not found"));
         
         return Boolean.TRUE.equals(post.getIsBungae());
+    }
+
+    // 이미지 삭제 시 url에서 파일 이름만 추출 하는 메서드
+    private String extractFileName(String url) {
+        try {
+            return url.substring(url.lastIndexOf("/") + 1);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
