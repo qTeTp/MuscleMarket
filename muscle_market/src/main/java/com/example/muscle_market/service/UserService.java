@@ -107,21 +107,21 @@ public class UserService {
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
                 .httpOnly(true)
                 .path("/")
-                .secure(true) // HTTPS 연결에서만 전송
-                .sameSite("Strict")   // 다른 사이트에서 요청시 쿠키 자동전송 방지
+                //.secure(true) // HTTPS 연결에서만 전송
+                //.sameSite("Strict")   // 다른 사이트에서 요청시 쿠키 자동전송 방지
                 .maxAge(60*30)  // 15분
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .path("/")
-                .secure(true) // HTTPS 연결에서만 전송
-                .sameSite("Strict")   // 다른 사이트에서 요칭시 쿠키 자동전송 방지
+                //.secure(true) // HTTPS 연결에서만 전송
+                //.sameSite("Strict")   // 다른 사이트에서 요칭시 쿠키 자동전송 방지
                 .maxAge(60 * 60 * 24 * 7)   // 7일
                 .build();
 
-        response.addHeader("set-Cookie", accessCookie.toString());
-        response.addHeader("set-Cookie", refreshCookie.toString());
+        response.addHeader("Set-Cookie", accessCookie.toString());
+        response.addHeader("Set-Cookie", refreshCookie.toString());
     }
 
 
@@ -172,16 +172,19 @@ public class UserService {
     public void logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null) {
-            System.out.println("securityContextHolder에 인증정보없음");
-        } else {
-            System.out.println("SecurityContextHolder에 있는 username : " + authentication.getName());
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            System.out.println("인증 정보 없음 - 로그아웃 스킵");
+            return;
         }
 
-        String username = (authentication != null) ? authentication.getName() : null;
+        System.out.println("SecurityContextHolder에 있는 username : " + authentication.getName());
+
+        String username = authentication.getName();
 
         if (username != null) {
             userRepository.findByUsername(username).ifPresent(user -> {
+                System.out.println("DB에서 RefreshToken 삭제: " + username);
                 user.setRefreshToken(null);
                 userRepository.save(user);
             });

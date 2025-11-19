@@ -33,7 +33,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // CSRF 활성화 (쿠키에 저장)
-                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/api/logout")
+                )
+
                 // patch 적용시키기 위해 필요함
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
@@ -56,7 +60,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
 //                        .requestMatchers(HttpMethod.PATCH, "/api/products/**").permitAll()
 //                        .requestMatchers("/products").permitAll()
-                        .requestMatchers("/", "/login","/signup","/api/signup","/api/login").permitAll()
+                        .requestMatchers("/", "/login","/signup","/api/signup","/api/login","/api/logout").permitAll()
                         // 인증 없어도 들어가게
 //                        .requestMatchers("/api/**", "/api/products",
 //                                "/api/products/**", "/api/users/{userId}/likes", "/api/products/{productId}/like",
@@ -67,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
                 )
+
                 // OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")

@@ -103,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-
     // 로그아웃 기능 할당
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
@@ -112,8 +111,10 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const res = await fetch('/api/logout', {
                     method: 'POST',
-                    credentials: 'include'
+                    credentials: 'include',
+
                 });
+
 
                 if (res.ok) {
                     alert('로그아웃 완료!');
@@ -134,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
         profileBtn.addEventListener('click', toggleDropdown);
     }
 
-    // ✅ [추가 필요] 외부 클릭 감지 시작
+    // 외부 클릭 감지 시작
     document.addEventListener('click', closeDropdown);
 
     // 사용자 링크 업데이트 비동기 함수 실행 (가장 먼저 실행)

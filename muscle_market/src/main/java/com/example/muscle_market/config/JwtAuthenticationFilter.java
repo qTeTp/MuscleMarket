@@ -33,7 +33,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
         System.out.println("필터 실행 : " + request.getRequestURI());
+
+//        // 로그아웃 요청은 JWT 검증 없이 바로 통과
+//        if ("/api/logout".equals(requestURI)) {
+//            System.out.println("로그아웃 요청 - 필터 스킵");
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
         String accessToken = null;
         String refreshToken = null;
@@ -150,4 +158,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
     }
+
+//    // 로그아웃 요청 시 토큰 인증하지 않음
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) {
+//        return "/api/logout".equals(request.getRequestURI());
+//    }
 }
