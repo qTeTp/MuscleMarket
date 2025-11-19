@@ -1,4 +1,4 @@
-window.SocketManager = {
+const SocketManager = {
     stompClient: null,
     currentUser: null,
     subscriptions: new Map(),
