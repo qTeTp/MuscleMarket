@@ -60,7 +60,6 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
 //                        .requestMatchers(HttpMethod.PATCH, "/api/products/**").permitAll()
 //                        .requestMatchers("/products").permitAll()
-                        .requestMatchers("/chat/socket-connector.js").permitAll()
                         .requestMatchers("/", "/login","/signup","/api/signup","/api/login","/api/logout").permitAll()
                         // 인증 없어도 들어가게
 //                        .requestMatchers("/api/**", "/api/products",
