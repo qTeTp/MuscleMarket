@@ -111,7 +111,7 @@ jobs:
           
           # 2. [핵심] SCP로 전송된 파일(muscle_market/build/libs/...) 찾아서 꺼내기
           # (Gradle 빌드 파일명 패턴에 맞춰서 찾습니다)
-          FOUND_JAR=$(find . -name "*.jar" | head -n 1)
+          FOUND_JAR=$(find . -name "*.jar" ! -name "*-plain.jar" | head -n 1)
           
           if [ -n "$FOUND_JAR" ]; then
               echo "Found JAR file: $FOUND_JAR"
@@ -131,8 +131,8 @@ jobs:
               chmod +x ./deploy.sh
           fi
 
-          # 4. 껍데기 폴더 정리 (선택사항)
-          # rm -rf muscle_market  <-- 혹시 모르니 일단 주석 처리하고 나중에 켜세요
+          # 4. 껍데기 폴더 정리
+          rm -rf muscle_market
 
           # 5. 스크립트 실행
           ./deploy.sh
