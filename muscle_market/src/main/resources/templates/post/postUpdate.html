@@ -264,6 +264,9 @@
                     const url = '/api/files/upload';
                     const res = await fetch(url, {
                         method: 'POST',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        },
                         body: formData
                     });
 
@@ -277,6 +280,7 @@
                     throw error;
                 }
             });
+            return await Promise.all(uploadPromises);
         }
 
         // 제출 버튼 이벤트 리스너
