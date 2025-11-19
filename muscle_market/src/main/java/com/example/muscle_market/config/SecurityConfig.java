@@ -60,6 +60,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
 //                        .requestMatchers(HttpMethod.PATCH, "/api/products/**").permitAll()
 //                        .requestMatchers("/products").permitAll()
+                        .requestMatchers("/chat/socket-connector.js").permitAll()
                         .requestMatchers("/", "/login","/signup","/api/signup","/api/login","/api/logout").permitAll()
                         // 인증 없어도 들어가게
 //                        .requestMatchers("/api/**", "/api/products",
@@ -68,7 +69,7 @@ public class SecurityConfig {
 //                                "/api/sports/**", "/products/detail/**", "/products", "/products/**", "/post-login", "/oauth2/**",
 //                                "/api/map/**", "/api/alan/chat", "/products/my", "/products/my/**").permitAll() // 회원가입/로그인은 허용
                         //  나머지는 인증 있어야 들어가게
-                        .requestMatchers("/ws-stomp", "/pub/**", "/sub/**").authenticated()
+                        .requestMatchers("/ws-stomp/**", "/pub/**", "/sub/**").authenticated()
                         .anyRequest().authenticated()
                 )
 
