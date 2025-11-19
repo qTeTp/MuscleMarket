@@ -132,7 +132,7 @@ jobs:
           fi
 
           # 4. 껍데기 폴더 정리
-          rm -rf muscle_market
+          # rm -rf muscle_market
 
           # 5. 스크립트 실행
           ./deploy.sh
