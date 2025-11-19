@@ -35,6 +35,7 @@ kakao:
 
 server:
   port: 8080
+  forward-headers-strategy: native
 
 # JWT 토큰 설정
 jwt:
