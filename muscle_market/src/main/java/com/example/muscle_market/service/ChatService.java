@@ -14,6 +14,7 @@ import com.example.muscle_market.exception.EntityNotFoundException;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.muscle_market.repository.ChatRepository;
 import com.example.muscle_market.repository.MessageRepository;
@@ -22,7 +23,6 @@ import com.example.muscle_market.repository.UserChatRelationshipRepository;
 import com.example.muscle_market.repository.UserRepository;
 import com.example.muscle_market.repository.ProductRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -38,6 +38,7 @@ public class ChatService {
 
    // 사용자가 속한 모든 채팅방 조회
    // 정렬은 서비스 레이어 말고 조회시 정렬
+   @Transactional(readOnly = true)
    public List<ChatResponseDto> getChatByUserId(Long userId) {
        // 사용자가 속한 모든 채팅방 id 리스트 저장
        List<Long> chatIds = relationshipRepository.findAllByUserIdWithChat(userId, RelationshipStatus.ACTIVE)
