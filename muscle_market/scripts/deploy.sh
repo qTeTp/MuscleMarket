@@ -27,6 +27,6 @@ fi
 echo "> 새 애플리케이션 실행"
 # nohup: 백그라운드 실행, 로그는 nohup.out에 저장
 # prod 프로필 적용
-nohup java -jar -Dspring.profiles.active=prod $DEPLOY_PATH/$JAR_NAME > $DEPLOY_PATH/nohup.out 2>&1 &
+nohup java -jar -Dspring.profiles.active=prod -Dspring.jpa.hibernate.ddl-auto=create $DEPLOY_PATH/$JAR_NAME > $DEPLOY_PATH/nohup.out 2>&1 &
 
 echo "==== 배포 완료 ===="
