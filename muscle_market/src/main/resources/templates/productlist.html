@@ -309,7 +309,8 @@
                         <span th:text="${product.sportName}">헬스</span>
                         <span th:text="${product.status.description}">판매중</span>
                     </div>
-                    <div class="product-date" th:text="${#dates.format(product.createdAt, 'yyyy-MM-dd')}">2025-11-11
+                    <!--                    <div class="product-date" th:text="${#dates.format(product.createdAt, 'yyyy-MM-dd')}">2025-11-11-->
+                    <div class="product-date" th:text="${#temporals.format(product.createdAt, 'yyyy-MM-dd')}">2025-11-11
                     </div>
                 </div>
                 <div class="product-stats">

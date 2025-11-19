@@ -5,8 +5,8 @@ import com.example.muscle_market.dto.ProductUpdateDto;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -32,10 +32,10 @@ public class Product {
     private String location;
 
     @Column(name = "created_at")
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column
     private Long views;
@@ -69,7 +69,7 @@ public class Product {
         this.price = request.getPrice();
         this.location = request.getLocation();
         this.sport = sport;
-        this.updatedAt = new Date();
+        this.updatedAt = LocalDateTime.now();
     }
 
     // 상품 상태 변경
@@ -81,7 +81,9 @@ public class Product {
 
     // default값 설정
     @Builder
-    public Product(Long id, String title, String description, Long price, String location, Date createdAt, Date updatedAt, Long views, User user, Sport sport, TransactionStatus status) {
+    public Product(Long id, String title, String description, Long price,
+                   String location, LocalDateTime createdAt, LocalDateTime updatedAt,
+                   Long views, User user, Sport sport, TransactionStatus status) {
         this.id = id;
         this.title = title;
         this.description = description;
