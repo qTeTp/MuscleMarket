@@ -1,14 +1,16 @@
-const SocketManager = {
+window.SocketManager = {
     stompClient: null,
     currentUser: null,
     subscriptions: new Map(),
+    csrfHeaders: {},
 
-    init: function(user) {
+    init: function(user, csrfInfo) {
         if (!user || !user.userId) {
             console.log('사용자가 없어 socket 연결을 하지 않습니다');
             return;
         }
         this.currentUser = user;
+        this.csrfHeaders = csrfInfo || {};
         this.connect();
     },
 
@@ -19,7 +21,8 @@ const SocketManager = {
         // 개발자 모드 해제
         this.stompClient.debug = null;
 
-        this.stompClient.connect({},
+        this.stompClient.connect(
+            this.csrfHeaders,
             () => this.onConnected(),
             (error) => this.onError(error)
         );
