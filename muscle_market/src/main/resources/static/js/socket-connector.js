@@ -2,6 +2,7 @@ const SocketManager = {
     stompClient: null,
     currentUser: null,
     subscriptions: new Map(),
+    pendingSubscriptions: new Map(),
     csrfHeaders: {},
 
     init: function(user, csrfInfo) {
@@ -15,6 +16,7 @@ const SocketManager = {
     },
 
     connect: function() {
+        if (this.stompClient && this.stompClient.connected) return;
         const socket = new SockJS('/ws-stomp');
         this.stompClient = Stomp.over(socket);
 
@@ -34,9 +36,18 @@ const SocketManager = {
         // 유저별 메시지 구독 채널
         const userSubUrl = `/sub/users/${this.currentUser.userId}`;
         this.subscribeTo(userSubUrl, (payload) => this.onNotificationReceived(payload));
+
+        // 대기열 구독 처리
+        this.pendingSubscriptions.forEach((callback, url) => {
+            const subscription = this.stompClient.subscribe(url, callback);
+            this.subscriptions.set(url, subscription);
+        });
+
+        this.pendingSubscriptions.clear();
     },
 
     subscribeTo: function(url, callback) {
+        if (this.subscriptions.has(url) || this.pendingSubscriptions.has(url)) return;
         if (this.stompClient && this.stompClient.connected) {
             // 이미 연결이 되어있으면 바로 구독
             const subscription = this.stompClient.subscribe(url, callback);
@@ -45,17 +56,25 @@ const SocketManager = {
         } else {
             // 아직 연결이 되지 않았으면 연결하고 구독
             // 잠시 대기를 걸고 구독 시도
-            setTimeout(() => this.subscribeTo(url, callback), 500);
-            console.log(`${url} subscribing`);
+            // setTimeout(() => this.subscribeTo(url, callback), 500);
+            // console.log(`${url} subscribing`);
+            console.log(`Socket is not ready, Adding ${url} to pending queue`);
+            this.pendingSubscriptions.set(url, callback);
         }
     },
 
     unsubscribeFrom: function(url) {
-        const subscription = this.subscriptions.get(url);
-        if (subscription) {
-            subscription.unsubscribe();
+        // 이미 구독된거 해제
+        if (this.subscriptions.has(url)) {
+            this.subscriptions.get(url).unsubscribe();
             this.subscriptions.delete(url);
-            console.log(`${url} unsubscribed`);
+            console.log(`Unsubscribed from ${url}`);
+        }
+        
+        // 대기열 삭제 (좀비 구독 방지)
+        if (this.pendingSubscriptions.has(url)) {
+            this.pendingSubscriptions.delete(url);
+            console.log(`Removed ${url} from pending queue`);
         }
     },
 
