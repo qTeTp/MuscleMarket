@@ -264,8 +264,42 @@
     }
 
     // 전송 버튼
+    // 유효성 검사 추가
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const title = form.elements['title'].value.trim();
+        const description = form.elements['description'].value.trim();
+        const price = form.elements['price'].value.trim();
+        const location = form.elements['location'].value.trim();
+        const sportId = document.getElementById('sportId').value;
+        const imageFiles = imageInput.files;
+
+        // 이미지 검사 로직
+        // 등록 시: 새 이미지 1개 이상
+        // 수정 시: 기존 이미지|새 이미지 1개 이상
+        const hasInitialImages = currentImagesContainer && currentImagesContainer.children.length > 0;
+        const totalImagesAfterDelete = hasInitialImages ? currentImagesContainer.children.length - deletedImageIds.length : 0;
+
+        const isImageRequired = !isEditMode || (isEditMode && totalImagesAfterDelete === 0 && imageFiles.length === 0);
+
+        // 항목 유효성 검사
+        if (!title || !description || !price || !location || !sportId) {
+            alert('모든 필수 항목을 입력해 주세요.');
+            return;
+        }
+
+        // 이미지 유효성 검사
+        if (!isEditMode && imageFiles.length === 0) { // 등록 모드 & 파일 0개
+            alert('최소 1개 이상의 이미지가 필요합니다.');
+            return;
+        }
+
+        // 수정 시 모든 이미지를 지우고 새 이미지가 없을 경우
+        if (isEditMode && (totalImagesAfterDelete + imageFiles.length) === 0) {
+            alert('최소 1개 이상의 이미지가 필요합니다.');
+            return;
+        }
 
         if (!currentUserId) {
             alert('로그인 후 상품 등록이 가능합니다.');
