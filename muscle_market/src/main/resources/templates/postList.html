@@ -206,12 +206,11 @@
             }
 
             posts.forEach((post, index) => {
-                const postNumber = totalElements - (pageNumber * size) - index;
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-gray-200 hover:bg-gray-50';
                 // 상세 페이지 링크를 board-detail.html?id= 로 변경
                 tr.innerHTML = `
-                    <td class="py-4 px-2 text-center text-sm text-gray-700">${postNumber}</td>
+                    <td class="py-4 px-2 text-center text-sm text-gray-700">${post.postId}</td>
                     <td class="py-4 px-2 font-medium">
                         <a href="/posts/${post.postId}" data-id="${post.postId}" class="hover:underline">
                             ${post.isBungae ? '<span class="text-xs font-bold text-red-500 mr-1">[번개]</span>' : ''}
