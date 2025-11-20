@@ -238,7 +238,7 @@
                 if (postData.isBungae) {
                     bungaeStatus.innerText = postData.bungaeStatus;
                     bungaeLocation.innerText = escapeHtml(postData.bungaeLocation);
-                    bungaeDatetime.innerText = postData.bungaeDatetime;
+                    bungaeDatetime.innerText = formatDate(postData.bungaeDatetime);
                     bungaeParticipant.innerText = `${postData.curParticipants} / ${postData.maxParticipants}명`;
                     bungaeInfo.classList.remove('hidden');
                 } else {
