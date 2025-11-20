@@ -363,13 +363,19 @@
 
         // socket-connector.js로부터 채팅방 소켓 연결 함수 불러오기
         SocketManager.subscribeTo("/sub/chats/" + chatId, function(message) {
+            // 혹시 네트워크 문제 등으로 인해 deselect가 제대로 안됐다면 메시지 무시
+            if (String(currentChatId) !== String(chatId)) {
+                return;
+            }
             const receivedMessage = JSON.parse(message.body);
             // ui 보여주는건 즉시 실행
             showMessage(receivedMessage);
             // 읽음 처리는 지연 실행
             if (!readMarkerTimeout) {
                 readMarkerTimeout = setTimeout(() => {
-                    readMessages(chatId);
+                    if (String(currentChatId) === String(chatId)) {
+                        readMessages(chatId);
+                    }
                     readMarkerTimeout = null;
                 }, READ_MARKER_THROTTLE_MS);
             }
