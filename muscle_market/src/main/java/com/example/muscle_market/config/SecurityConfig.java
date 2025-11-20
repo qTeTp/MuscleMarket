@@ -57,7 +57,8 @@ public class SecurityConfig {
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         // 정적 컨텐츠들 접근 허용
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", 
+                            "/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()
 //                        .requestMatchers(HttpMethod.PATCH, "/api/products/**").permitAll()
 //                        .requestMatchers("/products").permitAll()
                         .requestMatchers("/", "/login","/signup","/api/signup","/api/login","/api/logout").permitAll()
