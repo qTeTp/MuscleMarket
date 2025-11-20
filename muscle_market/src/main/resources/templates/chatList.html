@@ -49,13 +49,13 @@
         }
 
         /* 헤더를 감싸는 래퍼 스타일 */
-        .chat-page-header-wrapper { flex-shrink: 0; width: 100%; position: relative; z-index: 50; }
+        /* .chat-page-header-wrapper { flex-shrink: 0; width: 100%; position: relative; z-index: 50; } */
 
         /* header.css가 position: fixed를 쓰고 있다면 그걸 덮어씁니다 */
-        .chat-page-header-wrapper > * { position: relative !important; top: auto !important; left: auto !important; width: 100% !important; }
+        /* .chat-page-header-wrapper > * { position: relative !important; top: auto !important; left: auto !important; width: 100% !important; } */
 
         /* 전체 레이아웃 */
-        .chat-layout { flex-grow: 1; display: flex; width: 100%; height: 100%; overflow: hidden; position: relative; }
+        .chat-layout { flex-grow: 1; display: flex; width: 100%; height: 100%; overflow: hidden; position: relative; padding-top: 90px; }
         .chat-list-panel, .chat-room-panel { height: 100%; display: flex; flex-direction: column; transition: transform 0.3s ease-in-out; }
 
         .panel-header {
@@ -269,6 +269,7 @@
 </div>
 
 <!-- socket 관련 함수 불러오기 -->
+<script th:src="@{/js/header.js}" defer></script>
 <script th:src="@{/js/socket-connector.js}"></script>
 <script>
     // 현재 로그인한 유저 (API 호출로 데이터 받아오기)

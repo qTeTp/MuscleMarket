@@ -93,7 +93,7 @@
 </head>
 <body class="bg-white">
     <div th:replace="~{fragments/header :: header}"></div>
-    <main id="board-detail" class="w-full max-w-4xl mx-auto px-4 py-10">
+    <main id="board-detail" class="w-full max-w-4xl mx-auto px-4 pt-[90px] pb-10">
         
         <!-- 게시글 본문 (데이터 바인딩 필요) -->
         <div class="border-b-2 border-gray-800 pb-6">
@@ -184,6 +184,7 @@
         </div>
     </main>
 
+    <script th:src="@{/js/header.js}" defer></script>
     <script>
         // 현재 로그인한 유저
         let currentUser = null;

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class ChatViewController {
    @GetMapping
    public String getChatListView() {
-       return "chat/chatList";
+       return "chatList";
    }
 
 }
