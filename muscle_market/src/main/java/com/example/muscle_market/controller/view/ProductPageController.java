@@ -109,6 +109,7 @@ public class ProductPageController {
             @RequestParam String keyword, // 필수 검색 키워드
             @RequestParam(required = false) Long sportId, // 선택적 카테고리 필터
             @RequestParam(defaultValue = "0") int page,
+
             Model model) {
 
         // Pageable 객체 생성
@@ -126,6 +127,9 @@ public class ProductPageController {
         // 검색 결과를 뷰에 전달하기 위한 추가 정보
         model.addAttribute("currentKeyword", keyword); // 검색 결과 뷰에 키워드 유지
         model.addAttribute("currentSportId", sportId); // 카테고리 필터 유지 (페이지네이션을 위해)
+
+        // 찜꽁 페이지가 아님
+        model.addAttribute("isLikePage", false);
 
         // productlist.html 재사용
         return "productlist";
